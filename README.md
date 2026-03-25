@@ -11,9 +11,9 @@ To:
 
 # The system will include the following core features:
 
-Centralized database
-Data entry & editing
-Search and filter
-Dashboard (charts/graphs)
-Automated reports
-Data export (PDF/Excel)
+- Centralized database
+- Data entry & editing
+- Search and filter
+- Dashboard (charts/graphs)
+- Automated reports
+- Data export (PDF/Excel)
