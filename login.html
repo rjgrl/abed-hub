@@ -32,6 +32,17 @@
         color: white;
         border-radius: 10px 10px 0 0;
       }
+      .divider-text {
+        text-align: center;
+        color: #999;
+        margin: 20px 0;
+      }
+      .divider-text span {
+        background: white;
+        padding: 0 10px;
+        position: relative;
+        top: -12px;
+      }
     </style>
   </head>
   <body>
@@ -88,6 +99,25 @@
               <i class="fas fa-sign-in-alt me-2"></i>Login
             </button>
           </form>
+
+          <div class="divider-text mt-4">
+            <span>New User?</span>
+          </div>
+
+          <div class="d-grid gap-2">
+            <a href="signup.html" class="btn btn-outline-primary">
+              <i class="fas fa-user-plus me-2"></i>Create Account
+            </a>
+          </div>
+
+          <div class="text-center mt-3">
+            <a
+              href="forgot-password.php"
+              class="text-decoration-none text-muted small"
+            >
+              Forgot Password?
+            </a>
+          </div>
 
           <hr class="my-4" />
 
@@ -146,11 +176,11 @@
 
                 // Redirect to dashboard after 1 second
                 setTimeout(() => {
-                  window.location.href = data.redirect_url;
+                  window.location.href = data.redirect_url || "dashboard.php";
                 }, 1000);
               } else if (data.status === "redirect") {
                 // Already logged in
-                window.location.href = data.redirect_url;
+                window.location.href = data.redirect_url || "dashboard.php";
               } else {
                 // Show error message
                 alertContainer.innerHTML = `
