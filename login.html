@@ -10,58 +10,24 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
-    <style>
-      body {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .login-container {
-        max-width: 400px;
-        width: 100%;
-      }
-      .login-card {
-        border: none;
-        border-radius: 10px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-      }
-      .login-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 10px 10px 0 0;
-      }
-      .divider-text {
-        text-align: center;
-        color: #999;
-        margin: 20px 0;
-      }
-      .divider-text span {
-        background: white;
-        padding: 0 10px;
-        position: relative;
-        top: -12px;
-      }
-    </style>
   </head>
-  <body>
-    <div class="login-container">
-      <div class="card login-card">
-        <div class="card-header login-header text-center py-4">
+  <body class="auth-body">
+    <div class="auth-container">
+      <div class="card auth-card login">
+        <div class="card-header auth-header text-center py-4">
           <h3 class="mb-0"><i class="fas fa-building me-2"></i>ABED IDM Hub</h3>
           <small>Malaybalay City</small>
         </div>
-        <div class="card-body p-4">
+        <div class="card-body auth-card-body">
           <div id="alertContainer"></div>
 
           <form id="loginForm">
             <div class="mb-3">
-              <label class="form-label fw-bold">Username</label>
+              <label class="form-label">Username</label>
               <div class="input-group">
-                <span class="input-group-text"
-                  ><i class="fas fa-user"></i
-                ></span>
+                <span class="input-group-text">
+                  <i class="fas fa-user"></i>
+                </span>
                 <input
                   type="text"
                   class="form-control"
@@ -73,11 +39,11 @@
             </div>
 
             <div class="mb-3">
-              <label class="form-label fw-bold">Password</label>
+              <label class="form-label">Password</label>
               <div class="input-group">
-                <span class="input-group-text"
-                  ><i class="fas fa-lock"></i
-                ></span>
+                <span class="input-group-text">
+                  <i class="fas fa-lock"></i>
+                </span>
                 <input
                   type="password"
                   class="form-control"
@@ -90,12 +56,12 @@
 
             <div class="mb-3 form-check">
               <input type="checkbox" class="form-check-input" id="rememberMe" />
-              <label class="form-check-label" for="rememberMe"
-                >Remember me</label
-              >
+              <label class="form-check-label" for="rememberMe">
+                Remember me
+              </label>
             </div>
 
-            <button type="submit" class="btn btn-primary w-100 fw-bold">
+            <button type="submit" class="btn btn-auth-submit w-100">
               <i class="fas fa-sign-in-alt me-2"></i>Login
             </button>
           </form>
@@ -112,8 +78,8 @@
 
           <div class="text-center mt-3">
             <a
-              href="forgot-password.php"
-              class="text-decoration-none text-muted small"
+              href="forgot-password.html"
+              class="text-decoration-none text-muted small link-primary-custom"
             >
               Forgot Password?
             </a>
@@ -129,84 +95,13 @@
         </div>
       </div>
 
-      <div class="text-center mt-4 text-white">
+      <div class="auth-footer">
         <small>&copy; 2026 ABED IDM Hub. All rights reserved.</small>
       </div>
     </div>
 
     <script src="bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script>
-      document
-        .getElementById("loginForm")
-        .addEventListener("submit", function (e) {
-          e.preventDefault();
-
-          const username = document.querySelector(
-            'input[name="username"]',
-          ).value;
-          const password = document.querySelector(
-            'input[name="password"]',
-          ).value;
-          const alertContainer = document.getElementById("alertContainer");
-
-          const formData = new FormData();
-          formData.append("username", username);
-          formData.append("password", password);
-
-          // Show loading state
-          const submitBtn = this.querySelector('button[type="submit"]');
-          const originalText = submitBtn.innerHTML;
-          submitBtn.disabled = true;
-          submitBtn.innerHTML =
-            '<span class="spinner-border spinner-border-sm me-2"></span>Logging in...';
-
-          fetch("login.php", {
-            method: "POST",
-            body: formData,
-          })
-            .then((response) => response.json())
-            .then((data) => {
-              if (data.status === "success") {
-                // Show success message
-                alertContainer.innerHTML = `
-              <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle me-2"></i>Login successful! Redirecting...
-              </div>
-            `;
-
-                // Redirect to dashboard after 1 second
-                setTimeout(() => {
-                  window.location.href = data.redirect_url || "dashboard.php";
-                }, 1000);
-              } else if (data.status === "redirect") {
-                // Already logged in
-                window.location.href = data.redirect_url || "dashboard.php";
-              } else {
-                // Show error message
-                alertContainer.innerHTML = `
-              <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-circle me-2"></i>${data.message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-              </div>
-            `;
-
-                // Re-enable submit button
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
-              }
-            })
-            .catch((error) => {
-              console.error("Error:", error);
-              alertContainer.innerHTML = `
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-              <i class="fas fa-exclamation-circle me-2"></i>An error occurred. Please try again.
-              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-          `;
-              submitBtn.disabled = false;
-              submitBtn.innerHTML = originalText;
-            });
-        });
-    </script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/login.js"></script>
   </body>
 </html>

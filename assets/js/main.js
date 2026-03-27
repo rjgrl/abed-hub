@@ -1,132 +1,169 @@
+// ========================================
+// ABED IDM Hub - Main JavaScript
+// ========================================
+
 /**
- * ABED IDM Hub - Main JavaScript File
+ * Show alert message
+ * @param {string} message - Alert message
+ * @param {string} type - Alert type (success, danger, warning, info)
+ * @param {string} containerId - Container element ID
  */
+function showAlert(message, type, containerId = "alertContainer") {
+  const alertContainer = document.getElementById(containerId);
+  if (!alertContainer) return;
 
-// API Endpoints
-const API = {
-  LOGIN: "login.php",
-  SIGNUP: "signup.php",
-  LOGOUT: "logout.php",
-  DASHBOARD: "dashboard.php",
-  REGISTER_FSPF: "register-fspf-project.php",
-  REGISTER_IDP: "register-idp-project.php",
-  REGISTER_AFME: "register-afme-project.php",
-  ADD_MACHINERY: "add-afme-machinery.php",
-  UPDATE_MACHINERY_VALIDATION: "update-afme-machinery-validation.php",
-  UPDATE_DELIVERED: "update-afme-machinery-delivered.php",
-  TURNOVER: "afme-machinery-turnover.php",
-  VIEW_INVENTORY: "view-afme-inventory.php",
-};
+  const iconMap = {
+    success: "check-circle",
+    danger: "exclamation-circle",
+    warning: "exclamation-triangle",
+    info: "info-circle",
+  };
 
-// Helper: Format currency
-function formatCurrency(amount) {
-  return new Intl.NumberFormat("en-PH", {
-    style: "currency",
-    currency: "PHP",
-  }).format(amount);
-}
-
-// Helper: Format date
-function formatDate(dateString) {
-  if (!dateString) return "N/A";
-  return new Date(dateString).toLocaleDateString("en-PH", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
-
-// Helper: Show alert
-function showAlert(type, message) {
-  const alertHtml = `
+  const icon = iconMap[type] || "info-circle";
+  const alertHTML = `
     <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-      ${message}
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      <i class="fas fa-${icon} me-2"></i>${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
   `;
-
-  const container = document.getElementById("alertContainer") || document.body;
-  const alertDiv = document.createElement("div");
-  alertDiv.innerHTML = alertHtml;
-  container.insertBefore(alertDiv.firstElementChild, container.firstChild);
-
-  // Auto dismiss after 5 seconds
-  setTimeout(() => {
-    const alert = container.querySelector(".alert");
-    if (alert) {
-      alert.remove();
-    }
-  }, 5000);
+  alertContainer.innerHTML = alertHTML;
+  alertContainer.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-// Helper: Make API call
-async function apiCall(endpoint, data = null, method = "GET") {
-  try {
-    const options = {
-      method: method,
-      headers: {
-        Accept: "application/json",
-      },
+/**
+ * Toggle password visibility
+ * @param {string} fieldId - Password input field ID
+ */
+function togglePassword(fieldId) {
+  const field = document.getElementById(fieldId);
+  if (!field) return;
+  field.type = field.type === "password" ? "text" : "password";
+}
+
+/**
+ * Update password requirement check icon
+ * @param {string} elementId - Element ID
+ * @param {boolean} isValid - Is requirement valid
+ */
+function updateCheckIcon(elementId, isValid) {
+  const element = document.getElementById(elementId);
+  if (!element) return;
+  element.style.color = isValid ? "#28a745" : "#ccc";
+}
+
+/**
+ * Check password strength
+ * @param {string} password - Password string
+ * @returns {object} Requirements object with boolean values
+ */
+function checkPasswordRequirements(password) {
+  return {
+    length: password.length >= 8,
+    uppercase: /[A-Z]/.test(password),
+    number: /\d/.test(password),
+    special: /[!@#$%^&*]/.test(password),
+  };
+}
+
+/**
+ * Calculate password strength score
+ * @param {object} requirements - Requirements object
+ * @returns {number} Strength score 0-100
+ */
+function calculatePasswordStrength(requirements) {
+  let strength = 0;
+  if (requirements.length) strength += 25;
+  if (requirements.uppercase) strength += 25;
+  if (requirements.number) strength += 25;
+  if (requirements.special) strength += 25;
+  return strength;
+}
+
+/**
+ * Get password strength label and class
+ * @param {number} strength - Strength score
+ * @returns {object} Label and class
+ */
+function getPasswordStrengthLabel(strength) {
+  if (strength < 50) {
+    return {
+      text: "Weak Password",
+      class: "strength-weak",
+      textClass: "text-danger",
     };
-
-    if (data) {
-      if (data instanceof FormData) {
-        options.body = data;
-      } else {
-        options.headers["Content-Type"] = "application/json";
-        options.body = JSON.stringify(data);
-      }
-    }
-
-    const response = await fetch(endpoint, options);
-    const result = await response.json();
-
-    return result;
-  } catch (error) {
-    console.error("API Error:", error);
-    return { status: "error", message: "An error occurred. Please try again." };
+  } else if (strength < 75) {
+    return {
+      text: "Fair Password",
+      class: "strength-fair",
+      textClass: "text-warning",
+    };
+  } else if (strength < 100) {
+    return {
+      text: "Good Password",
+      class: "strength-good",
+      textClass: "text-info",
+    };
+  } else {
+    return {
+      text: "Strong Password",
+      class: "strength-strong",
+      textClass: "text-success",
+    };
   }
 }
 
-// Check if user is authenticated
-function checkAuth() {
-  return fetch(API.DASHBOARD).then((response) => {
-    if (response.status === 401) {
-      window.location.href = "login.html";
-      return false;
-    }
-    return response.ok;
-  });
+/**
+ * Format timer display
+ * @param {number} seconds - Seconds remaining
+ * @returns {string} Formatted time string (MM:SS)
+ */
+function formatTimer(seconds) {
+  const minutes = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${minutes}:${secs.toString().padStart(2, "0")}`;
 }
 
-// Common form submission handler
-function setupFormHandler(formId, endpoint) {
-  const form = document.getElementById(formId);
-  if (!form) return;
-
-  form.addEventListener("submit", async function (e) {
-    e.preventDefault();
-    const formData = new FormData(this);
-
-    try {
-      const result = await apiCall(endpoint, formData, "POST");
-
-      if (result.status === "success") {
-        showAlert("success", result.message);
-        this.reset();
-        // Refresh page or redirect as needed
-      } else {
-        showAlert("danger", result.message);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      showAlert("danger", "An error occurred");
-    }
-  });
+/**
+ * Validate email format
+ * @param {string} email - Email address
+ * @returns {boolean} Is valid email
+ */
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-// Initialize on document ready
-document.addEventListener("DOMContentLoaded", function () {
-  // Add any global initializations here
-  console.log("ABED IDM Hub initialized");
-});
+/**
+ * Validate password requirements
+ * @param {string} password - Password
+ * @returns {string|null} Error message or null if valid
+ */
+function validatePassword(password) {
+  if (!password || password.length < 8) {
+    return "Password must be at least 8 characters";
+  }
+  if (!/[A-Z]/.test(password)) {
+    return "Password must contain at least one uppercase letter";
+  }
+  if (!/\d/.test(password)) {
+    return "Password must contain at least one number";
+  }
+  if (!/[!@#$%^&*]/.test(password)) {
+    return "Password must contain at least one special character";
+  }
+  return null;
+}
+
+// Export for use in other files
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    showAlert,
+    togglePassword,
+    updateCheckIcon,
+    checkPasswordRequirements,
+    calculatePasswordStrength,
+    getPasswordStrengthLabel,
+    formatTimer,
+    isValidEmail,
+    validatePassword,
+  };
+}
