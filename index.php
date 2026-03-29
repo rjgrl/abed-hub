@@ -155,7 +155,7 @@ $conn->close();
     <!-- Hero Section -->
     <section class="hero">
       <div class="container">
-        <h1 class="display-4 fw-bold mb-3">ABED IDM Hub IOdiot</h1>
+        <h1 class="display-4 fw-bold mb-3">ABED IDM Hub</h1>
         <p class="lead mb-4">Agricultural and Bioenterprise Enhancement Division<br>Infrastructure Development Management System</p>
         <?php if (!isset($_SESSION['user_id'])): ?>
         <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
