@@ -104,7 +104,7 @@ function handleSignupSubmit(e) {
   submitBtn.innerHTML =
     '<span class="spinner-border spinner-border-sm me-2"></span>Creating Account...';
 
-  fetch("signup.php", {
+  fetch("handlers/signup.php", {
     method: "POST",
     body: formData,
   })
@@ -116,7 +116,7 @@ function handleSignupSubmit(e) {
           "success",
         );
         setTimeout(() => {
-          window.location.href = "login.html";
+          window.location.href = "login.php";
         }, 2000);
       } else {
         showAlert(data.message, "danger");

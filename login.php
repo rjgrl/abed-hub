@@ -1,77 +1,114 @@
 <?php
 session_start();
-require_once 'config/database.php';
-
-header('Content-Type: application/json');
-
-// If already logged in, redirect to dashboard
 if (isset($_SESSION['user_id'])) {
-    echo json_encode(['status' => 'redirect', 'redirect_url' => 'dashboard.php']);
+    header('Location: dashboard.php');
     exit;
 }
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username'] ?? '');
-    $password = trim($_POST['password'] ?? '');
-
-    // Validate input
-    if (empty($username) || empty($password)) {
-        echo json_encode(['status' => 'error', 'message' => 'Username and password are required']);
-        exit;
-    }
-
-    // Query user from database
-    $stmt = $conn->prepare("SELECT id, username, email, full_name, password, role, is_active FROM users WHERE username = ?");
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result->num_rows !== 1) {
-        echo json_encode(['status' => 'error', 'message' => 'Invalid username or password']);
-        exit;
-    }
-
-    $user = $result->fetch_assoc();
-
-    // Check if user is active
-    if (!$user['is_active']) {
-        echo json_encode(['status' => 'error', 'message' => 'Account is inactive']);
-        exit;
-    }
-
-    // Verify password
-    if (!password_verify($password, $user['password'])) {
-        echo json_encode(['status' => 'error', 'message' => 'Invalid username or password']);
-        exit;
-    }
-
-    // Set session variables
-    $_SESSION['user_id'] = $user['id'];
-    $_SESSION['username'] = $user['username'];
-    $_SESSION['email'] = $user['email'];
-    $_SESSION['full_name'] = $user['full_name'];
-    $_SESSION['role'] = $user['role'];
-    $_SESSION['login_time'] = time();
-
-    // Log login activity
-    $ip_address = $_SERVER['REMOTE_ADDR'];
-    $user_agent = $_SERVER['HTTP_USER_AGENT'];
-    $log_stmt = $conn->prepare("
-        INSERT INTO audit_log (user_id, action, ip_address, user_agent)
-        VALUES (?, 'LOGIN', ?, ?)
-    ");
-    $log_stmt->bind_param("iss", $user['id'], $ip_address, $user_agent);
-    $log_stmt->execute();
-
-    echo json_encode([
-        'status' => 'success',
-        'message' => 'Login successful',
-        'redirect_url' => 'dashboard.php'
-    ]);
-
-    $stmt->close();
-    $conn->close();
-} else {
-    echo json_encode(['status' => 'error', 'message' => 'Invalid request method']);
-}
 ?>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ABED IDM Hub - Login</title>
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body class="auth-body">
+    <div class="auth-container">
+      <div class="card auth-card login">
+        <div class="card-header auth-header text-center py-4">
+          <h3 class="mb-0"><i class="fas fa-building me-2"></i>ABED IDM Hub</h3>
+          <small>Malaybalay City</small>
+        </div>
+        <div class="card-body auth-card-body">
+          <div id="alertContainer"></div>
+
+          <form id="loginForm">
+            <div class="mb-3">
+              <label class="form-label">Username</label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-user"></i>
+                </span>
+                <input
+                  type="text"
+                  class="form-control"
+                  name="username"
+                  placeholder="Enter your username"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Password</label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-lock"></i>
+                </span>
+                <input
+                  type="password"
+                  class="form-control"
+                  name="password"
+                  placeholder="Enter your password"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="mb-3 form-check">
+              <input type="checkbox" class="form-check-input" id="rememberMe" />
+              <label class="form-check-label" for="rememberMe">
+                Remember me
+              </label>
+            </div>
+
+            <button type="submit" class="btn btn-auth-submit w-100">
+              <i class="fas fa-sign-in-alt me-2"></i>Login
+            </button>
+          </form>
+
+          <div class="divider-text mt-4">
+            <span>New User?</span>
+          </div>
+
+          <div class="d-grid gap-2">
+            <a href="signup.php" class="btn btn-outline-primary">
+              <i class="fas fa-user-plus me-2"></i>Create Account
+            </a>
+          </div>
+
+          <div class="text-center mt-3">
+            <a
+              href="forgot-password.php"
+              class="text-decoration-none text-muted small link-primary-custom"
+            >
+              Forgot Password?
+            </a>
+          </div>
+
+          <hr class="my-4" />
+
+          <div class="text-center">
+            <p class="text-muted small mb-0">
+              For support, contact your system administrator
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="auth-footer">
+        <small>&copy; 2026 ABED IDM Hub. All rights reserved.</small>
+      </div>
+    </div>
+
+    <script src="bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/login.js"></script>
+  </body>
+</html>

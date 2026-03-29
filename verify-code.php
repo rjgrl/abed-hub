@@ -1,76 +1,80 @@
 <?php
 session_start();
-header('Content-Type: application/json');
-require_once 'config/database.php';
-
-// Only accept POST requests
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    die(json_encode(['status' => 'error', 'message' => 'Method not allowed']));
+if (isset($_SESSION['user_id'])) {
+    header('Location: dashboard.php');
+    exit;
 }
-
-// Get form data
-$email = isset($_POST['email']) ? trim($_POST['email']) : '';
-$code = isset($_POST['code']) ? trim($_POST['code']) : '';
-
-// Validate inputs
-if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    http_response_code(400);
-    die(json_encode(['status' => 'error', 'message' => 'Invalid email address']));
-}
-
-if (empty($code) || strlen($code) !== 6 || !ctype_digit($code)) {
-    http_response_code(400);
-    die(json_encode(['status' => 'error', 'message' => 'Please enter a valid 6-digit code']));
-}
-
-// Get user by email
-$user_stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
-if (!$user_stmt) {
-    die(json_encode(['status' => 'error', 'message' => 'Database error']));
-}
-
-$user_stmt->bind_param("s", $email);
-$user_stmt->execute();
-$user_result = $user_stmt->get_result();
-
-if ($user_result->num_rows === 0) {
-    http_response_code(404);
-    die(json_encode(['status' => 'error', 'message' => 'User not found']));
-}
-
-$user = $user_result->fetch_assoc();
-$user_id = $user['id'];
-
-// Check if code is valid and not expired
-$token_stmt = $conn->prepare(
-    "SELECT token FROM password_reset_tokens WHERE user_id = ? AND code = ? AND expires_at > NOW() AND is_used = 0"
-);
-
-if (!$token_stmt) {
-    die(json_encode(['status' => 'error', 'message' => 'Database error']));
-}
-
-$token_stmt->bind_param("is", $user_id, $code);
-$token_stmt->execute();
-$token_result = $token_stmt->get_result();
-
-if ($token_result->num_rows === 0) {
-    http_response_code(401);
-    die(json_encode(['status' => 'error', 'message' => 'Invalid or expired code. Please request a new one.']));
-}
-
-$token_data = $token_result->fetch_assoc();
-$token = $token_data['token'];
-
-// Return success with token
-die(json_encode([
-    'status' => 'success',
-    'message' => 'Code verified successfully',
-    'token' => $token
-]));
-
-$user_stmt->close();
-$token_stmt->close();
-$conn->close();
 ?>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verify Code - ABED IDM Hub</title>
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body class="auth-body">
+    <div class="auth-container">
+      <div class="card auth-card">
+        <div class="card-header auth-header text-center py-4">
+          <div class="auth-icon">
+            <i class="fas fa-check-square"></i>
+          </div>
+          <h3>Verify Code</h3>
+          <p>Enter the 6-digit code sent to your email</p>
+        </div>
+
+        <div class="card-body auth-card-body">
+          <div id="alertContainer"></div>
+
+          <form id="verifyCodeForm">
+            <div class="mb-4">
+              <label class="form-label">
+                <i class="fas fa-lock"></i>Recovery Code
+              </label>
+              <div class="otp-input-group" id="otpGroup">
+                <input type="text" class="otp-input" maxlength="1" placeholder="0" data-index="0" />
+                <input type="text" class="otp-input" maxlength="1" placeholder="0" data-index="1" />
+                <input type="text" class="otp-input" maxlength="1" placeholder="0" data-index="2" />
+                <input type="text" class="otp-input" maxlength="1" placeholder="0" data-index="3" />
+                <input type="text" class="otp-input" maxlength="1" placeholder="0" data-index="4" />
+                <input type="text" class="otp-input" maxlength="1" placeholder="0" data-index="5" />
+              </div>
+              <div class="help-text">
+                Code expires in <span class="timer" id="timer">30:00</span>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-auth-submit w-100 mb-2">
+              <i class="fas fa-check me-2"></i>Verify Code
+            </button>
+
+            <a href="login.php" class="btn btn-auth-back w-100">
+              <i class="fas fa-arrow-left me-2"></i>Back to Login
+            </a>
+          </form>
+
+          <div class="divider-text"></div>
+
+          <div class="help-text">
+            Didn't receive the code?
+            <span class="link-primary-custom" id="resendLink">Resend Code</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="auth-footer">
+        <small>&copy; 2026 ABED IDM Hub. All rights reserved.</small>
+      </div>
+    </div>
+
+    <script src="bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/verify-code.js"></script>
+  </body>
+</html>
