@@ -31,7 +31,7 @@ function handleForgotPasswordSubmit(e) {
   submitBtn.innerHTML =
     '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
 
-  fetch("forgot-password.php", {
+  fetch("handlers/forgot-password.php", {
     method: "POST",
     body: formData,
   })
@@ -44,7 +44,7 @@ function handleForgotPasswordSubmit(e) {
         );
         setTimeout(() => {
           window.location.href =
-            "verify-code.html?email=" + encodeURIComponent(email);
+            "verify-code.php?email=" + encodeURIComponent(email);
         }, 2000);
       } else {
         showAlert(data.message, "danger");

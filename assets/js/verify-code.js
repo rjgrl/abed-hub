@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
   if (!email) {
     showAlert("Invalid session. Please start over.", "danger");
     setTimeout(() => {
-      window.location.href = "forgot-password.html";
+      window.location.href = "forgot-password.php";
     }, 2000);
     return;
   }
@@ -141,7 +141,7 @@ function handleVerifyCodeSubmit(e, email) {
   submitBtn.innerHTML =
     '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
 
-  fetch("verify-code.php", {
+  fetch("handlers/verify-code.php", {
     method: "POST",
     body: formData,
   })
@@ -151,7 +151,7 @@ function handleVerifyCodeSubmit(e, email) {
         showAlert("Code verified! Redirecting to reset password...", "success");
         setTimeout(() => {
           window.location.href =
-            "reset-password.html?token=" + encodeURIComponent(data.token);
+            "reset-password.php?token=" + encodeURIComponent(data.token);
         }, 2000);
       } else {
         showAlert(data.message, "danger");
@@ -187,7 +187,7 @@ function resendCode(email) {
   resendLink.style.opacity = "0.5";
   resendLink.classList.add("disabled");
 
-  fetch("forgot-password.php", {
+  fetch("handlers/forgot-password.php", {
     method: "POST",
     body: formData,
   })

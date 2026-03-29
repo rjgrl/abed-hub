@@ -1,162 +1,143 @@
 <?php
 session_start();
-header('Content-Type: application/json');
-require_once 'config/database.php';
-
-// Only accept POST requests
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    die(json_encode(['status' => 'error', 'message' => 'Method not allowed']));
+if (isset($_SESSION['user_id'])) {
+    header('Location: dashboard.php');
+    exit;
 }
-
-// Get form data
-$token = isset($_POST['token']) ? trim($_POST['token']) : '';
-$newPassword = isset($_POST['newPassword']) ? $_POST['newPassword'] : '';
-
-// Validate inputs
-if (empty($token)) {
-    http_response_code(400);
-    die(json_encode(['status' => 'error', 'message' => 'Invalid session']));
-}
-
-if (empty($newPassword) || strlen($newPassword) < 8) {
-    http_response_code(400);
-    die(json_encode(['status' => 'error', 'message' => 'Password must be at least 8 characters']));
-}
-
-// Validate password requirements
-if (!preg_match('/[A-Z]/', $newPassword)) {
-    die(json_encode(['status' => 'error', 'message' => 'Password must contain at least one uppercase letter']));
-}
-
-if (!preg_match('/\d/', $newPassword)) {
-    die(json_encode(['status' => 'error', 'message' => 'Password must contain at least one number']));
-}
-
-if (!preg_match('/[!@#$%^&*]/', $newPassword)) {
-    die(json_encode(['status' => 'error', 'message' => 'Password must contain at least one special character']));
-}
-
-// Find the token
-$token_stmt = $conn->prepare(
-    "SELECT user_id FROM password_reset_tokens WHERE token = ? AND expires_at > NOW() AND is_used = 0"
-);
-
-if (!$token_stmt) {
-    die(json_encode(['status' => 'error', 'message' => 'Database error']));
-}
-
-$token_stmt->bind_param("s", $token);
-$token_stmt->execute();
-$token_result = $token_stmt->get_result();
-
-if ($token_result->num_rows === 0) {
-    http_response_code(401);
-    die(json_encode(['status' => 'error', 'message' => 'Invalid or expired token. Please request a new password reset.']));
-}
-
-$token_data = $token_result->fetch_assoc();
-$user_id = $token_data['user_id'];
-
-// Hash the new password
-$hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT);
-
-// Update user password
-$update_stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
-
-if (!$update_stmt) {
-    die(json_encode(['status' => 'error', 'message' => 'Database error']));
-}
-
-$update_stmt->bind_param("si", $hashedPassword, $user_id);
-
-if (!$update_stmt->execute()) {
-    die(json_encode(['status' => 'error', 'message' => 'Failed to update password']));
-}
-
-// Mark token as used
-$mark_used_stmt = $conn->prepare(
-    "UPDATE password_reset_tokens SET is_used = 1 WHERE token = ?"
-);
-$mark_used_stmt->bind_param("s", $token);
-$mark_used_stmt->execute();
-
-// Get user info for logging
-$user_stmt = $conn->prepare("SELECT email FROM users WHERE id = ?");
-$user_stmt->bind_param("i", $user_id);
-$user_stmt->execute();
-$user_result = $user_stmt->get_result();
-$user = $user_result->fetch_assoc();
-
-// Log the action
-$action = "Password reset via recovery";
-$ip_address = $_SERVER['REMOTE_ADDR'];
-$user_agent = $_SERVER['HTTP_USER_AGENT'];
-
-$audit_stmt = $conn->prepare(
-    "INSERT INTO audit_log (user_id, action, ip_address, user_agent) VALUES (?, ?, ?, ?)"
-);
-$audit_stmt->bind_param("isss", $user_id, $action, $ip_address, $user_agent);
-$audit_stmt->execute();
-
-// Delete all tokens for this user (invalidate all recovery codes)
-$conn->query("DELETE FROM password_reset_tokens WHERE user_id = $user_id");
-
-// Send confirmation email
-$to = $user['email'];
-$subject = "ABED IDM Hub - Password Changed Successfully";
-$message = "
-<html>
-<head>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        .container { max-width: 600px; margin: 0 auto; background: #f5f7fa; padding: 20px; border-radius: 10px; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }
-        .content { background: white; padding: 30px; border-radius: 0 0 10px 10px; }
-        .success-message { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 15px; border-radius: 8px; margin: 20px 0; }
-        .footer { text-align: center; color: #999; font-size: 12px; margin-top: 20px; }
-    </style>
-</head>
-<body>
-    <div class='container'>
-        <div class='header'>
-            <h2>Password Changed</h2>
-        </div>
-        <div class='content'>
-            <p>Your password has been successfully reset.</p>
-            
-            <div class='success-message'>
-                ✓ You can now log in with your new password.
-            </div>
-            
-            <p>If you didn't make this change or believe this is a security issue, please contact your system administrator immediately.</p>
-            
-            <p>For security, all recovery tokens have been invalidated.</p>
-        </div>
-        <div class='footer'>
-            <p>&copy; 2026 ABED IDM Hub. All rights reserved.</p>
-        </div>
-    </div>
-</body>
-</html>
-";
-
-$headers = "MIME-Version: 1.0" . "\r\n";
-$headers .= "Content-type: text/html; charset=UTF-8" . "\r\n";
-$headers .= "From: noreply@abed.gov.ph" . "\r\n";
-
-mail($to, $subject, $message, $headers);
-
-// Return success
-die(json_encode([
-    'status' => 'success',
-    'message' => 'Password reset successfully'
-]));
-
-$token_stmt->close();
-$update_stmt->close();
-$mark_used_stmt->close();
-$user_stmt->close();
-$audit_stmt->close();
-$conn->close();
 ?>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reset Password - ABED IDM Hub</title>
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body class="auth-body">
+    <div class="auth-container">
+      <div class="card auth-card">
+        <div class="card-header auth-header text-center py-4">
+          <div class="auth-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <h3>Create New Password</h3>
+          <p>Enter your new password below</p>
+        </div>
+
+        <div class="card-body auth-card-body">
+          <div id="alertContainer"></div>
+
+          <form id="resetPasswordForm">
+            <div class="mb-4">
+              <label class="form-label">
+                <i class="fas fa-lock"></i>New Password
+              </label>
+              <div class="input-group">
+                <input
+                  type="password"
+                  class="form-control"
+                  id="newPassword"
+                  name="newPassword"
+                  placeholder="Enter new password"
+                  required
+                />
+                <span class="input-group-text" onclick="togglePassword('newPassword')">
+                  <i class="fas fa-eye"></i>
+                </span>
+              </div>
+              <div class="password-strength">
+                <div class="password-strength-meter" id="strengthMeter"></div>
+              </div>
+              <small class="strength-text" id="strengthText"></small>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">
+                <i class="fas fa-check-circle"></i>Confirm Password
+              </label>
+              <div class="input-group">
+                <input
+                  type="password"
+                  class="form-control"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  placeholder="Confirm password"
+                  required
+                />
+                <span class="input-group-text" onclick="togglePassword('confirmPassword')">
+                  <i class="fas fa-eye"></i>
+                </span>
+              </div>
+              <small class="text-muted" id="matchText"></small>
+            </div>
+
+            <div class="small mb-4">
+              <div class="mb-1">
+                <i
+                  class="fas fa-check-circle"
+                  id="check-length"
+                  style="color: #ccc"
+                ></i>
+                At least 8 characters
+              </div>
+              <div class="mb-1">
+                <i
+                  class="fas fa-check-circle"
+                  id="check-upper"
+                  style="color: #ccc"
+                ></i>
+                At least one uppercase letter
+              </div>
+              <div class="mb-1">
+                <i
+                  class="fas fa-check-circle"
+                  id="check-number"
+                  style="color: #ccc"
+                ></i>
+                At least one number
+              </div>
+              <div>
+                <i
+                  class="fas fa-check-circle"
+                  id="check-special"
+                  style="color: #ccc"
+                ></i>
+                At least one special character (!@#$%^&*)
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-auth-submit w-100 mb-2">
+              <i class="fas fa-key me-2"></i>Reset Password
+            </button>
+
+            <a href="login.php" class="btn btn-auth-back w-100">
+              <i class="fas fa-arrow-left me-2"></i>Back to Login
+            </a>
+          </form>
+
+          <div class="divider-text"></div>
+
+          <div class="text-center">
+            <p class="text-muted small mb-0">
+              <i class="fas fa-shield-alt"></i> Your password will be encrypted
+              and secured
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="auth-footer">
+        <small>&copy; 2026 ABED IDM Hub. All rights reserved.</small>
+      </div>
+    </div>
+
+    <script src="bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/reset-password.js"></script>
+  </body>
+</html>

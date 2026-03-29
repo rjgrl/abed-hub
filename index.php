@@ -141,10 +141,10 @@ $conn->close();
             </li>
             <?php else: ?>
             <li class="nav-item">
-              <a class="nav-link" href="login.html">Login</a>
+              <a class="nav-link" href="login.php">Login</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="signup.html">Sign Up</a>
+              <a class="nav-link" href="signup.php">Sign Up</a>
             </li>
             <?php endif; ?>
           </ul>
@@ -159,10 +159,10 @@ $conn->close();
         <p class="lead mb-4">Agricultural and Bioenterprise Enhancement Division<br>Infrastructure Development Management System</p>
         <?php if (!isset($_SESSION['user_id'])): ?>
         <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-          <a href="login.html" class="btn btn-light btn-lg px-4">
+          <a href="login.php" class="btn btn-light btn-lg px-4">
             <i class="fas fa-sign-in-alt me-2"></i>Login
           </a>
-          <a href="signup.html" class="btn btn-outline-light btn-lg px-4">
+          <a href="signup.php" class="btn btn-outline-light btn-lg px-4">
             <i class="fas fa-user-plus me-2"></i>Register
           </a>
         </div>

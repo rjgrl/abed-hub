@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
     submitBtn.innerHTML =
       '<span class="spinner-border spinner-border-sm me-2"></span>Logging in...';
 
-    fetch("login.php", {
+    fetch("handlers/login.php", {
       method: "POST",
       body: formData,
     })

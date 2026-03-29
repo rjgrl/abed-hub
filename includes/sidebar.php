@@ -6,16 +6,16 @@
 
   <ul class="nav nav-pills flex-column mb-auto">
     <li class="nav-item mb-2">
-      <a href="dashboard.html" class="nav-link text-white">Dashboard</a>
+      <a href="dashboard.php" class="nav-link text-white">Dashboard</a>
     </li>
     <li class="nav-item mb-2">
-      <a href="profile.html" class="nav-link text-white">Profile</a>
+      <a href="profile.php" class="nav-link text-white">Profile</a>
     </li>
     <li class="nav-item mb-2">
-      <a href="reports.html" class="nav-link text-white">Reports</a>
+      <a href="reports.php" class="nav-link text-white">Reports</a>
     </li>
     <li class="nav-item mb-2">
-      <a href="analytics.html" class="nav-link text-white">Analytics</a>
+      <a href="analytics.php" class="nav-link text-white">Analytics</a>
     </li>
   </ul>
 
@@ -23,7 +23,7 @@
 
   <ul class="nav nav-pills flex-column">
     <li class="nav-item">
-      <a href="../login.html" class="nav-link text-danger">Logout</a>
+      <a href="../login.php" class="nav-link text-danger">Logout</a>
     </li>
   </ul>
 </div>

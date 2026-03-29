@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
   if (!token) {
     showAlert("Invalid session. Please start over.", "danger");
     setTimeout(() => {
-      window.location.href = "forgot-password.html";
+      window.location.href = "forgot-password.php";
     }, 2000);
     return;
   }
@@ -118,7 +118,7 @@ function handleResetPasswordSubmit(e, token) {
   submitBtn.innerHTML =
     '<span class="spinner-border spinner-border-sm me-2"></span>Resetting Password...';
 
-  fetch("reset-password.php", {
+  fetch("handlers/reset-password.php", {
     method: "POST",
     body: formData,
   })
@@ -130,7 +130,7 @@ function handleResetPasswordSubmit(e, token) {
           "success",
         );
         setTimeout(() => {
-          window.location.href = "login.html";
+          window.location.href = "login.php";
         }, 2000);
       } else {
         showAlert(data.message, "danger");
