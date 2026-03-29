@@ -32,8 +32,8 @@ $conn->set_charset("utf8mb4");
 // Set timezone
 date_default_timezone_set('Asia/Manila');
 
-// Enable error reporting in development
-ini_set('display_errors', 0);
+// Enable error reporting in development (set to 1 while debugging locally)
+ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 // Security constants
@@ -54,9 +54,11 @@ define('ALLOWED_EXCEL_TYPES', ['application/vnd.ms-excel', 'application/vnd.open
 define('SESSION_TIMEOUT', 1800); // 30 minutes
 define('SESSION_NAME', 'ABED_IDM_HUB');
 
-// Initialize session
-session_name(SESSION_NAME);
-session_start();
+// Initialize session (only if not already started)
+if (session_status() === PHP_SESSION_NONE) {
+    session_name(SESSION_NAME);
+    session_start();
+}
 
 // Check session timeout
 if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > SESSION_TIMEOUT)) {
