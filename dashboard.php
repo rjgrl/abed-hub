@@ -482,7 +482,7 @@ $conn->close();
 
     <!-- Register FSPF Modal -->
     <div class="modal fade" id="registerFspfModal" tabindex="-1">
-      <div class="modal-dialog modal-lg">
+      <div class="modal-dialog modal-xl">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Register FSPF Project</h5>
@@ -490,9 +490,21 @@ $conn->close();
           </div>
           <form id="fspfForm">
             <div class="modal-body">
-              <div class="mb-3">
-                <label class="form-label">Project Code *</label>
-                <input type="text" class="form-control" name="project_code" required />
+              <!-- Basic Information -->
+              <h6 class="text-primary mb-3">Basic Information</h6>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Project Code *</label>
+                    <input type="text" class="form-control" name="project_code" required />
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Funding Year *</label>
+                    <input type="number" class="form-control" name="funding_year" value="2026" required />
+                  </div>
+                </div>
               </div>
               <div class="mb-3">
                 <label class="form-label">Project Title *</label>
@@ -503,23 +515,128 @@ $conn->close();
                   <div class="mb-3">
                     <label class="form-label">Fund Source *</label>
                     <select class="form-control" name="fund_source" required>
+                      <option value="">Select Fund Source</option>
                       <option>20% City Development Fund (CDF)</option>
                       <option>Supplemental Budget</option>
                       <option>LDRRM - QRF</option>
+                      <option>Other</option>
                     </select>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="mb-3">
-                    <label class="form-label">Funding Year *</label>
-                    <input type="number" class="form-control" name="funding_year" value="2026" required />
+                    <label class="form-label">Scope of Work</label>
+                    <select class="form-control" name="scope_of_work">
+                      <option value="">Select Scope</option>
+                      <option>Construction</option>
+                      <option>Rehabilitation</option>
+                      <option>Upgrading</option>
+                      <option>Additional Work</option>
+                    </select>
                   </div>
                 </div>
+              </div>
+
+              <!-- Location Information -->
+              <h6 class="text-primary mb-3 mt-4">Location Information</h6>
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <label class="form-label">Province</label>
+                    <input type="text" class="form-control" name="province" value="Bukidnon" />
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <label class="form-label">Municipality</label>
+                    <input type="text" class="form-control" name="municipality" value="Malaybalay City" />
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <label class="form-label">Barangay</label>
+                    <input type="text" class="form-control" name="barangay" />
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Latitude</label>
+                    <input type="number" step="0.000001" class="form-control" name="latitude" />
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Longitude</label>
+                    <input type="number" step="0.000001" class="form-control" name="longitude" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Project Details -->
+              <h6 class="text-primary mb-3 mt-4">Project Details</h6>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Beneficiary</label>
+                    <input type="text" class="form-control" name="beneficiary" />
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Implementation Days</label>
+                    <input type="number" class="form-control" name="implementation_schedule_days" />
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <label class="form-label">Quantity</label>
+                    <input type="number" step="0.01" class="form-control" name="quantity" />
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <label class="form-label">Unit</label>
+                    <input type="text" class="form-control" name="unit" />
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <label class="form-label">Households Benefited</label>
+                    <input type="number" class="form-control" name="households_benefited" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Financial Information -->
+              <h6 class="text-primary mb-3 mt-4">Financial Information</h6>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Proposed Amount (₱)</label>
+                    <input type="number" step="0.01" class="form-control" name="proposed_amount" />
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Allocated Amount (₱)</label>
+                    <input type="number" step="0.01" class="form-control" name="allocated_amount" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Description -->
+              <div class="mb-3">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" name="description" rows="3"></textarea>
               </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-primary">Register</button>
+              <button type="submit" class="btn btn-primary">Register FSPF Project</button>
             </div>
           </form>
         </div>
@@ -528,7 +645,7 @@ $conn->close();
 
     <!-- Register IDP Modal -->
     <div class="modal fade" id="registerIdpModal" tabindex="-1">
-      <div class="modal-dialog modal-lg">
+      <div class="modal-dialog modal-xl">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Register IDP Project</h5>
@@ -536,9 +653,21 @@ $conn->close();
           </div>
           <form id="idpForm">
             <div class="modal-body">
-              <div class="mb-3">
-                <label class="form-label">Project Code *</label>
-                <input type="text" class="form-control" name="project_code" required />
+              <!-- Basic Information -->
+              <h6 class="text-primary mb-3">Basic Information</h6>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Project Code *</label>
+                    <input type="text" class="form-control" name="project_code" required />
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Funding Year *</label>
+                    <input type="number" class="form-control" name="funding_year" value="2026" required />
+                  </div>
+                </div>
               </div>
               <div class="mb-3">
                 <label class="form-label">Project Title *</label>
@@ -549,23 +678,128 @@ $conn->close();
                   <div class="mb-3">
                     <label class="form-label">Fund Source *</label>
                     <select class="form-control" name="fund_source" required>
+                      <option value="">Select Fund Source</option>
                       <option>20% City Development Fund (CDF)</option>
                       <option>Supplemental Budget</option>
                       <option>LDRRM - QRF</option>
+                      <option>Other</option>
                     </select>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="mb-3">
-                    <label class="form-label">Funding Year *</label>
-                    <input type="number" class="form-control" name="funding_year" value="2026" required />
+                    <label class="form-label">Scope of Work</label>
+                    <select class="form-control" name="scope_of_work">
+                      <option value="">Select Scope</option>
+                      <option>Construction</option>
+                      <option>Rehabilitation</option>
+                      <option>Upgrading</option>
+                      <option>Additional Work</option>
+                    </select>
                   </div>
                 </div>
+              </div>
+
+              <!-- Location Information -->
+              <h6 class="text-primary mb-3 mt-4">Location Information</h6>
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <label class="form-label">Province</label>
+                    <input type="text" class="form-control" name="province" value="Bukidnon" />
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <label class="form-label">Municipality</label>
+                    <input type="text" class="form-control" name="municipality" value="Malaybalay City" />
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <label class="form-label">Barangay</label>
+                    <input type="text" class="form-control" name="barangay" />
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Latitude</label>
+                    <input type="number" step="0.000001" class="form-control" name="latitude" />
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Longitude</label>
+                    <input type="number" step="0.000001" class="form-control" name="longitude" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Project Details -->
+              <h6 class="text-primary mb-3 mt-4">Project Details</h6>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Beneficiary</label>
+                    <input type="text" class="form-control" name="beneficiary" />
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Implementation Days</label>
+                    <input type="number" class="form-control" name="implementation_schedule_days" />
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <label class="form-label">Quantity</label>
+                    <input type="number" step="0.01" class="form-control" name="quantity" />
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <label class="form-label">Unit</label>
+                    <input type="text" class="form-control" name="unit" />
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <label class="form-label">Households Benefited</label>
+                    <input type="number" class="form-control" name="households_benefited" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Financial Information -->
+              <h6 class="text-primary mb-3 mt-4">Financial Information</h6>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Proposed Amount (₱)</label>
+                    <input type="number" step="0.01" class="form-control" name="proposed_amount" />
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Allocated Amount (₱)</label>
+                    <input type="number" step="0.01" class="form-control" name="allocated_amount" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Description -->
+              <div class="mb-3">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" name="description" rows="3"></textarea>
               </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-success">Register</button>
+              <button type="submit" class="btn btn-success">Register IDP Project</button>
             </div>
           </form>
         </div>
@@ -574,7 +808,7 @@ $conn->close();
 
     <!-- Register AFME Modal -->
     <div class="modal fade" id="registerAfmeModal" tabindex="-1">
-      <div class="modal-dialog modal-lg">
+      <div class="modal-dialog modal-xl">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Add AFME Machinery</h5>
@@ -582,6 +816,8 @@ $conn->close();
           </div>
           <form id="afmeForm">
             <div class="modal-body">
+              <!-- Basic Information -->
+              <h6 class="text-primary mb-3">Basic Information</h6>
               <div class="mb-3">
                 <label class="form-label">Machine Name *</label>
                 <input type="text" class="form-control" name="machine_name" required />
@@ -591,6 +827,7 @@ $conn->close();
                   <div class="mb-3">
                     <label class="form-label">Farm Operation *</label>
                     <select class="form-control" name="farm_operation" required>
+                      <option value="">Select Operation</option>
                       <option value="Crops">Crops</option>
                       <option value="Livestock">Livestock</option>
                       <option value="Fisheries">Fisheries</option>
@@ -599,15 +836,94 @@ $conn->close();
                 </div>
                 <div class="col-md-6">
                   <div class="mb-3">
-                    <label class="form-label">Beneficiary *</label>
+                    <label class="form-label">Funding Year</label>
+                    <input type="number" class="form-control" name="funding_year" value="2026" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Beneficiary Information -->
+              <h6 class="text-primary mb-3 mt-4">Beneficiary Information</h6>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Beneficiary Name *</label>
                     <input type="text" class="form-control" name="beneficiary_name" required />
                   </div>
                 </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Contact Information</label>
+                    <input type="text" class="form-control" name="beneficiary_contact" />
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Recipient Type</label>
+                    <select class="form-control" name="recipient_type">
+                      <option value="Farmers Cooperative">Farmers Cooperative</option>
+                      <option value="Registered Farmers Organization">Registered Farmers Organization</option>
+                      <option value="Agrarian Reform Beneficiary Organization">Agrarian Reform Beneficiary Organization</option>
+                      <option value="Rural-based Organization">Rural-based Organization</option>
+                      <option value="Local Government Unit">Local Government Unit</option>
+                      <option value="Agricultural School">Agricultural School</option>
+                      <option value="University or College">University or College</option>
+                      <option value="Others">Others</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Beneficiary Households</label>
+                    <input type="number" class="form-control" name="beneficiary_households" />
+                  </div>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Farm Location</label>
+                <input type="text" class="form-control" name="farm_location" />
+              </div>
+
+              <!-- Financial Information -->
+              <h6 class="text-primary mb-3 mt-4">Financial Information</h6>
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <label class="form-label">Fund Source</label>
+                    <select class="form-control" name="fund_source">
+                      <option value="">Select Fund Source</option>
+                      <option>20% City Development Fund (CDF)</option>
+                      <option>Supplemental Budget</option>
+                      <option>LDRRM - QRF</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <label class="form-label">Proposed Amount (₱)</label>
+                    <input type="number" step="0.01" class="form-control" name="proposed_amount" />
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <label class="form-label">Allocated Amount (₱)</label>
+                    <input type="number" step="0.01" class="form-control" name="allocated_amount" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Description -->
+              <div class="mb-3">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" name="description" rows="3"></textarea>
               </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-warning">Add Machinery</button>
+              <button type="submit" class="btn btn-warning">Add AFME Machinery</button>
             </div>
           </form>
         </div>

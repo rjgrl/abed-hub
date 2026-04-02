@@ -25,10 +25,12 @@ $quantity = floatval($_POST['quantity'] ?? 0);
 $unit = sanitize($_POST['unit'] ?? '');
 $province = sanitize($_POST['province'] ?? '');
 $municipality = sanitize($_POST['municipality'] ?? '');
+$barangay = sanitize($_POST['barangay'] ?? '');
 $latitude = floatval($_POST['latitude'] ?? 0);
 $longitude = floatval($_POST['longitude'] ?? 0);
 $proposed_amount = floatval($_POST['proposed_amount'] ?? 0);
 $allocated_amount = floatval($_POST['allocated_amount'] ?? 0);
+$households_benefited = intval($_POST['households_benefited'] ?? 0);
 
 // Validate required fields
 if (empty($project_code) || empty($project_title) || empty($fund_source)) {
@@ -50,17 +52,17 @@ $stmt = $conn->prepare("
     INSERT INTO fspf_projects (
         project_code, project_title, fund_source, funding_year, scope_of_work,
         beneficiary, description, implementation_schedule_days, quantity, unit,
-        province, municipality, latitude, longitude, proposed_amount, allocated_amount,
-        created_by
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        province, municipality, barangay, latitude, longitude, proposed_amount,
+        allocated_amount, households_benefited, created_by
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ");
 
 $stmt->bind_param(
-    "sssisisdssdddii",
+    "sssissdssdddddiii",
     $project_code, $project_title, $fund_source, $funding_year, $scope_of_work,
     $beneficiary, $description, $implementation_schedule_days, $quantity, $unit,
-    $province, $municipality, $latitude, $longitude, $proposed_amount, $allocated_amount,
-    $user_id
+    $province, $municipality, $barangay, $latitude, $longitude, $proposed_amount,
+    $allocated_amount, $households_benefited, $user_id
 );
 
 if ($stmt->execute()) {
