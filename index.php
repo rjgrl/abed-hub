@@ -68,7 +68,7 @@ $conn->close();
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ABED IDM Hub - Homepage</title>
-    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <style>
@@ -116,41 +116,7 @@ $conn->close();
   </head>
   <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
-      <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="index.php">
-          <i class="fas fa-building me-2"></i>ABED IDM Hub
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto">
-            <li class="nav-item">
-              <a class="nav-link" href="#projects">Projects</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#machinery">Machinery</a>
-            </li>
-            <?php if (isset($_SESSION['user_id'])): ?>
-            <li class="nav-item">
-              <a class="nav-link" href="dashboard.php">Dashboard</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="logout.php">Logout</a>
-            </li>
-            <?php else: ?>
-            <li class="nav-item">
-              <a class="nav-link" href="login.php">Login</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="signup.php">Sign Up</a>
-            </li>
-            <?php endif; ?>
-          </ul>
-        </div>
-      </div>
-    </nav>
+    <?php include 'components/navbar.php'; ?>
 
     <!-- Hero Section -->
     <section class="hero">
@@ -431,6 +397,7 @@ $conn->close();
       </div>
     </footer>
 
-    <script src="bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>
+

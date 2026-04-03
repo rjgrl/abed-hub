@@ -1,5 +1,5 @@
 <?php 
-include '../includes/db_connect.php'; 
+include '../components/db_connect.php'; 
 $sql = "SELECT * FROM machinery WHERE status = 'Delivered'";
 $result = $conn->query($sql);
 ?>
@@ -26,3 +26,4 @@ $result = $conn->query($sql);
         </tbody>
     </table>
 </div>
+

@@ -4,6 +4,8 @@ require_once 'config/database.php';
 
 requireLogin();
 
+$page_title = 'Project Details';
+
 $type = $_GET['type'] ?? '';
 $id = intval($_GET['id'] ?? 0);
 
@@ -58,57 +60,11 @@ $status_updates = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $user_id = $_SESSION['user_id'];
 $user_role = $_SESSION['role'] ?? 'viewer';
 ?>
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($project['project_title']); ?> - ABED IDM Hub</title>
-    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body>
-    <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
-        <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="dashboard.php">
-                <i class="fas fa-building me-2"></i>ABED IDM Hub
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="dashboard.php">
-                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="projects.php">
-                            <i class="fas fa-folder-open me-1"></i>Projects
-                        </a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user-circle me-1"></i><?php echo htmlspecialchars($_SESSION['full_name']); ?>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="my-account.php">My Account</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="logout.php">Logout</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="container-fluid py-4">
+<?php
+require_once __DIR__ . '/components/layout.php';
+renderAppLayout($page_title);
+?>
+        <div class="container-fluid py-4">
         <!-- Project Header -->
         <div class="row mb-4">
             <div class="col-12">
@@ -535,7 +491,7 @@ $user_role = $_SESSION['role'] ?? 'viewer';
         </div>
     </div>
 
-    <script src="bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/project-details.js"></script>
-</body>
-</html>
+<?php renderAppLayoutFooter(); ?>
+

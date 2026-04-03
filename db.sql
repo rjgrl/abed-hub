@@ -1,3 +1,33 @@
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP TABLE IF EXISTS audit_log;
+DROP TABLE IF EXISTS potential_duplicates;
+DROP TABLE IF EXISTS geotagged_photos;
+DROP TABLE IF EXISTS project_liquidations;
+DROP TABLE IF EXISTS project_disbursements;
+DROP TABLE IF EXISTS project_obligations;
+DROP TABLE IF EXISTS financial_progress;
+DROP TABLE IF EXISTS s_curve_monitoring;
+DROP TABLE IF EXISTS program_of_works;
+DROP TABLE IF EXISTS project_status_updates;
+DROP TABLE IF EXISTS project_documents;
+DROP TABLE IF EXISTS project_milestones;
+DROP TABLE IF EXISTS afme_machinery_operation;
+DROP TABLE IF EXISTS afme_machinery_turnover;
+DROP TABLE IF EXISTS afme_machinery_delivery;
+DROP TABLE IF EXISTS afme_machinery_documents;
+DROP TABLE IF EXISTS afme_machinery_milestones;
+DROP TABLE IF EXISTS afme_machinery_validation;
+DROP TABLE IF EXISTS afme_machinery_specs;
+DROP TABLE IF EXISTS afme_machinery;
+DROP TABLE IF EXISTS afme_projects;
+DROP TABLE IF EXISTS idp_projects;
+DROP TABLE IF EXISTS fspf_projects;
+DROP TABLE IF EXISTS password_reset_tokens;
+DROP TABLE IF EXISTS users;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) UNIQUE NOT NULL,

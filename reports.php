@@ -4,6 +4,8 @@ require_once 'config/database.php';
 
 requireLogin();
 
+$page_title = 'Reports';
+
 // Get filter parameters
 $year = $_GET['year'] ?? date('Y');
 $type = $_GET['type'] ?? 'all';
@@ -140,58 +142,27 @@ $total_projects = ($stats['fspf']['total'] ?? 0) + ($stats['idp']['total'] ?? 0)
 $total_completed = ($stats['fspf']['completed'] ?? 0) + ($stats['idp']['completed'] ?? 0) + ($stats['afme']['completed'] ?? 0);
 $total_budget = ($stats['fspf']['total_budget'] ?? 0) + ($stats['idp']['total_budget'] ?? 0) + ($stats['afme']['total_budget'] ?? 0);
 $completion_rate = $total_projects > 0 ? ($total_completed / $total_projects) * 100 : 0;
-?>
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reports & Analytics - ABED IDM Hub</title>
-    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body>
-    <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
-        <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="dashboard.php">
-                <i class="fas fa-building me-2"></i>ABED IDM Hub
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="dashboard.php">
-                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="reports.php">
-                            <i class="fas fa-chart-bar me-1"></i>Reports
-                        </a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user-circle me-1"></i><?php echo htmlspecialchars($_SESSION['full_name']); ?>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="my-account.php">My Account</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="logout.php">Logout</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
 
-    <!-- Main Content -->
-    <div class="container-fluid py-4">
+// Build analytics data for charts
+$typeCounts = ['FSPF' => 0, 'IDP' => 0, 'AFME' => 0, 'Other' => 0];
+$stageCounts = [];
+
+foreach ($projects as $project) {
+    $t = $project['type'] ?? 'Other';
+    if (!isset($typeCounts[$t])) $t = 'Other';
+    $typeCounts[$t]++;
+
+    $stage = $project['current_stage'] ?? $project['current_status'] ?? 'Unknown';
+    if ($stage === '') $stage = 'Unknown';
+    if (!isset($stageCounts[$stage])) $stageCounts[$stage] = 0;
+    $stageCounts[$stage]++;
+}
+?>
+<?php
+require_once __DIR__ . '/components/layout.php';
+renderAppLayout($page_title);
+?>
+        <div class="container-fluid py-4">
         <!-- Reports Header -->
         <div class="row mb-4">
             <div class="col-12">
@@ -199,7 +170,7 @@ $completion_rate = $total_projects > 0 ? ($total_completed / $total_projects) * 
                     <div class="card-header bg-success text-white">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h4 class="mb-0"><i class="fas fa-chart-line me-2"></i>Reports & Analytics</h4>
+                                <h4 class="mb-0"><i class="fas fa-chart-line me-2"></i><?php echo htmlspecialchars($page_title ?? 'Reports'); ?></h4>
                                 <small>Generate comprehensive reports and view project analytics</small>
                             </div>
                             <div>
@@ -448,8 +419,9 @@ $completion_rate = $total_projects > 0 ? ($total_completed / $total_projects) * 
             </div>
         </div>
     </div>
+  </main>
 
-    <script src="bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script>
         function exportToExcel() {
             // Create a simple CSV export
@@ -488,5 +460,5 @@ $completion_rate = $total_projects > 0 ? ($total_completed / $total_projects) * 
             document.body.removeChild(link);
         }
     </script>
-</body>
-</html>
+<?php renderAppLayoutFooter(); ?>
+

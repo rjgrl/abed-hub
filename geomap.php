@@ -4,6 +4,8 @@ require_once 'config/database.php';
 
 requireLogin();
 
+$page_title = 'GeoMap';
+
 // Get all projects with coordinates
 $projects = [];
 
@@ -29,10 +31,10 @@ $idp_projects = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 // Get AFME projects
 $stmt = $conn->prepare("
-    SELECT 'AFME' as type, p.id, p.project_code, p.project_title, p.current_stage, p.latitude, p.longitude,
-           p.allocated_amount, p.municipality, p.province
-    FROM afme_projects p
-    WHERE p.latitude IS NOT NULL AND p.longitude IS NOT NULL
+    SELECT 'AFME' as type, id, project_code, project_title, current_stage, latitude, longitude,
+           allocated_amount, implementing_office AS municipality, source_agency AS province
+    FROM afme_projects
+    WHERE latitude IS NOT NULL AND longitude IS NOT NULL
 ");
 $stmt->execute();
 $afme_projects = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -40,75 +42,13 @@ $afme_projects = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 // Combine all projects
 $projects = array_merge($fspf_projects, $idp_projects, $afme_projects);
 ?>
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoMap - ABED IDM Hub</title>
-    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        #map {
-            height: 600px;
-            width: 100%;
-        }
-        .project-marker {
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            border: 2px solid white;
-            box-shadow: 0 0 4px rgba(0,0,0,0.3);
-        }
-        .fspf-marker { background-color: #007bff; }
-        .idp-marker { background-color: #28a745; }
-        .afme-marker { background-color: #ffc107; }
-    </style>
-</head>
-<body>
-    <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
-        <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="dashboard.php">
-                <i class="fas fa-building me-2"></i>ABED IDM Hub
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="dashboard.php">
-                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="geomap.php">
-                            <i class="fas fa-map me-1"></i>GeoMap
-                        </a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user-circle me-1"></i><?php echo htmlspecialchars($_SESSION['full_name']); ?>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="my-account.php">My Account</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="logout.php">Logout</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="container-fluid py-4">
+<?php
+require_once __DIR__ . '/components/layout.php';
+$extra_head = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />\n'
+    . '<style>#map{height:600px;width:100%;}.project-marker{border-radius:50%;width:20px;height:20px;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.3);} .fspf-marker{background-color:#007bff;} .idp-marker{background-color:#28a745;} .afme-marker{background-color:#ffc107;}</style>';
+renderAppLayout($page_title, $extra_head);
+?>
+        <div class="container-fluid py-4">
         <!-- Map Header -->
         <div class="row mb-4">
             <div class="col-12">
@@ -116,7 +56,7 @@ $projects = array_merge($fspf_projects, $idp_projects, $afme_projects);
                     <div class="card-header bg-info text-white">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h4 class="mb-0"><i class="fas fa-map-marked-alt me-2"></i>Project Geographic Map</h4>
+                                <h4 class="mb-0"><i class="fas fa-map-marked-alt me-2"></i><?php echo htmlspecialchars($page_title ?? 'GeoMap'); ?></h4>
                                 <small>View all projects with coordinates on an interactive map</small>
                             </div>
                             <div>
@@ -256,7 +196,7 @@ $projects = array_merge($fspf_projects, $idp_projects, $afme_projects);
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             // Initialize map centered on Bukidnon, Philippines
@@ -347,5 +287,5 @@ $projects = array_merge($fspf_projects, $idp_projects, $afme_projects);
             }
         });
     </script>
-</body>
-</html>
+<?php renderAppLayoutFooter(); ?>
+

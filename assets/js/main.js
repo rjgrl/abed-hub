@@ -153,6 +153,59 @@ function validatePassword(password) {
   return null;
 }
 
+function adjustAppMainMargins() {
+  const rootStyles = getComputedStyle(document.documentElement);
+  const sidebarWidth =
+    parseInt(rootStyles.getPropertyValue("--sidebar-width")) || 250;
+  const gutterTop = 16;
+  const appMain = document.querySelector(".app-main");
+
+  if (!appMain) return;
+
+  // Measure actual header heights (accounts for padding and dynamic content)
+  const topbarEl =
+    document.querySelector(".topbar-fixed") ||
+    document.querySelector(".topbar");
+  const navbarEl =
+    document.querySelector(".navbar-fixed") ||
+    document.querySelector(".navbar");
+
+  let navbarHeight = 0;
+  let topbarHeight = 0;
+
+  if (navbarEl) {
+    navbarHeight = Math.ceil(navbarEl.getBoundingClientRect().height);
+  } else {
+    navbarHeight =
+      parseInt(rootStyles.getPropertyValue("--navbar-height")) || 56;
+  }
+
+  if (topbarEl) {
+    topbarHeight = Math.ceil(topbarEl.getBoundingClientRect().height);
+  } else {
+    topbarHeight =
+      parseInt(rootStyles.getPropertyValue("--topbar-height")) || 70;
+  }
+
+  if (window.innerWidth <= 768) {
+    appMain.style.marginLeft = "0";
+    appMain.style.width = "100%";
+    appMain.style.marginTop = `${navbarHeight + topbarHeight + 8}px`;
+    appMain.style.minHeight = `calc(100vh - ${navbarHeight + topbarHeight + 8}px)`;
+  } else {
+    appMain.style.marginLeft = `${sidebarWidth}px`;
+    appMain.style.width = `calc(100% - ${sidebarWidth}px)`;
+    appMain.style.marginTop = `${navbarHeight + topbarHeight + gutterTop}px`;
+    appMain.style.minHeight = `calc(100vh - ${navbarHeight + topbarHeight + gutterTop}px)`;
+  }
+
+  appMain.style.position = "relative";
+  appMain.style.zIndex = "10";
+}
+
+window.addEventListener("load", adjustAppMainMargins);
+window.addEventListener("resize", adjustAppMainMargins);
+
 // Export for use in other files
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
@@ -165,5 +218,6 @@ if (typeof module !== "undefined" && module.exports) {
     formatTimer,
     isValidEmail,
     validatePassword,
+    adjustAppMainMargins,
   };
 }

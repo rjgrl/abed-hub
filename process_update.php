@@ -1,5 +1,5 @@
 <?php
-include '../includes/db_connect.php';
+include '../components/db_connect.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $id = $_POST['project_id'];
@@ -17,3 +17,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
+

@@ -199,6 +199,155 @@
   margin: 1.25rem 0;
 }
 
+/* ========================================
+   APP LAYOUT ADJUSTMENTS
+   ======================================== */
+
+:root {
+  --sidebar-width: 250px;
+  --navbar-height: 70px;
+  --topbar-height: 56px;
+  --layout-gutter: 1rem;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+.sidebar-fixed {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  z-index: 1080;
+  overflow-y: auto;
+}
+
+.navbar-fixed {
+  position: fixed !important;
+  top: var(--topbar-height);
+  left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
+  height: var(--navbar-height);
+  z-index: 1085 !important;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+}
+
+.topbar-fixed {
+  position: fixed !important;
+  top: 0;
+  left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
+  height: var(--topbar-height);
+  z-index: 1084 !important;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+}
+
+.modal,
+.modal-backdrop {
+  z-index: 9999 !important;
+}
+
+.modal-backdrop {
+  opacity: 0.55 !important;
+}
+
+/* keep modal layer on top of all fixed bars */
+.modal {
+  overflow: auto !important;
+}
+
+.modal-dialog {
+  max-width: 90% !important;
+  margin: 1.75rem auto !important;
+}
+
+.modal-content {
+  border-radius: 0.5rem;
+}
+
+/* if the modal is too tall, keep content visible */
+.modal-body {
+  max-height: calc(100vh - 200px) !important;
+  overflow-y: auto !important;
+}
+
+.app-main {
+  position: relative;
+  z-index: 10;
+  display: block;
+  width: calc(100% - var(--sidebar-width));
+  margin-left: var(--sidebar-width) !important;
+  margin-top: calc(
+    var(--topbar-height) + var(--navbar-height) + 1rem
+  ) !important;
+  /* extra top space so content starts below topbar */
+  padding: var(--layout-gutter);
+  min-height: calc(
+    100vh - var(--topbar-height) - var(--navbar-height) - var(--layout-gutter)
+  );
+  box-sizing: border-box;
+}
+
+/* fallback if manually styled pages still exist */
+main:not(.app-main) {
+  margin-left: var(--sidebar-width);
+  margin-top: calc(var(--topbar-height) + var(--navbar-height) + 1rem);
+}
+
+@media (max-width: 992px) {
+  .sidebar-fixed {
+    width: 220px;
+  }
+
+  .navbar-fixed,
+  .topbar-fixed,
+  .app-main {
+    left: 220px;
+    width: calc(100% - 220px);
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar-fixed {
+    position: relative !important;
+    width: 100%;
+    height: auto;
+    z-index: 1000;
+  }
+
+  .navbar-fixed,
+  .topbar-fixed,
+  .app-main {
+    left: 0;
+    width: 100%;
+  }
+
+  .app-main {
+    margin-top: calc(var(--topbar-height) + var(--navbar-height) + 1rem);
+  }
+}
+
+.card .card-body .card-title,
+.card .card-body p,
+.card .card-body small {
+  color: #212529 !important;
+}
+
+.card .card-body.text-white,
+.card.bg-gradient .card-body,
+.card-body.dashboard-welcome-text {
+  color: #ffffff !important;
+}
+
+.card.bg-gradient .card-body .card-title,
+.card.bg-gradient .card-body p {
+  color: #ffffff !important;
+}
+
 .otp-input {
   width: 60px;
   height: 60px;

@@ -2,6 +2,8 @@
 session_start();
 require_once 'config/database.php';
 
+$page_title = 'Dashboard';
+
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
@@ -100,66 +102,18 @@ $status_breakdown = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 $conn->close();
 ?>
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ABED IDM Hub - Dashboard</title>
-    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="assets/css/style.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-  </head>
-  <body>
-    <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
-      <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="dashboard.php">
-          <i class="fas fa-building me-2"></i>ABED IDM Hub
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto">
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="projectsDropdown" role="button" data-bs-toggle="dropdown">
-                <i class="fas fa-folder-open me-1"></i>Projects
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="#fspf">FSPF Projects</a></li>
-                <li><a class="dropdown-item" href="#idp">IDP Projects</a></li>
-                <li><a class="dropdown-item" href="#afme">AFME Machinery</a></li>
-              </ul>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#reports">
-                <i class="fas fa-chart-bar me-1"></i>Reports
-              </a>
-            </li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                <i class="fas fa-user-circle me-1"></i><?php echo htmlspecialchars($_SESSION['full_name']); ?>
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="my-account.php">My Account</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-danger" href="logout.php">Logout</a></li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
+<?php
+require_once __DIR__ . '/components/layout.php';
+renderAppLayout($page_title);
+?>
 
-    <!-- Main Content -->
-    <div class="container-fluid py-4">
+        <div class="container-fluid py-4">
       <!-- Welcome Section -->
       <div class="row mb-4">
         <div class="col-md-12">
           <div class="card bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-            <div class="card-body text-white">
-              <h4 class="card-title">Welcome back, <?php echo htmlspecialchars($_SESSION['full_name']); ?>!</h4>
+            <div class="card-body dashboard-welcome-text">
+              <h4 class="card-title"><?php echo htmlspecialchars($page_title ?? 'Dashboard'); ?> - Welcome back, <?php echo htmlspecialchars($_SESSION['full_name']); ?>!</h4>
               <p class="card-text mb-0">ABED IDM Hub - Malaybalay City Infrastructure Development Management System</p>
             </div>
           </div>
@@ -257,13 +211,13 @@ $conn->close();
             </div>
             <div class="card-body">
               <div class="d-grid gap-2 d-md-flex flex-wrap">
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registerFspfModal">
+                <button id="quickRegisterFspf" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registerFspfModal">
                   <i class="fas fa-plus me-2"></i>Register FSPF Project
                 </button>
-                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#registerIdpModal">
+                <button id="quickRegisterIdp" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#registerIdpModal">
                   <i class="fas fa-plus me-2"></i>Register IDP Project
                 </button>
-                <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#registerAfmeModal">
+                <button id="quickRegisterAfme" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#registerAfmeModal">
                   <i class="fas fa-plus me-2"></i>Add AFME Machinery
                 </button>
                 <a href="analytics.php" class="btn btn-info">
@@ -929,8 +883,17 @@ $conn->close();
         </div>
       </div>
     </div>
+  </main>
 
-    <script src="bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Fallback to CDN if local bootstrap JS is not available
+      if (typeof bootstrap === "undefined") {
+        document.write('<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"><\/script>');
+      }
+    </script>
+    <script src="assets/js/modal-helper.js"></script>
     <script src="assets/js/dashboard.js"></script>
   </body>
 </html>
+
