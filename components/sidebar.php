@@ -38,7 +38,7 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
   <hr />
 
   <ul class="nav nav-pills flex-column">
-    <li class="nav-item">
+    <li class="fas fa-sign-out-alt nav-item">
       <a href="logout.php" class="nav-link text-danger">Logout</a>
     </li>
   </ul>

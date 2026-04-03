@@ -3895,7 +3895,7 @@ fieldset:disabled .btn {
   display: flex;
   flex-wrap: inherit;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-start;
 }
 .navbar-brand {
   padding-top: var(--bs-navbar-brand-padding-y);
