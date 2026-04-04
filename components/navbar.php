@@ -9,7 +9,7 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
         <h6 class="m-0 fw-bold text-dark">System Management</h6>
 
         <div class=" align-items-center text-black ms-3 border-start ps-3">
-            <small class="fw-bold">
+            <small class="text-muted fw-bold">
                 <?php echo match($current_page) {
                     'dashboard.php' => 'Dashboard',
                     'reports.php' => 'Reports',
