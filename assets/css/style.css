@@ -227,8 +227,6 @@ body {
 }
 
 .topbar-fixed {
-  /* background: var(--primary-gradient) !important;
-  color: white; */
   position: fixed !important;
   top: 0;
   left: var(--sidebar-width);
