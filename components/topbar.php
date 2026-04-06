@@ -34,8 +34,6 @@ $userRole = htmlspecialchars($_SESSION['user_role'] ?? 'Guest');
                     </li>
                     <li><a class="dropdown-item" href="my-account.php"><i class="fas fa-user me-2 text-primary"></i>My Account</a></li>
                     <li><a class="dropdown-item" href="my-account.php?edit=1"><i class="fas fa-edit me-2 text-primary"></i>Edit Profile</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item text-danger" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
                 </ul>
             </div>
         <?php else: ?>

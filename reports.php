@@ -162,7 +162,7 @@ foreach ($projects as $project) {
 require_once __DIR__ . '/components/layout.php';
 renderAppLayout($page_title);
 ?>
-        <div class="container-fluid py-4">
+        <div class="container-fluid">
         <!-- Reports Header -->
         <div class="row mb-4">
             <div class="col-12">

@@ -60,7 +60,7 @@ require_once __DIR__ . '/components/layout.php';
 renderAppLayout($page_title);
 ?>
 
-        <div class="container-fluid py-4">
+        <div class="container-fluid">
             <div class="page-header mb-4">
                 <h3><i class="fas fa-folder-open me-2"></i><?php echo htmlspecialchars($page_title ?? 'Projects'); ?></h3>
                 <p class="text-muted">View and manage all projects in the system for selected type/stage.</p>

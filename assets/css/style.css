@@ -248,23 +248,54 @@ body {
   z-index: 1090 !important;
 }
 
-.modal,
-.modal-backdrop {
-  z-index: 5000 !important;
-}
-
-.modal-backdrop {
+.mp {
   opacity: 0.55 !important;
 }
 
 /* keep modal layer on top of all fixed bars */
 .modal {
   overflow: auto !important;
+  position: fixed !important;
+  top: calc(
+    var(--topbar-height) + var(--navbar-height) + var(--layout-gutter)
+  ) !important;
+  left: var(--sidebar-width) !important;
+  width: calc(100vw - var(--sidebar-width)) !important;
+  height: calc(
+    100vh - var(--topbar-height) - var(--navbar-height) - var(--layout-gutter)
+  ) !important;
+  z-index: 12000 !important;
+}
+
+.modal.show {
+  display: block !important;
+}
+
+.modal-backdrop {
+  position: fixed !important;
+  top: calc(
+    var(--topbar-height) + var(--navbar-height) + var(--layout-gutter)
+  ) !important;
+  left: var(--sidebar-width) !important;
+  width: calc(100vw - var(--sidebar-width)) !important;
+  height: calc(
+    100vh - var(--topbar-height) - var(--navbar-height) - var(--layout-gutter)
+  ) !important;
+  z-index: 11990 !important;
+  pointer-events: auto !important;
+}
+
+.modal-backdrop.show {
+  opacity: 0.5 !important;
 }
 
 .modal-dialog {
   max-width: 90% !important;
   margin: 1.75rem auto !important;
+}
+
+.modal-content {
+  z-index: 12010 !important;
 }
 
 .modal-content {
@@ -279,7 +310,7 @@ body {
 
 .app-main {
   position: relative;
-  z-index: 10;
+  z-index: auto;
   display: block;
   width: calc(100% - var(--sidebar-width));
   margin-left: var(--sidebar-width) !important;
