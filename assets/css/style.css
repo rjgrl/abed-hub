@@ -222,7 +222,7 @@ body {
   left: 0;
   width: var(--sidebar-width);
   height: 100vh;
-  z-index: 1080;
+  z-index: 1030;
   overflow-y: auto;
 }
 
@@ -232,7 +232,7 @@ body {
   left: var(--sidebar-width);
   width: calc(100% - var(--sidebar-width));
   height: var(--topbar-height);
-  z-index: 1085 !important;
+  z-index: 1035 !important;
 }
 
 .navbar-fixed {
@@ -241,7 +241,7 @@ body {
   left: var(--sidebar-width);
   width: calc(100% - var(--sidebar-width));
   height: var(--navbar-height);
-  z-index: 1084 !important;
+  z-index: 1034 !important;
 }
 
 .dropdown-menu {
@@ -254,6 +254,7 @@ body {
 
 /* keep modal layer on top of all fixed bars */
 .modal {
+  z-index: 1060;
   overflow: auto !important;
   position: fixed !important;
   top: calc(
