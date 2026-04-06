@@ -48,7 +48,7 @@ $extra_head = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist
     . '<style>#map{height:600px;width:100%;}.project-marker{border-radius:50%;width:20px;height:20px;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.3);} .fspf-marker{background-color:#007bff;} .idp-marker{background-color:#28a745;} .afme-marker{background-color:#ffc107;}</style>';
 renderAppLayout($page_title, $extra_head);
 ?>
-        <div class="container-fluid py-4">
+        <div class="container-fluid">
         <!-- Map Header -->
         <div class="row mb-4">
             <div class="col-12">

@@ -107,7 +107,7 @@ require_once __DIR__ . '/components/layout.php';
 renderAppLayout($page_title);
 ?>
 
-        <div class="container-fluid py-4">
+        <div class="container-fluid">
       <!-- Welcome Section -->
       <div class="row mb-4">
         <div class="col-md-12">
