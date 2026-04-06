@@ -1,7 +1,16 @@
-<?php 
-session_start();
-require_once 'config/database.php';
-requireLogin();
+<?php
+require_once __DIR__ . '/components/layout.php';
+require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/functions/helpers.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
 
 $page_title = 'Projects';
 
