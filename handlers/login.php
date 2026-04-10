@@ -6,7 +6,7 @@ header('Content-Type: application/json');
 
 // If already logged in, redirect to dashboard
 if (isset($_SESSION['user_id'])) {
-    echo json_encode(['status' => 'redirect', 'redirect_url' => 'dashboard.php']);
+    echo json_encode(['status' => 'redirect', 'redirect_url' => 'dashboard-enhanced.php']);
     exit;
 }
 
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     echo json_encode([
         'status' => 'success',
         'message' => 'Login successful',
-        'redirect_url' => 'dashboard.php'
+        'redirect_url' => 'dashboard-enhanced.php'
     ]);
 
     $stmt->close();

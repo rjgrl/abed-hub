@@ -7,10 +7,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit;
-}
+requireLogin();
+
+$page_title = 'Projects - ABED IDM Hub';
 
 // Get filter parameters
 $project_type = $_GET['type'] ?? 'fspf';
@@ -82,27 +81,19 @@ if ($limit_params) {
 $stmt->execute();
 $projects = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
+// Get saved views for current user
+$saved_views_query = $conn->prepare("SELECT id, view_name, filters FROM saved_views WHERE user_id = ? AND project_type = ? ORDER BY updated_at DESC");
+$saved_views_query->bind_param("is", $_SESSION['user_id'], $project_type);
+$saved_views_query->execute();
+$saved_views = $saved_views_query->get_result()->fetch_all(MYSQLI_ASSOC);
+
 // Get available stages
 $stages_query = $conn->query("SELECT DISTINCT current_stage FROM $table ORDER BY current_stage");
 $available_stages = $stages_query->fetch_all(MYSQLI_ASSOC);
 
+renderAppLayout($page_title);
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Projects - ABED IDM Hub</title>
-    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body>
-    <?php include 'components/sidebar.php'; ?>
-    <?php include 'components/topbar.php'; ?>
-    <?php include 'components/navbar.php'; ?>
 
-    <main class="app-main">
         <div class="container-fluid py-4">
             <!-- Header -->
             <div class="row align-items-center mb-4">
@@ -111,9 +102,31 @@ $available_stages = $stages_query->fetch_all(MYSQLI_ASSOC);
                     <p class="text-muted">Browse and manage all projects</p>
                 </div>
                 <div class="col-auto">
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exportModal">
-                        <i class="fas fa-download"></i> Export
-                    </button>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exportModal">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        <button class="btn btn-outline-secondary" id="selectAllBtn">
+                            <i class="fas fa-check-square"></i> Select All
+                        </button>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-warning dropdown-toggle" data-bs-toggle="dropdown" id="batchActionsBtn" disabled>
+                                <i class="fas fa-tasks"></i> Batch Actions
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" id="batchExportBtn">
+                                    <i class="fas fa-file-export"></i> Export Selected
+                                </a></li>
+                                <li><a class="dropdown-item" href="#" id="batchUpdateBtn">
+                                    <i class="fas fa-edit"></i> Bulk Update
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="#" id="batchDeleteBtn">
+                                    <i class="fas fa-trash"></i> Delete Selected
+                                </a></li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -132,6 +145,26 @@ $available_stages = $stages_query->fetch_all(MYSQLI_ASSOC);
 
                                 <input type="radio" class="btn-check" name="type" id="type_afme" value="afme" <?php echo $project_type === 'afme' ? 'checked' : ''; ?> onchange="this.form.submit()">
                                 <label class="btn btn-outline-primary" for="type_afme">AFME</label>
+                            </div>
+                        </div>
+
+                        <!-- Saved Views -->
+                        <div class="col-12">
+                            <div class="d-flex gap-2 align-items-center">
+                                <select id="savedViewsSelect" class="form-select" style="max-width: 250px;">
+                                    <option value="">Load Saved View...</option>
+                                    <?php foreach ($saved_views as $view): ?>
+                                        <option value="<?php echo $view['id']; ?>" data-filters='<?php echo htmlspecialchars($view['filters']); ?>'>
+                                            <?php echo htmlspecialchars($view['view_name']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <button type="button" class="btn btn-outline-secondary" id="saveViewBtn" data-bs-toggle="modal" data-bs-target="#saveViewModal">
+                                    <i class="fas fa-save"></i> Save View
+                                </button>
+                                <button type="button" class="btn btn-outline-danger" id="deleteViewBtn" style="display: none;">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
                             </div>
                         </div>
 
@@ -188,6 +221,9 @@ $available_stages = $stages_query->fetch_all(MYSQLI_ASSOC);
                     <table class="table table-hover mb-0">
                         <thead class="bg-light">
                             <tr>
+                                <th width="40">
+                                    <input type="checkbox" class="form-check-input" id="masterCheckbox">
+                                </th>
                                 <th>Code</th>
                                 <th>Title</th>
                                 <th>Stage</th>
@@ -201,11 +237,612 @@ $available_stages = $stages_query->fetch_all(MYSQLI_ASSOC);
                         <tbody>
                             <?php if (empty($projects)): ?>
                                 <tr>
-                                    <td colspan="8" class="text-center py-4 text-muted">No projects found</td>
+                                    <td colspan="9" class="text-center py-4 text-muted">No projects found</td>
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($projects as $project): ?>
                                     <tr>
+                                        <td>
+                                            <input type="checkbox" class="form-check-input row-checkbox" value="<?php echo $project['id']; ?>">
+                                        </td>
+                                        <td>
+                                            <strong><?php echo htmlspecialchars($project['project_code']); ?></strong>
+                                        </td>
+                                        <td>
+                                            <span title="<?php echo htmlspecialchars($project['project_title']); ?>">
+                                                <?php echo htmlspecialchars(substr($project['project_title'], 0, 50)); ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge" style="background-color: 
+                                                <?php echo match($project['current_stage']) {
+                                                    'Proposal' => '#6c757d',
+                                                    'Pre-Implementation' => '#17a2b8',
+                                                    'Procurement' => '#ffc107',
+                                                    'Implementation' => '#0d6efd',
+                                                    'Completed', 'Turned-Over' => '#28a745',
+                                                    default => '#e3e3e3'
+                                                }; ?>; color: <?php echo match($project['current_stage']) {
+                                                    'Procurement' => 'black',
+                                                    default => 'white'
+                                                }; ?>">
+                                                <?php echo htmlspecialchars($project['current_stage']); ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="height: 20px; width: 100px;">
+                                                <div class="progress-bar" style="width: <?php echo $project['physical_progress']; ?>%; background-color: #0d6efd;">
+                                                    <small><?php echo round($project['physical_progress'], 0); ?>%</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="height: 20px; width: 100px;">
+                                                <div class="progress-bar bg-success" style="width: <?php echo $project['financial_progress']; ?>%;">
+                                                    <small><?php echo round($project['financial_progress'], 0); ?>%</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            ₱<?php echo number_format($project['allocated_amount'], 0); ?>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                <?php echo date('M d, Y', strtotime($project['updated_at'])); ?>
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="project-detail-enhanced.php?type=<?php echo $project_type; ?>&id=<?php echo $project['id']; ?>" 
+                                                   class="btn btn-info" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="scurve-monitoring.php?type=<?php echo $project_type; ?>&id=<?php echo $project['id']; ?>" 
+                                                   class="btn btn-secondary" title="S-Curve">
+                                                    <i class="fas fa-chart-line"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <?php if ($total_pages > 1): ?>
+                    <div class="card-footer bg-light">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination mb-0">
+                                <?php if ($page > 1): ?>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?type=<?php echo $project_type; ?>&page=1&stage=<?php echo htmlspecialchars($stage_filter); ?>&search=<?php echo htmlspecialchars($search); ?>">First</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?type=<?php echo $project_type; ?>&page=<?php echo $page - 1; ?>&stage=<?php echo htmlspecialchars($stage_filter); ?>&search=<?php echo htmlspecialchars($search); ?>">Previous</a>
+                                    </li>
+                                <?php endif; ?>
+
+                                <?php for ($i = max(1, $page - 2); $i <= min($total_pages, $page + 2); $i++): ?>
+                                    <li class="page-item <?php echo $i === $page ? 'active' : ''; ?>">
+                                        <a class="page-link" href="?type=<?php echo $project_type; ?>&page=<?php echo $i; ?>&stage=<?php echo htmlspecialchars($stage_filter); ?>&search=<?php echo htmlspecialchars($search); ?>">
+                                            <?php echo $i; ?>
+                                        </a>
+                                    </li>
+                                <?php endfor; ?>
+
+                                <?php if ($page < $total_pages): ?>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?type=<?php echo $project_type; ?>&page=<?php echo $page + 1; ?>&stage=<?php echo htmlspecialchars($stage_filter); ?>&search=<?php echo htmlspecialchars($search); ?>">Next</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?type=<?php echo $project_type; ?>&page=<?php echo $total_pages; ?>&stage=<?php echo htmlspecialchars($stage_filter); ?>&search=<?php echo htmlspecialchars($search); ?>">Last</a>
+                                    </li>
+                                <?php endif; ?>
+                            </ul>
+                        </nav>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Save View Modal -->
+        <div class="modal fade" id="saveViewModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Save Current View</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="viewNameInput" class="form-label">View Name</label>
+                            <input type="text" class="form-control" id="viewNameInput" placeholder="Enter a name for this view">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="confirmSaveView">Save View</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bulk Update Modal -->
+        <div class="modal fade" id="bulkUpdateModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Bulk Update Projects</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="bulkUpdateForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Current Stage</label>
+                                        <select class="form-select" name="current_stage">
+                                            <option value="">No Change</option>
+                                            <option value="Proposal">Proposal</option>
+                                            <option value="Pre-Implementation">Pre-Implementation</option>
+                                            <option value="Procurement">Procurement</option>
+                                            <option value="Implementation">Implementation</option>
+                                            <option value="Completed">Completed</option>
+                                            <option value="Turned-Over">Turned-Over</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Physical Progress (%)</label>
+                                        <input type="number" class="form-control" name="physical_progress" min="0" max="100" placeholder="Leave empty for no change">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Financial Progress (%)</label>
+                                        <input type="number" class="form-control" name="financial_progress" min="0" max="100" placeholder="Leave empty for no change">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Allocated Amount</label>
+                                        <input type="number" class="form-control" name="allocated_amount" step="0.01" placeholder="Leave empty for no change">
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="confirmBulkUpdate">Update Projects</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // Saved Views Functionality
+            document.getElementById('savedViewsSelect').addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption.value) {
+                    const filters = JSON.parse(selectedOption.getAttribute('data-filters'));
+                    // Apply filters to form
+                    if (filters.search) document.querySelector('input[name="search"]').value = filters.search;
+                    if (filters.stage) document.querySelector('select[name="stage"]').value = filters.stage;
+                    if (filters.year) document.querySelector('select[name="year"]').value = filters.year;
+                    // Submit form to apply filters
+                    document.querySelector('form').submit();
+                }
+            });
+
+            document.getElementById('saveViewBtn').addEventListener('click', function() {
+                // Get current filter values
+                const search = document.querySelector('input[name="search"]').value;
+                const stage = document.querySelector('select[name="stage"]').value;
+                const year = document.querySelector('select[name="year"]').value;
+
+                // Store current filters for saving
+                window.currentFilters = { search, stage, year };
+            });
+
+            document.getElementById('confirmSaveView').addEventListener('click', function() {
+                const viewName = document.getElementById('viewNameInput').value.trim();
+                if (!viewName) {
+                    alert('Please enter a view name');
+                    return;
+                }
+
+                // Save view via AJAX
+                fetch('api/saved-views.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'save',
+                        view_name: viewName,
+                        project_type: '<?php echo $project_type; ?>',
+                        filters: window.currentFilters
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('View saved successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error saving view: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error saving view');
+                });
+
+                // Close modal
+                bootstrap.Modal.getInstance(document.getElementById('saveViewModal')).hide();
+            });
+
+            // Show delete button when a view is selected
+            document.getElementById('savedViewsSelect').addEventListener('change', function() {
+                const deleteBtn = document.getElementById('deleteViewBtn');
+                if (this.value) {
+                    deleteBtn.style.display = 'inline-block';
+                    deleteBtn.onclick = function() {
+                        if (confirm('Are you sure you want to delete this saved view?')) {
+                            fetch('api/saved-views.php', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    action: 'delete',
+                                    view_id: document.getElementById('savedViewsSelect').value
+                                })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    alert('View deleted successfully!');
+                                    location.reload();
+                                } else {
+                                    alert('Error deleting view: ' + data.message);
+                                }
+                            });
+                        }
+                    };
+                } else {
+                    deleteBtn.style.display = 'none';
+                }
+            });
+
+            // Batch Operations Functionality
+            const masterCheckbox = document.getElementById('masterCheckbox');
+            const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+            const batchActionsBtn = document.getElementById('batchActionsBtn');
+            const selectAllBtn = document.getElementById('selectAllBtn');
+
+            function updateBatchActionsState() {
+                const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+                batchActionsBtn.disabled = checkedBoxes.length === 0;
+            }
+
+            masterCheckbox.addEventListener('change', function() {
+                rowCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                updateBatchActionsState();
+            });
+
+            rowCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const allChecked = Array.from(rowCheckboxes).every(cb => cb.checked);
+                    const someChecked = Array.from(rowCheckboxes).some(cb => cb.checked);
+
+                    masterCheckbox.checked = allChecked;
+                    masterCheckbox.indeterminate = someChecked && !allChecked;
+                    updateBatchActionsState();
+                });
+            });
+
+            selectAllBtn.addEventListener('click', function() {
+                const allChecked = Array.from(rowCheckboxes).every(cb => cb.checked);
+                const newState = !allChecked;
+
+                masterCheckbox.checked = newState;
+                masterCheckbox.indeterminate = false;
+                rowCheckboxes.forEach(checkbox => {
+                    checkbox.checked = newState;
+                });
+                updateBatchActionsState();
+
+                this.innerHTML = newState ?
+                    '<i class="fas fa-square"></i> Deselect All' :
+                    '<i class="fas fa-check-square"></i> Select All';
+            });
+
+            // Batch Export
+            document.getElementById('batchExportBtn').addEventListener('click', function() {
+                const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+                if (selectedIds.length === 0) return;
+
+                // Create form and submit to export selected projects
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = 'api/export-projects.php';
+
+                const typeInput = document.createElement('input');
+                typeInput.type = 'hidden';
+                typeInput.name = 'type';
+                typeInput.value = '<?php echo $project_type; ?>';
+                form.appendChild(typeInput);
+
+                const idsInput = document.createElement('input');
+                idsInput.type = 'hidden';
+                idsInput.name = 'selected_ids';
+                idsInput.value = JSON.stringify(selectedIds);
+                form.appendChild(idsInput);
+
+                document.body.appendChild(form);
+                form.submit();
+                document.body.removeChild(form);
+            });
+
+            // Batch Delete
+            document.getElementById('batchDeleteBtn').addEventListener('click', function() {
+                const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+                if (selectedIds.length === 0) return;
+
+                if (!confirm(`Are you sure you want to delete ${selectedIds.length} selected projects? This action cannot be undone.`)) {
+                    return;
+                }
+
+                fetch('api/batch-operations.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'delete',
+                        project_type: '<?php echo $project_type; ?>',
+                        ids: selectedIds
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`Successfully deleted ${data.deleted_count} projects`);
+                        location.reload();
+                    } else {
+                        alert('Error deleting projects: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting projects');
+                });
+            });
+
+            // Batch Update
+            document.getElementById('batchUpdateBtn').addEventListener('click', function() {
+                const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+                if (selectedIds.length === 0) return;
+
+                // Store selected IDs for bulk update
+                window.selectedIdsForUpdate = selectedIds;
+
+                // Show bulk update modal
+                const modal = new bootstrap.Modal(document.getElementById('bulkUpdateModal'));
+                modal.show();
+            });
+
+            // Confirm Bulk Update
+            document.getElementById('confirmBulkUpdate').addEventListener('click', function() {
+                const formData = new FormData(document.getElementById('bulkUpdateForm'));
+                const updates = {};
+
+                for (let [key, value] of formData.entries()) {
+                    if (value.trim() !== '') {
+                        updates[key] = key.includes('progress') || key.includes('amount') ? parseFloat(value) : value;
+                    }
+                }
+
+                if (Object.keys(updates).length === 0) {
+                    alert('Please specify at least one field to update');
+                    return;
+                }
+
+                fetch('api/batch-operations.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'update',
+                        project_type: '<?php echo $project_type; ?>',
+                        ids: window.selectedIdsForUpdate,
+                        updates: updates
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`Successfully updated ${data.updated_count} projects`);
+                        location.reload();
+                    } else {
+                        alert('Error updating projects: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error updating projects');
+                });
+
+                // Close modal
+                bootstrap.Modal.getInstance(document.getElementById('bulkUpdateModal')).hide();
+            });
+        </script>
+
+<?php
+renderAppLayoutFooter();
+?>
+        <div class="container-fluid py-4">
+            <!-- Header -->
+            <div class="row align-items-center mb-4">
+                <div class="col">
+                    <h1 class="h3 mb-0">Projects</h1>
+                    <p class="text-muted">Browse and manage all projects</p>
+                </div>
+                <div class="col-auto">
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exportModal">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        <button class="btn btn-outline-secondary" id="selectAllBtn">
+                            <i class="fas fa-check-square"></i> Select All
+                        </button>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-warning dropdown-toggle" data-bs-toggle="dropdown" id="batchActionsBtn" disabled>
+                                <i class="fas fa-tasks"></i> Batch Actions
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" id="batchExportBtn">
+                                    <i class="fas fa-file-export"></i> Export Selected
+                                </a></li>
+                                <li><a class="dropdown-item" href="#" id="batchUpdateBtn">
+                                    <i class="fas fa-edit"></i> Bulk Update
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="#" id="batchDeleteBtn">
+                                    <i class="fas fa-trash"></i> Delete Selected
+                                </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <!-- Type Tabs -->
+                        <div class="col-12">
+                            <div class="btn-group" role="group">
+                                <input type="radio" class="btn-check" name="type" id="type_fspf" value="fspf" <?php echo $project_type === 'fspf' ? 'checked' : ''; ?> onchange="this.form.submit()">
+                                <label class="btn btn-outline-primary" for="type_fspf">FSPF</label>
+
+                                <input type="radio" class="btn-check" name="type" id="type_idp" value="idp" <?php echo $project_type === 'idp' ? 'checked' : ''; ?> onchange="this.form.submit()">
+                                <label class="btn btn-outline-primary" for="type_idp">IDP</label>
+
+                                <input type="radio" class="btn-check" name="type" id="type_afme" value="afme" <?php echo $project_type === 'afme' ? 'checked' : ''; ?> onchange="this.form.submit()">
+                                <label class="btn btn-outline-primary" for="type_afme">AFME</label>
+                            </div>
+                        </div>
+
+                        <!-- Saved Views -->
+                        <div class="col-12">
+                            <div class="d-flex gap-2 align-items-center">
+                                <select id="savedViewsSelect" class="form-select" style="max-width: 250px;">
+                                    <option value="">Load Saved View...</option>
+                                    <?php foreach ($saved_views as $view): ?>
+                                        <option value="<?php echo $view['id']; ?>" data-filters='<?php echo htmlspecialchars($view['filters']); ?>'>
+                                            <?php echo htmlspecialchars($view['view_name']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <button type="button" class="btn btn-outline-secondary" id="saveViewBtn" data-bs-toggle="modal" data-bs-target="#saveViewModal">
+                                    <i class="fas fa-save"></i> Save View
+                                </button>
+                                <button type="button" class="btn btn-outline-danger" id="deleteViewBtn" style="display: none;">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Search -->
+                        <div class="col-md-4">
+                            <input type="text" name="search" class="form-control" placeholder="Search by code or title" 
+                                   value="<?php echo htmlspecialchars($search); ?>">
+                        </div>
+
+                        <!-- Stage Filter -->
+                        <div class="col-md-3">
+                            <select name="stage" class="form-select">
+                                <option value="">All Stages</option>
+                                <?php foreach ($available_stages as $s): ?>
+                                    <option value="<?php echo htmlspecialchars($s['current_stage']); ?>" 
+                                            <?php echo $stage_filter === $s['current_stage'] ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($s['current_stage']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <!-- Year Filter -->
+                        <div class="col-md-2">
+                            <select name="year" class="form-select">
+                                <?php for ($y = date('Y'); $y >= 2020; $y--): ?>
+                                    <option value="<?php echo $y; ?>" <?php echo $year == $y ? 'selected' : ''; ?>>
+                                        <?php echo $y; ?>
+                                    </option>
+                                <?php endfor; ?>
+                            </select>
+                        </div>
+
+                        <!-- Submit -->
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i> Filter
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Results Info -->
+            <div class="alert alert-info mb-4">
+                Showing <strong><?php echo count($projects); ?></strong> of <strong><?php echo $total_records; ?></strong> 
+                <?php echo strtoupper($project_type); ?> projects
+                <?php if ($search): ?> matching "<strong><?php echo htmlspecialchars($search); ?></strong>"<?php endif; ?>
+            </div>
+
+            <!-- Projects Table -->
+            <div class="card border-0 shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th width="40">
+                                    <input type="checkbox" class="form-check-input" id="masterCheckbox">
+                                </th>
+                                <th>Code</th>
+                                <th>Title</th>
+                                <th>Stage</th>
+                                <th>Physical Progress</th>
+                                <th>Financial Progress</th>
+                                <th>Allocated Amount</th>
+                                <th>Modified</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($projects)): ?>
+                                <tr>
+                                    <td colspan="9" class="text-center py-4 text-muted">No projects found</td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($projects as $project): ?>
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" class="form-check-input row-checkbox" value="<?php echo $project['id']; ?>">
+                                        </td>
                                         <td>
                                             <strong><?php echo htmlspecialchars($project['project_code']); ?></strong>
                                         </td>
@@ -309,6 +946,346 @@ $available_stages = $stages_query->fetch_all(MYSQLI_ASSOC);
         </div>
     </main>
 
+    <!-- Save View Modal -->
+    <div class="modal fade" id="saveViewModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Save Current View</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="viewNameInput" class="form-label">View Name</label>
+                        <input type="text" class="form-control" id="viewNameInput" placeholder="Enter a name for this view">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmSaveView">Save View</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Update Modal -->
+    <div class="modal fade" id="bulkUpdateModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Bulk Update Projects</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="bulkUpdateForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Current Stage</label>
+                                    <select class="form-select" name="current_stage">
+                                        <option value="">No Change</option>
+                                        <option value="Proposal">Proposal</option>
+                                        <option value="Pre-Implementation">Pre-Implementation</option>
+                                        <option value="Procurement">Procurement</option>
+                                        <option value="Implementation">Implementation</option>
+                                        <option value="Completed">Completed</option>
+                                        <option value="Turned-Over">Turned-Over</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Physical Progress (%)</label>
+                                    <input type="number" class="form-control" name="physical_progress" min="0" max="100" placeholder="Leave empty for no change">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Financial Progress (%)</label>
+                                    <input type="number" class="form-control" name="financial_progress" min="0" max="100" placeholder="Leave empty for no change">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Allocated Amount</label>
+                                    <input type="number" class="form-control" name="allocated_amount" step="0.01" placeholder="Leave empty for no change">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmBulkUpdate">Update Projects</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    <script>
+        // Saved Views Functionality
+        document.getElementById('savedViewsSelect').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                const filters = JSON.parse(selectedOption.getAttribute('data-filters'));
+                // Apply filters to form
+                if (filters.search) document.querySelector('input[name="search"]').value = filters.search;
+                if (filters.stage) document.querySelector('select[name="stage"]').value = filters.stage;
+                if (filters.year) document.querySelector('select[name="year"]').value = filters.year;
+                // Submit form to apply filters
+                document.querySelector('form').submit();
+            }
+        });
+
+        document.getElementById('saveViewBtn').addEventListener('click', function() {
+            // Get current filter values
+            const search = document.querySelector('input[name="search"]').value;
+            const stage = document.querySelector('select[name="stage"]').value;
+            const year = document.querySelector('select[name="year"]').value;
+
+            // Store current filters for saving
+            window.currentFilters = { search, stage, year };
+        });
+
+        document.getElementById('confirmSaveView').addEventListener('click', function() {
+            const viewName = document.getElementById('viewNameInput').value.trim();
+            if (!viewName) {
+                alert('Please enter a view name');
+                return;
+            }
+
+            // Save view via AJAX
+            fetch('api/saved-views.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'save',
+                    view_name: viewName,
+                    project_type: '<?php echo $project_type; ?>',
+                    filters: window.currentFilters
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('View saved successfully!');
+                    location.reload();
+                } else {
+                    alert('Error saving view: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error saving view');
+            });
+
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('saveViewModal')).hide();
+        });
+
+        // Show delete button when a view is selected
+        document.getElementById('savedViewsSelect').addEventListener('change', function() {
+            const deleteBtn = document.getElementById('deleteViewBtn');
+            if (this.value) {
+                deleteBtn.style.display = 'inline-block';
+                deleteBtn.onclick = function() {
+                    if (confirm('Are you sure you want to delete this saved view?')) {
+                        fetch('api/saved-views.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                action: 'delete',
+                                view_id: document.getElementById('savedViewsSelect').value
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('View deleted successfully!');
+                                location.reload();
+                            } else {
+                                alert('Error deleting view: ' + data.message);
+                            }
+                        });
+                    }
+                };
+            } else {
+                deleteBtn.style.display = 'none';
+            }
+        // Batch Operations Functionality
+        const masterCheckbox = document.getElementById('masterCheckbox');
+        const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+        const batchActionsBtn = document.getElementById('batchActionsBtn');
+        const selectAllBtn = document.getElementById('selectAllBtn');
+
+        function updateBatchActionsState() {
+            const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+            batchActionsBtn.disabled = checkedBoxes.length === 0;
+        }
+
+        masterCheckbox.addEventListener('change', function() {
+            rowCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateBatchActionsState();
+        });
+
+        rowCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const allChecked = Array.from(rowCheckboxes).every(cb => cb.checked);
+                const someChecked = Array.from(rowCheckboxes).some(cb => cb.checked);
+
+                masterCheckbox.checked = allChecked;
+                masterCheckbox.indeterminate = someChecked && !allChecked;
+                updateBatchActionsState();
+            });
+        });
+
+        selectAllBtn.addEventListener('click', function() {
+            const allChecked = Array.from(rowCheckboxes).every(cb => cb.checked);
+            const newState = !allChecked;
+
+            masterCheckbox.checked = newState;
+            masterCheckbox.indeterminate = false;
+            rowCheckboxes.forEach(checkbox => {
+                checkbox.checked = newState;
+            });
+            updateBatchActionsState();
+
+            this.innerHTML = newState ?
+                '<i class="fas fa-square"></i> Deselect All' :
+                '<i class="fas fa-check-square"></i> Select All';
+        });
+
+        // Batch Export
+        document.getElementById('batchExportBtn').addEventListener('click', function() {
+            const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+            if (selectedIds.length === 0) return;
+
+            // Create form and submit to export selected projects
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'api/export-projects.php';
+
+            const typeInput = document.createElement('input');
+            typeInput.type = 'hidden';
+            typeInput.name = 'type';
+            typeInput.value = '<?php echo $project_type; ?>';
+            form.appendChild(typeInput);
+
+            const idsInput = document.createElement('input');
+            idsInput.type = 'hidden';
+            idsInput.name = 'selected_ids';
+            idsInput.value = JSON.stringify(selectedIds);
+            form.appendChild(idsInput);
+
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+        });
+
+        // Batch Delete
+        document.getElementById('batchDeleteBtn').addEventListener('click', function() {
+            const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+            if (selectedIds.length === 0) return;
+
+            if (!confirm(`Are you sure you want to delete ${selectedIds.length} selected projects? This action cannot be undone.`)) {
+                return;
+            }
+
+            fetch('api/batch-operations.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'delete',
+                    project_type: '<?php echo $project_type; ?>',
+                    ids: selectedIds
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`Successfully deleted ${data.deleted_count} projects`);
+                    location.reload();
+                } else {
+                    alert('Error deleting projects: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error deleting projects');
+            });
+        });
+
+        // Batch Update
+        document.getElementById('batchUpdateBtn').addEventListener('click', function() {
+            const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+            if (selectedIds.length === 0) return;
+
+            // Store selected IDs for bulk update
+            window.selectedIdsForUpdate = selectedIds;
+
+            // Show bulk update modal
+            const modal = new bootstrap.Modal(document.getElementById('bulkUpdateModal'));
+            modal.show();
+        });
+
+        // Confirm Bulk Update
+        document.getElementById('confirmBulkUpdate').addEventListener('click', function() {
+            const formData = new FormData(document.getElementById('bulkUpdateForm'));
+            const updates = {};
+
+            for (let [key, value] of formData.entries()) {
+                if (value.trim() !== '') {
+                    updates[key] = key.includes('progress') || key.includes('amount') ? parseFloat(value) : value;
+                }
+            }
+
+            if (Object.keys(updates).length === 0) {
+                alert('Please specify at least one field to update');
+                return;
+            }
+
+            fetch('api/batch-operations.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'update',
+                    project_type: '<?php echo $project_type; ?>',
+                    ids: window.selectedIdsForUpdate,
+                    updates: updates
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`Successfully updated ${data.updated_count} projects`);
+                    location.reload();
+                } else {
+                    alert('Error updating projects: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error updating projects');
+            });
+
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('bulkUpdateModal')).hide();
+        });
+        </script>
+
+<?php
+renderAppLayoutFooter();
+?>

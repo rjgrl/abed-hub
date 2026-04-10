@@ -11,10 +11,10 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
         <div class=" align-items-center text-black ms-3 border-start ps-3">
             <small class="text-muted fw-bold">
                 <?php echo match($current_page) {
-                    'dashboard.php' => 'Dashboard',
+                    'dashboard-enhanced.php', 'dashboard.php' => 'Dashboard',
                     'reports.php' => 'Reports',
-                    'analytics.php' => 'Analytics',
-                    'projects.php', 'project-details.php' => 'Projects',
+                    'analytics-reports.php', 'analytics.php' => 'Analytics',
+                    'projects-advanced.php', 'project-details.php' => 'Projects',
                     'geomap.php' => 'GeoMap',
                     'my-account.php' => 'My Account',
                     'afme-machinery-details.php' => 'AFME Machinery',

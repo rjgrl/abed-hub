@@ -11,7 +11,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->bind_param("sis", $actual_date, $id, $milestone);
     
     if ($stmt->execute()) {
-        header("Location: dashboard.php?msg=success");
+        header("Location: dashboard-enhanced.php?msg=success");
     } else {
         echo "Error updating record: " . $conn->error;
     }

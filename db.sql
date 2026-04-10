@@ -494,6 +494,29 @@ CREATE TABLE geotagged_photos (
     INDEX idx_project (project_type, project_id)
 );
 
+CREATE TABLE project_financial_tracker (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    fspf_project_id INT,
+    idp_project_id INT,
+    afme_project_id INT,
+    record_type ENUM('Obligation', 'Disbursement', 'Liquidation'),
+    amount DECIMAL(15, 2) NOT NULL,
+    reference_number VARCHAR(100),
+    particulars TEXT,
+    record_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    record_status ENUM('Active', 'Archived') DEFAULT 'Active',
+    recorded_by INT,
+    FOREIGN KEY (recorded_by) REFERENCES users(id),
+    FOREIGN KEY (fspf_project_id) REFERENCES fspf_projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (idp_project_id) REFERENCES idp_projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (afme_project_id) REFERENCES afme_projects(id) ON DELETE CASCADE,
+    INDEX idx_fspf (fspf_project_id),
+    INDEX idx_idp (idp_project_id),
+    INDEX idx_afme (afme_project_id),
+    INDEX idx_record_type (record_type),
+    INDEX idx_record_date (record_date)
+);
+
 CREATE TABLE potential_duplicates (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_type ENUM('FSPF', 'IDP', 'AFME'),

@@ -3,6 +3,7 @@
  * API Handler for Notifications & Alerts
  */
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/email.php';
 require_once __DIR__ . '/../functions/helpers.php';
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -114,14 +115,28 @@ try {
             $severity = $_POST['severity'] ?? 'medium'; // 'low', 'medium', 'high', 'critical'
             $message = $_POST['message'] ?? null;
             $target_users = $_POST['target_users'] ?? []; // array of user IDs
+            $send_email = isset($_POST['send_email']) ? (bool)$_POST['send_email'] : true;
 
             if (!$project_id || !$alert_type || !$message) {
                 throw new Exception('Missing required fields');
             }
 
+            // Get project code for email
+            $project_query = $conn->prepare("
+                SELECT project_code FROM (
+                    SELECT id, project_code FROM fspf_projects WHERE id = ?
+                    UNION SELECT id, project_code FROM idp_projects WHERE id = ?
+                    UNION SELECT id, project_code FROM afme_projects WHERE id = ?
+                ) projects LIMIT 1
+            ");
+            $project_query->bind_param('iii', $project_id, $project_id, $project_id);
+            $project_query->execute();
+            $project_result = $project_query->get_result()->fetch_assoc();
+            $project_code = $project_result ? $project_result['project_code'] : 'Unknown Project';
+
             // Create alert record
             $stmt = $conn->prepare("
-                INSERT INTO project_alerts 
+                INSERT INTO project_alerts
                 (project_id, alert_type, severity, message, created_by, created_at, is_active)
                 VALUES (?, ?, ?, ?, ?, NOW(), 1)
             ");
@@ -134,8 +149,15 @@ try {
                 // Distribute to target users
                 if (is_array($target_users) && count($target_users) > 0) {
                     foreach ($target_users as $target_user) {
+                        // Get user email for notifications
+                        $user_query = $conn->prepare("SELECT email FROM users WHERE id = ?");
+                        $user_query->bind_param('i', $target_user);
+                        $user_query->execute();
+                        $user_result = $user_query->get_result()->fetch_assoc();
+
+                        // Create notification record
                         $notif_stmt = $conn->prepare("
-                            INSERT INTO notifications 
+                            INSERT INTO notifications
                             (user_id, project_id, alert_type, title, message, is_read, created_at)
                             VALUES (?, ?, ?, ?, ?, 0, NOW())
                         ");
@@ -143,10 +165,15 @@ try {
                         $title = "Alert: " . ucfirst(str_replace('_', ' ', $alert_type));
                         $notif_stmt->bind_param('iisss', $target_user, $project_id, $alert_type, $title, $message);
                         $notif_stmt->execute();
+
+                        // Send email if requested and user has email
+                        if ($send_email && $user_result && $user_result['email']) {
+                            sendAlertEmail($user_result['email'], $alert_type, $project_code, $message, $severity);
+                        }
                     }
                 }
 
-                $response = ['success' => true, 'message' => 'Alert created', 'id' => $alert_id];
+                $response = ['success' => true, 'message' => 'Alert created and notifications sent', 'id' => $alert_id];
             } else {
                 throw new Exception('Failed to create alert');
             }
@@ -190,21 +217,75 @@ try {
             ];
             break;
 
-        case 'resolve_alert':
-            $alert_id = $_POST['alert_id'] ?? null;
+        case 'send_milestone_reminder':
+            // Send milestone reminder emails
+            $milestone_id = $_POST['milestone_id'] ?? null;
+            $target_users = $_POST['target_users'] ?? [];
 
-            if (!$alert_id) {
-                throw new Exception('Alert ID required');
+            if (!$milestone_id) {
+                throw new Exception('Milestone ID required');
             }
 
-            $stmt = $conn->prepare("UPDATE project_alerts SET is_active = 0, resolved_at = NOW(), resolved_by = ? WHERE id = ?");
-            $stmt->bind_param('ii', $user_id, $alert_id);
+            // Get milestone details
+            $milestone_query = $conn->prepare("
+                SELECT m.*, p.project_code, p.project_title
+                FROM project_milestones m
+                JOIN (
+                    SELECT id, project_code, project_title FROM fspf_projects
+                    UNION SELECT id, project_code, project_title FROM idp_projects
+                    UNION SELECT id, project_code, project_title FROM afme_projects
+                ) p ON m.project_id = p.id
+                WHERE m.id = ?
+            ");
+            $milestone_query->bind_param('i', $milestone_id);
+            $milestone_query->execute();
+            $milestone = $milestone_query->get_result()->fetch_assoc();
 
-            if ($stmt->execute()) {
-                $response = ['success' => true, 'message' => 'Alert resolved'];
-            } else {
-                throw new Exception('Failed to resolve alert');
+            if (!$milestone) {
+                throw new Exception('Milestone not found');
             }
+
+            $emails_sent = 0;
+            if (is_array($target_users) && count($target_users) > 0) {
+                foreach ($target_users as $target_user) {
+                    // Get user email
+                    $user_query = $conn->prepare("SELECT email FROM users WHERE id = ?");
+                    $user_query->bind_param('i', $target_user);
+                    $user_query->execute();
+                    $user_result = $user_query->get_result()->fetch_assoc();
+
+                    if ($user_result && $user_result['email']) {
+                        $success = sendMilestoneEmail(
+                            $user_result['email'],
+                            $milestone['project_code'],
+                            $milestone['milestone_name'],
+                            date('M d, Y', strtotime($milestone['due_date']))
+                        );
+
+                        if ($success) {
+                            $emails_sent++;
+
+                            // Create notification record
+                            $notif_stmt = $conn->prepare("
+                                INSERT INTO notifications
+                                (user_id, project_id, alert_type, title, message, is_read, created_at)
+                                VALUES (?, ?, 'milestone', ?, ?, 0, NOW())
+                            ");
+
+                            $title = "Milestone Reminder: " . $milestone['milestone_name'];
+                            $message = "Milestone '{$milestone['milestone_name']}' for project {$milestone['project_code']} is due on " . date('M d, Y', strtotime($milestone['due_date']));
+                            $notif_stmt->bind_param('iisss', $target_user, $milestone['project_id'], $title, $message);
+                            $notif_stmt->execute();
+                        }
+                    }
+                }
+            }
+
+            $response = [
+                'success' => true,
+                'message' => "Milestone reminders sent to {$emails_sent} users",
+                'emails_sent' => $emails_sent
+            ];
             break;
 
         default:

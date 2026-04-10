@@ -10,7 +10,7 @@ $type = $_GET['type'] ?? '';
 $id = intval($_GET['id'] ?? 0);
 
 if (empty($type) || !in_array($type, ['FSPF', 'IDP']) || $id <= 0) {
-    header('Location: dashboard.php');
+    header('Location: dashboard-enhanced.php');
     exit;
 }
 
@@ -23,7 +23,7 @@ $stmt->execute();
 $project = $stmt->get_result()->fetch_assoc();
 
 if (!$project) {
-    header('Location: dashboard.php');
+    header('Location: dashboard-enhanced.php');
     exit;
 }
 

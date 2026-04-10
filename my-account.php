@@ -91,7 +91,7 @@ renderAppLayout($page_title);
               <hr />
 
               <div class="d-flex gap-2">
-                <a href="dashboard.php" class="btn btn-secondary">
+                <a href="dashboard-enhanced.php" class="btn btn-secondary">
                   <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
                 </a>
                 <a href="change-password.php" class="btn btn-primary">

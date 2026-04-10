@@ -1,0 +1,81 @@
+<?php
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../functions/helpers.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: ../login.php');
+    exit;
+}
+
+$project_type = $_POST['type'] ?? 'fspf';
+$selected_ids = isset($_POST['selected_ids']) ? json_decode($_POST['selected_ids'], true) : null;
+
+$table = match($project_type) {
+    'fspf' => 'fspf_projects',
+    'idp' => 'idp_projects',
+    'afme' => 'afme_projects',
+    default => 'fspf_projects'
+};
+
+// Build query
+if ($selected_ids && is_array($selected_ids)) {
+    $placeholders = str_repeat('?,', count($selected_ids) - 1) . '?';
+    $query = "SELECT * FROM $table WHERE id IN ($placeholders) ORDER BY project_code";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param(str_repeat('i', count($selected_ids)), ...$selected_ids);
+} else {
+    $query = "SELECT * FROM $table ORDER BY project_code";
+    $stmt = $conn->prepare($query);
+}
+
+$stmt->execute();
+$projects = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+// Set headers for CSV download
+header('Content-Type: text/csv; charset=utf-8');
+header('Content-Disposition: attachment; filename="' . strtoupper($project_type) . '_projects_' . date('Y-m-d') . '.csv"');
+
+// Create output stream
+$output = fopen('php://output', 'w');
+
+// Write CSV headers
+fputcsv($output, [
+    'Project Code',
+    'Project Title',
+    'Current Stage',
+    'Physical Progress (%)',
+    'Financial Progress (%)',
+    'Allocated Amount',
+    'Contract Amount',
+    'Disbursed Amount',
+    'Location',
+    'Implementing Agency',
+    'Created Date',
+    'Updated Date'
+]);
+
+// Write project data
+foreach ($projects as $project) {
+    fputcsv($output, [
+        $project['project_code'],
+        $project['project_title'],
+        $project['current_stage'],
+        $project['physical_progress'],
+        $project['financial_progress'],
+        $project['allocated_amount'],
+        $project['contract_amount'] ?? '',
+        $project['disbursed_amount'] ?? '',
+        $project['location'] ?? '',
+        $project['implementing_agency'] ?? '',
+        $project['created_date'],
+        $project['updated_at']
+    ]);
+}
+
+fclose($output);
+exit;
+?>

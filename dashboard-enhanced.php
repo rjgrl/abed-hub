@@ -195,6 +195,51 @@ $performers = $performers_query->fetch_all(MYSQLI_ASSOC);
                 <?php endif; ?>
             </div>
 
+            <!-- Recent Notifications & Alerts -->
+            <div class="row g-3 mb-4">
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fas fa-bell me-2"></i>Recent Notifications</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="notificationsList">
+                                <div class="text-center text-muted py-4">
+                                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                                    <p class="mt-2">Loading notifications...</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer text-center">
+                            <a href="#" class="text-decoration-none" onclick="showAllNotifications()">
+                                <i class="fas fa-eye"></i> View All Notifications
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Active Alerts</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="alertsList">
+                                <div class="text-center text-muted py-4">
+                                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                                    <p class="mt-2">Loading alerts...</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer text-center">
+                            <a href="#" class="text-decoration-none" onclick="showAllAlerts()">
+                                <i class="fas fa-eye"></i> View All Alerts
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Charts Row -->
             <div class="row g-3 mb-4">
                 <!-- Projects by Type -->
@@ -383,7 +428,7 @@ $performers = $performers_query->fetch_all(MYSQLI_ASSOC);
                             </div>
                         </div>
                         <div class="card-footer bg-light">
-                            <a href="projects.php" class="btn btn-sm btn-outline-primary">View All Projects</a>
+                            <a href="projects-advanced.php" class="btn btn-sm btn-outline-primary">View All Projects</a>
                         </div>
                     </div>
                 </div>
@@ -475,6 +520,125 @@ $performers = $performers_query->fetch_all(MYSQLI_ASSOC);
                 indexAxis: 'y',
                 scales: { x: { beginAtZero: true } }
             }
+        });
+    </script>
+
+    <!-- Dashboard Notifications Script -->
+    <script>
+        // Load recent notifications
+        async function loadRecentNotifications() {
+            try {
+                const response = await fetch('api/notifications.php?action=get&limit=5');
+                const data = await response.json();
+
+                if (data.success && data.data.length > 0) {
+                    const html = data.data.map(notification => `
+                        <div class="d-flex align-items-start mb-3 pb-3 border-bottom">
+                            <div class="flex-shrink-0 me-3">
+                                <div class="bg-light rounded-circle p-2">
+                                    <i class="fas fa-bell text-muted"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between">
+                                    <h6 class="mb-1">${notification.title}</h6>
+                                    <small class="text-muted">${new Date(notification.created_at).toLocaleDateString()}</small>
+                                </div>
+                                <p class="mb-1 text-muted small">${notification.message}</p>
+                                ${!notification.is_read ? '<span class="badge bg-primary">New</span>' : ''}
+                            </div>
+                        </div>
+                    `).join('');
+
+                    document.getElementById('notificationsList').innerHTML = html;
+                } else {
+                    document.getElementById('notificationsList').innerHTML = `
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-bell-slash fa-2x"></i>
+                            <p class="mt-2">No notifications</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                document.getElementById('notificationsList').innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        <p class="mt-2">Error loading notifications</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Load active alerts
+        async function loadActiveAlerts() {
+            try {
+                const response = await fetch('api/notifications.php?action=get_alerts');
+                const data = await response.json();
+
+                if (data.success && data.data.length > 0) {
+                    const html = data.data.slice(0, 5).map(alert => `
+                        <div class="d-flex align-items-start mb-3 pb-3 border-bottom">
+                            <div class="flex-shrink-0 me-3">
+                                <div class="bg-${getSeverityColor(alert.severity)} rounded-circle p-2">
+                                    <i class="fas fa-exclamation-triangle text-white"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between">
+                                    <h6 class="mb-1">${alert.alert_type.charAt(0).toUpperCase() + alert.alert_type.slice(1)} Alert</h6>
+                                    <small class="badge bg-${getSeverityColor(alert.severity)}">${alert.severity}</small>
+                                </div>
+                                <p class="mb-1 text-muted small">${alert.message}</p>
+                                <small class="text-muted">${new Date(alert.created_at).toLocaleDateString()}</small>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    document.getElementById('alertsList').innerHTML = html;
+                } else {
+                    document.getElementById('alertsList').innerHTML = `
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-check-circle fa-2x text-success"></i>
+                            <p class="mt-2">No active alerts</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading alerts:', error);
+                document.getElementById('alertsList').innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        <p class="mt-2">Error loading alerts</p>
+                    </div>
+                `;
+            }
+        }
+
+        function getSeverityColor(severity) {
+            const colors = {
+                'low': 'info',
+                'medium': 'warning',
+                'high': 'orange',
+                'critical': 'danger'
+            };
+            return colors[severity] || 'secondary';
+        }
+
+        function showAllNotifications() {
+            // Could redirect to a notifications page or open a modal
+            alert('Notifications page coming soon!');
+        }
+
+        function showAllAlerts() {
+            // Could redirect to an alerts page or open a modal
+            alert('Alerts management page coming soon!');
+        }
+
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRecentNotifications();
+            loadActiveAlerts();
         });
     </script>
 </body>

@@ -9,7 +9,7 @@ $page_title = 'AFME Machinery Details';
 $id = intval($_GET['id'] ?? 0);
 
 if ($id <= 0) {
-    header('Location: dashboard.php');
+    header('Location: dashboard-enhanced.php');
     exit;
 }
 
@@ -25,7 +25,7 @@ $stmt->execute();
 $machinery = $stmt->get_result()->fetch_assoc();
 
 if (!$machinery) {
-    header('Location: dashboard.php');
+    header('Location: dashboard-enhanced.php');
     exit;
 }
 

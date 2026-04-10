@@ -47,10 +47,34 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // AFME Form Submission
-  const afmeForm = document.getElementById("afmeForm");
-  if (afmeForm) {
-    afmeForm.addEventListener("submit", function (e) {
+  // AFME Project Form Submission
+  const afmeProjectForm = document.getElementById("afmeProjectForm");
+  if (afmeProjectForm) {
+    afmeProjectForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+
+      fetch("register-afme-project.php", {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.status === "success") {
+            alert("AFME Project registered successfully!");
+            location.reload();
+          } else {
+            alert("Error: " + data.message);
+          }
+        })
+        .catch((error) => console.error("Error:", error));
+    });
+  }
+
+  // AFME Machinery Form Submission
+  const afmeMachineryForm = document.getElementById("afmeMachineryForm");
+  if (afmeMachineryForm) {
+    afmeMachineryForm.addEventListener("submit", function (e) {
       e.preventDefault();
       const formData = new FormData(this);
 
