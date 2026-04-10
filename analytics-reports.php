@@ -7,10 +7,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit;
-}
+requireLogin();
+
+$page_title = 'Analytics & Reports - ABED IDM Hub';
 
 $year = $_GET['year'] ?? date('Y');
 $month = $_GET['month'] ?? date('m');
@@ -127,24 +126,8 @@ $at_risk = $conn->query("
     LIMIT 10
 ")->fetch_all(MYSQLI_ASSOC);
 
+renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analytics & Reports - ABED IDM Hub</title>
-    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-</head>
-<body>
-    <?php include 'components/sidebar.php'; ?>
-    <?php include 'components/topbar.php'; ?>
-    <?php include 'components/navbar.php'; ?>
-
-    <main class="app-main">
         <div class="container-fluid py-4">
             <!-- Header -->
             <div class="row align-items-center mb-4">
@@ -526,5 +509,7 @@ $at_risk = $conn->query("
             }
         });
     </script>
-</body>
-</html>
+
+<?php
+renderAppLayoutFooter();
+?>

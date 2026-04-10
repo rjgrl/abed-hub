@@ -39,8 +39,8 @@ if (!$project) {
 }
 
 // Fetch related documents
-$docs_stmt = $conn->prepare("SELECT * FROM project_documents WHERE {$type_map[$project_type]}_id = ? ORDER BY upload_date DESC");
-$docs_stmt->bind_param('i', $project_id);
+$docs_stmt = $conn->prepare("SELECT * FROM project_documents WHERE project_type = ? AND project_id = ? ORDER BY upload_date DESC");
+$docs_stmt->bind_param('si', strtoupper($project_type), $project_id);
 $docs_stmt->execute();
 $documents = $docs_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
@@ -66,8 +66,8 @@ if ($project_type === 'afme') {
 }
 
 // Get comments/audit log
-$audit_stmt = $conn->prepare("SELECT * FROM audit_log WHERE entity_type = 'projects' AND entity_id = ? ORDER BY timestamp DESC LIMIT 20");
-$audit_stmt->bind_param('i', $project_id);
+$audit_stmt = $conn->prepare("SELECT * FROM audit_log WHERE project_type = ? AND project_id = ? ORDER BY created_at DESC LIMIT 20");
+$audit_stmt->bind_param('si', strtoupper($project_type), $project_id);
 $audit_stmt->execute();
 $audit_log = $audit_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 

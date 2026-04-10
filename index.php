@@ -134,7 +134,7 @@ $conn->close();
         </div>
         <?php else: ?>
         <p class="lead">Welcome back, <strong><?php echo htmlspecialchars($_SESSION['full_name']); ?></strong></p>
-        <a href="dashboard.php" class="btn btn-light btn-lg">Go to Dashboard</a>
+        <a href="dashboard-enhanced.php" class="btn btn-light btn-lg">Go to Dashboard</a>
         <?php endif; ?>
       </div>
     </section>
