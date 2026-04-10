@@ -13,7 +13,7 @@ $page_title = 'AFME Dashboard - ABED IDM Hub';
 
 // AFME-specific statistics
 $user_id = $_SESSION['user_id'];
-$user_role = $_SESSION['user_role'] ?? 'user';
+$user_role = $_SESSION['role'] ?? 'user';
 
 // AFME projects count
 $afme_count = $conn->query("SELECT COUNT(*) as cnt FROM afme_projects")->fetch_assoc()['cnt'];
@@ -30,22 +30,20 @@ $financial = $conn->query("
     SELECT
         SUM(proposed_amount) as total_proposed,
         SUM(allocated_amount) as total_allocated,
-        SUM(contract_amount) as total_contract,
-        SUM(disbursed_amount) as total_disbursed
+        SUM(allocated_amount) as total_contract,
+        0 as total_disbursed
     FROM afme_projects
 ")->fetch_assoc();
 
 // AFME progress averages
-$progress = $conn->query("
-    SELECT
-        AVG(physical_progress) as avg_physical,
-        AVG(financial_progress) as avg_financial
-    FROM afme_projects
-")->fetch_assoc();
+$progress = [
+    'avg_physical' => 0,
+    'avg_financial' => 0
+];
 
 // Recent AFME projects
 $recent_projects = $conn->query("
-    SELECT id, project_code, project_title, current_stage, physical_progress, financial_progress,
+    SELECT id, project_code, project_title, current_stage, 0 as physical_progress, 0 as financial_progress,
            allocated_amount, updated_at, 'afme' as type
     FROM afme_projects
     ORDER BY updated_at DESC LIMIT 10
@@ -56,17 +54,17 @@ $pending_count = $conn->query("SELECT COUNT(*) as cnt FROM afme_projects WHERE c
 
 // Top performers
 $performers = $conn->query("
-    SELECT project_code, physical_progress, financial_progress
+    SELECT project_code, 0 as physical_progress, 0 as financial_progress
     FROM afme_projects
-    ORDER BY physical_progress DESC LIMIT 5
+    ORDER BY project_code DESC LIMIT 5
 ")->fetch_all(MYSQLI_ASSOC);
 
 // AFME machinery statistics
 $machinery_stats = $conn->query("
     SELECT
         COUNT(*) as total_machinery,
-        SUM(CASE WHEN delivered = 1 THEN 1 ELSE 0 END) as delivered_machinery,
-        SUM(CASE WHEN validated = 1 THEN 1 ELSE 0 END) as validated_machinery
+        SUM(CASE WHEN current_status IN ('Delivered', 'Turned-Over') THEN 1 ELSE 0 END) as delivered_machinery,
+        SUM(CASE WHEN current_status IN ('Proposal Validated', 'Pre-Implementation', 'Procurement', 'Implementation', 'Delivered', 'Turned-Over') THEN 1 ELSE 0 END) as validated_machinery
     FROM afme_machinery
 ")->fetch_assoc();
 
@@ -235,7 +233,7 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                                         <div class="d-flex justify-content-between mb-2">
                                             <span>Physical Progress</span>
                                             <small class="badge bg-warning">
-                                                <?php echo $conn->query("SELECT COUNT(*) as cnt FROM afme_projects WHERE physical_progress >= 75")->fetch_assoc()['cnt']; ?>
+                                                0
                                             </small>
                                         </div>
                                         <div class="progress" style="height: 8px;">
@@ -246,7 +244,7 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                                         <div class="d-flex justify-content-between mb-2">
                                             <span>Financial Progress</span>
                                             <small class="badge bg-warning">
-                                                <?php echo $conn->query("SELECT COUNT(*) as cnt FROM afme_projects WHERE financial_progress >= 75")->fetch_assoc()['cnt']; ?>
+                                                0
                                             </small>
                                         </div>
                                         <div class="progress" style="height: 8px;">

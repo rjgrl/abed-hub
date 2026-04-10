@@ -103,7 +103,7 @@ function listMachinery() {
         $params[] = $type;
     }
 
-    $query .= " ORDER BY am.created_date DESC LIMIT ? OFFSET ?";
+    $query .= " ORDER BY am.created_at DESC LIMIT ? OFFSET ?";
     $params[] = $limit;
     $params[] = $offset;
 
@@ -175,7 +175,7 @@ function createMachinery() {
 
     $stmt = $conn->prepare("
         INSERT INTO afme_machinery 
-        (afme_project_id, machinery_type, unit_quantity, unit_cost, machinery_status, created_by, created_date)
+        (afme_project_id, machinery_type, unit_quantity, unit_cost, machinery_status, created_by, created_at)
         VALUES (?, ?, ?, ?, ?, ?, NOW())
     ");
 
@@ -187,7 +187,7 @@ function createMachinery() {
     // Add specifications if provided
     if ($specifications) {
         $specs_stmt = $conn->prepare("
-            INSERT INTO afme_machinery_specs (machinery_id, specifications, created_date)
+            INSERT INTO afme_machinery_specs (machinery_id, specifications, created_at)
             VALUES (?, ?, NOW())
         ");
         $specs_stmt->bind_param('is', $machinery_id, $specifications);

@@ -59,7 +59,7 @@ $financial_records = $fin_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 // Fetch machinery if AFME project
 $machinery = [];
 if ($project_type === 'afme') {
-    $mach_stmt = $conn->prepare("SELECT * FROM afme_machinery WHERE afme_project_id = ? ORDER BY created_date DESC");
+    $mach_stmt = $conn->prepare("SELECT * FROM afme_machinery WHERE afme_project_id = ? ORDER BY created_at DESC");
     $mach_stmt->bind_param('i', $project_id);
     $mach_stmt->execute();
     $machinery = $mach_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -250,7 +250,7 @@ $audit_log = $audit_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                                     <strong>Timeline</strong>
                                     <div class="mt-2 small">
                                         <div class="mb-2">
-                                            <strong>Created:</strong> <?php echo date('M d, Y', strtotime($project['created_date'])); ?>
+                                            <strong>Created:</strong> <?php echo date('M d, Y', strtotime($project['created_at'])); ?>
                                         </div>
                                         <div>
                                             <strong>Updated:</strong> <?php echo date('M d, Y', strtotime($project['updated_at'])); ?>

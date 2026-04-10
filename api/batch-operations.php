@@ -65,11 +65,31 @@ try {
                     exit;
                 }
 
+                // Define allowed fields for each table
+                $allowed_fields = [
+                    'fspf_projects' => ['project_code', 'project_title', 'allocated_amount', 'physical_progress', 'financial_progress', 'current_stage', 'proposal_status'],
+                    'idp_projects' => ['project_code', 'project_title', 'allocated_amount', 'physical_progress', 'financial_progress', 'current_stage', 'proposal_status'],
+                    'afme_projects' => ['project_code', 'project_title', 'allocated_amount', 'current_stage', 'proposal_status']
+                ];
+
+                // Filter updates to only allowed fields
+                $filtered_updates = [];
+                foreach ($updates as $field => $value) {
+                    if (in_array($field, $allowed_fields[$table] ?? [])) {
+                        $filtered_updates[$field] = $value;
+                    }
+                }
+
+                if (empty($filtered_updates)) {
+                    echo json_encode(['success' => false, 'message' => 'No valid fields to update']);
+                    exit;
+                }
+
                 $set_parts = [];
                 $params = [];
                 $types = '';
 
-                foreach ($updates as $field => $value) {
+                foreach ($filtered_updates as $field => $value) {
                     $set_parts[] = "$field = ?";
                     $params[] = $value;
                     $types .= is_numeric($value) ? 'd' : 's';

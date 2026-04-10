@@ -52,8 +52,8 @@ if ($search) {
 }
 
 if ($year) {
-    $query .= " AND YEAR(created_date) = ?";
-    $count_query .= " AND YEAR(created_date) = ?";
+    $query .= " AND YEAR(created_at) = ?";
+    $count_query .= " AND YEAR(created_at) = ?";
     $params[] = $year;
     $types .= 'i';
 }
@@ -68,7 +68,7 @@ $total_records = $count_stmt->get_result()->fetch_assoc()['total'];
 $total_pages = ceil($total_records / $per_page);
 
 // Get projects
-$query .= " ORDER BY created_date DESC LIMIT ? OFFSET ?";
+$query .= " ORDER BY created_at DESC LIMIT ? OFFSET ?";
 $limit_params = $params;
 $limit_params[] = $per_page;
 $limit_params[] = $offset;
@@ -692,41 +692,6 @@ renderAppLayout($page_title);
 <?php
 renderAppLayoutFooter();
 ?>
-        <div class="container-fluid py-4">
-            <!-- Header -->
-            <div class="row align-items-center mb-4">
-                <div class="col">
-                    <h1 class="h3 mb-0">Projects</h1>
-                    <p class="text-muted">Browse and manage all projects</p>
-                </div>
-                <div class="col-auto">
-                    <div class="btn-group" role="group">
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exportModal">
-                            <i class="fas fa-download"></i> Export
-                        </button>
-                        <button class="btn btn-outline-secondary" id="selectAllBtn">
-                            <i class="fas fa-check-square"></i> Select All
-                        </button>
-                        <div class="btn-group" role="group">
-                            <button type="button" class="btn btn-outline-warning dropdown-toggle" data-bs-toggle="dropdown" id="batchActionsBtn" disabled>
-                                <i class="fas fa-tasks"></i> Batch Actions
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#" id="batchExportBtn">
-                                    <i class="fas fa-file-export"></i> Export Selected
-                                </a></li>
-                                <li><a class="dropdown-item" href="#" id="batchUpdateBtn">
-                                    <i class="fas fa-edit"></i> Bulk Update
-                                </a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger" href="#" id="batchDeleteBtn">
-                                    <i class="fas fa-trash"></i> Delete Selected
-                                </a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <!-- Filters -->
             <div class="card border-0 shadow-sm mb-4">

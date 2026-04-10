@@ -68,7 +68,7 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
     </li>
 
     <!-- Admin Only Section -->
-    <?php if (isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'coordinator'])): ?>
+    <?php if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'coordinator'])): ?>
     <hr class="my-3">
     <li class="nav-item mb-2">
       <span class="nav-link text-muted small fw-bold px-0">

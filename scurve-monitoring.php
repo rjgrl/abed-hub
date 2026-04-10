@@ -32,7 +32,7 @@ if ($project_id) {
             id, project_code, project_title, 
             proposed_amount, allocated_amount,
             physical_progress, financial_progress,
-            current_stage, created_date, updated_at
+            current_stage, created_at, updated_at
         FROM $table_name
         WHERE id = ?
     ");
@@ -46,7 +46,7 @@ if ($project_id) {
     }
 
     // Generate S-Curve timeline data
-    $created_date = new DateTime($project['created_date']);
+    $created_date = new DateTime($project['created_at']);
     $today = new DateTime();
     $days_elapsed = $created_date->diff($today)->days;
     
@@ -86,7 +86,7 @@ if ($project_id) {
                     AVG(financial_progress) as avg_financial,
                     COUNT(*) as count
                   FROM $table
-                  WHERE YEAR(created_date) = ?";
+                  WHERE YEAR(created_at) = ?";
         
         $stmt = $conn->prepare($query);
         $stmt->bind_param('i', $year);
@@ -109,17 +109,17 @@ if (!$project_id) {
                 'FSPF' as type, id, project_code, project_title, 
                 physical_progress, financial_progress, current_stage
               FROM fspf_projects
-              WHERE YEAR(created_date) = ?
+              WHERE YEAR(created_at) = ?
               UNION
               SELECT 'IDP' as type, id, project_code, project_title, 
                 physical_progress, financial_progress, current_stage
               FROM idp_projects
-              WHERE YEAR(created_date) = ?
+              WHERE YEAR(created_at) = ?
               UNION
               SELECT 'AFME' as type, id, project_code, project_title, 
-                physical_progress, financial_progress, current_stage
+                0 as physical_progress, 0 as financial_progress, current_stage
               FROM afme_projects
-              WHERE YEAR(created_date) = ?
+              WHERE YEAR(created_at) = ?
               ORDER BY physical_progress DESC
               LIMIT 20";
     

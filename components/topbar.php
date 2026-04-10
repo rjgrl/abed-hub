@@ -4,9 +4,9 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 $isAuthenticated = isset($_SESSION['user_id']);
 $userName = htmlspecialchars($_SESSION['full_name'] ?? 'Guest User');
-$userRole = htmlspecialchars($_SESSION['user_role'] ?? 'Guest');
+$userRole = htmlspecialchars($_SESSION['role'] ?? 'Guest');
 ?>
-<div class="topbar-fixed border-bottom px-3 d-flex justify-content-between align-items-center">
+<div class="topbar-fixed border-bottom px-3 d-flex justify-content-between align-items-center bg-white">
     <a class="navbar-brand fw-bold" href="dashboard-enhanced.php">
             <i class="fas fa-building me-2"></i>ABED IDM Hub
         </a>
