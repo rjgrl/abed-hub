@@ -1,4 +1,5 @@
 <?php
+session_name('ABED_IDM_HUB');
 session_start();
 header('Content-Type: application/json');
 require_once '../config/database.php';

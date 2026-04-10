@@ -216,13 +216,28 @@ body {
   overflow-x: hidden;
 }
 
+main.app-main {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: calc(100% - var(--sidebar-width));
+  margin-left: var(--sidebar-width);
+  margin-top: calc(var(--topbar-height) + var(--navbar-height));
+  padding: var(--layout-gutter);
+  min-height: calc(
+    100vh - var(--topbar-height) - var(--navbar-height) - var(--layout-gutter)
+  );
+  background: #f8f9fa;
+  box-sizing: border-box;
+}
+
 .sidebar-fixed {
   position: fixed !important;
   top: 0;
   left: 0;
   width: var(--sidebar-width);
   height: 100vh;
-  z-index: 1030;
+  z-index: 1200;
   overflow-y: auto;
 }
 
@@ -232,7 +247,7 @@ body {
   left: var(--sidebar-width);
   width: calc(100% - var(--sidebar-width));
   height: var(--topbar-height);
-  z-index: 1035 !important;
+  z-index: 1300 !important;
 }
 
 .navbar-fixed {
@@ -241,11 +256,11 @@ body {
   left: var(--sidebar-width);
   width: calc(100% - var(--sidebar-width));
   height: var(--navbar-height);
-  z-index: 1034 !important;
+  z-index: 1250 !important;
 }
 
 .dropdown-menu {
-  z-index: 1090 !important;
+  z-index: 1350 !important;
 }
 
 .mp {
@@ -254,8 +269,6 @@ body {
 
 /* keep modal layer on top of all fixed bars */
 .modal {
-  z-index: 1060;
-  overflow: auto !important;
   position: fixed !important;
   top: calc(
     var(--topbar-height) + var(--navbar-height) + var(--layout-gutter)
@@ -265,7 +278,9 @@ body {
   height: calc(
     100vh - var(--topbar-height) - var(--navbar-height) - var(--layout-gutter)
   ) !important;
-  z-index: 12000 !important;
+  overflow: auto !important;
+  pointer-events: auto !important;
+  z-index: 14000 !important;
 }
 
 .modal.show {
@@ -282,7 +297,7 @@ body {
   height: calc(
     100vh - var(--topbar-height) - var(--navbar-height) - var(--layout-gutter)
   ) !important;
-  z-index: 11990 !important;
+  z-index: 13990 !important;
   pointer-events: auto !important;
 }
 
@@ -296,34 +311,14 @@ body {
 }
 
 .modal-content {
-  z-index: 12010 !important;
-}
-
-.modal-content {
-  border-radius: 0.5rem;
+  position: relative;
+  z-index: 14010 !important;
 }
 
 /* if the modal is too tall, keep content visible */
 .modal-body {
   max-height: calc(100vh - 200px) !important;
   overflow-y: auto !important;
-}
-
-.app-main {
-  position: relative;
-  z-index: auto;
-  display: block;
-  width: calc(100% - var(--sidebar-width));
-  margin-left: var(--sidebar-width) !important;
-  margin-top: calc(
-    var(--topbar-height) + var(--navbar-height) + 1rem
-  ) !important;
-  /* extra top space so content starts below topbar */
-  padding: var(--layout-gutter);
-  min-height: calc(
-    100vh - var(--topbar-height) - var(--navbar-height) - var(--layout-gutter)
-  );
-  box-sizing: border-box;
 }
 
 /* fallback if manually styled pages still exist */

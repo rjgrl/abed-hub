@@ -11,7 +11,7 @@ requireLogin();
 
 $page_title = 'Analytics & Reports - ABED IDM Hub';
 
-$year = $_GET['year'] ?? date('Y');
+$year = intval($_GET['year'] ?? date('Y'));
 $month = $_GET['month'] ?? date('m');
 $report_type = $_GET['report'] ?? 'summary';
 
@@ -66,18 +66,18 @@ $stage_dist = $conn->query("
 // Get monthly data for the selected year
 $monthly_query = $conn->query("
     SELECT 
-        MONTH(created_date) as month,
+        MONTH(created_at) as month,
         COUNT(*) as count,
         ROUND(AVG(physical_progress), 1) as avg_physical,
         ROUND(AVG(financial_progress), 1) as avg_financial
     FROM (
-        SELECT created_date, physical_progress, financial_progress FROM fspf_projects WHERE YEAR(created_date) = $year
+        SELECT created_at, physical_progress, financial_progress FROM fspf_projects WHERE YEAR(created_at) = $year
         UNION ALL
-        SELECT created_date, physical_progress, financial_progress FROM idp_projects WHERE YEAR(created_date) = $year
+        SELECT created_at, physical_progress, financial_progress FROM idp_projects WHERE YEAR(created_at) = $year
         UNION ALL
-        SELECT created_date, physical_progress, financial_progress FROM afme_projects WHERE YEAR(created_date) = $year
+        SELECT created_at, 0 as physical_progress, 0 as financial_progress FROM afme_projects WHERE YEAR(created_at) = $year
     ) as combined
-    GROUP BY MONTH(created_date)
+    GROUP BY MONTH(created_at)
     ORDER BY month
 ");
 
@@ -89,11 +89,11 @@ while ($row = $monthly_query->fetch_assoc()) {
 // Get projects by stage for selected year
 $stage_yearly = $conn->query("
     SELECT current_stage, COUNT(*) as count FROM (
-        SELECT current_stage FROM fspf_projects WHERE YEAR(created_date) = $year
+        SELECT current_stage FROM fspf_projects WHERE YEAR(created_at) = $year
         UNION ALL
-        SELECT current_stage FROM idp_projects WHERE YEAR(created_date) = $year
+        SELECT current_stage FROM idp_projects WHERE YEAR(created_at) = $year
         UNION ALL
-        SELECT current_stage FROM afme_projects WHERE YEAR(created_date) = $year
+        SELECT current_stage FROM afme_projects WHERE YEAR(created_at) = $year
     ) as combined
     GROUP BY current_stage
 ")->fetch_all(MYSQLI_ASSOC);
@@ -106,8 +106,8 @@ $top_performers = $conn->query("
     SELECT project_code, project_title, physical_progress, financial_progress, 'idp' as type
     FROM idp_projects WHERE current_stage IN ('Implementation', 'Completed')
     UNION ALL
-    SELECT project_code, project_title, physical_progress, financial_progress, 'afme' as type
-    FROM afme_projects WHERE current_stage IN ('Implementation', 'Completed')
+    SELECT project_code, project_title, 0 as physical_progress, 0 as financial_progress, 'afme' as type
+    FROM afme_projects WHERE current_stage IN ('Implementation', 'Delivered', 'Turned-Over', 'Operation and Maintenance')
     ORDER BY physical_progress DESC
     LIMIT 10
 ")->fetch_all(MYSQLI_ASSOC);
@@ -120,8 +120,8 @@ $at_risk = $conn->query("
     SELECT project_code, project_title, physical_progress, financial_progress, (physical_progress - financial_progress) as variance, 'idp' as type
     FROM idp_projects WHERE (physical_progress - financial_progress) < -15 OR (physical_progress - financial_progress) > 20
     UNION ALL
-    SELECT project_code, project_title, physical_progress, financial_progress, (physical_progress - financial_progress) as variance, 'afme' as type
-    FROM afme_projects WHERE (physical_progress - financial_progress) < -15 OR (physical_progress - financial_progress) > 20
+    SELECT project_code, project_title, 0 as physical_progress, 0 as financial_progress, 0 as variance, 'afme' as type
+    FROM afme_projects WHERE current_stage IN ('Implementation', 'Delivered', 'Turned-Over')
     ORDER BY ABS(variance) DESC
     LIMIT 10
 ")->fetch_all(MYSQLI_ASSOC);
@@ -196,7 +196,7 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                                     UNION ALL
                                     SELECT physical_progress FROM idp_projects
                                     UNION ALL
-                                    SELECT physical_progress FROM afme_projects
+                                    SELECT 0 as physical_progress FROM afme_projects
                                 ) as combined
                             ")->fetch_assoc()['avg'] ?? 0;
                             ?>

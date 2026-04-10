@@ -13,7 +13,7 @@ $page_title = 'FSPF Dashboard - ABED IDM Hub';
 
 // FSPF-specific statistics
 $user_id = $_SESSION['user_id'];
-$user_role = $_SESSION['user_role'] ?? 'user';
+$user_role = $_SESSION['role'] ?? 'user';
 
 // FSPF projects count
 $fspf_count = $conn->query("SELECT COUNT(*) as cnt FROM fspf_projects")->fetch_assoc()['cnt'];
@@ -30,8 +30,8 @@ $financial = $conn->query("
     SELECT
         SUM(proposed_amount) as total_proposed,
         SUM(allocated_amount) as total_allocated,
-        SUM(contract_amount) as total_contract,
-        SUM(disbursed_amount) as total_disbursed
+        SUM(allocated_amount) as total_contract,
+        0 as total_disbursed
     FROM fspf_projects
 ")->fetch_assoc();
 

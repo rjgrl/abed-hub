@@ -32,7 +32,8 @@ document.addEventListener("DOMContentLoaded", function () {
         if (data.status === "success") {
           showAlert("Login successful! Redirecting...", "success");
           setTimeout(() => {
-            window.location.href = data.redirect_url || "dashboard.php";
+            window.location.href =
+              data.redirect_url || "dashboard-enhanced.php";
           }, 1000);
         } else if (data.status === "redirect") {
           window.location.href = data.redirect_url || "dashboard.php";

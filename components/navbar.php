@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 $current_page = basename($_SERVER['SCRIPT_NAME']);
 ?>
-<nav class="navbar navbar-expand-lg border-bottom px-3 navbar-dark navbar-fixed bg-white"">
+<nav class="navbar navbar-expand-lg border-bottom px-3 navbar-dark navbar-fixed bg-white">
     <div class="container-fluid">
         <h6 class="m-0 fw-bold text-dark">System Management</h6>
 

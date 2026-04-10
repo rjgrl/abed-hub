@@ -71,7 +71,7 @@ foreach ($projects as $project) {
         $project['disbursed_amount'] ?? '',
         $project['location'] ?? '',
         $project['implementing_agency'] ?? '',
-        $project['created_date'],
+        $project['created_at'],
         $project['updated_at']
     ]);
 }

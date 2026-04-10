@@ -35,7 +35,7 @@ try {
 
             $stmt = $conn->prepare("
                 INSERT INTO project_milestones 
-                (project_id, project_type, milestone_name, target_date, description, status, progress_percentage, created_by, created_date)
+                (project_id, project_type, milestone_name, target_date, description, status, progress_percentage, created_by, created_at)
                 VALUES (?, ?, ?, ?, ?, 'On Track', 0, ?, NOW())
             ");
             

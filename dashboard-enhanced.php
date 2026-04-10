@@ -14,7 +14,7 @@ if (!isset($_SESSION['user_id'])) {
 
 // Fetch statistics
 $user_id = $_SESSION['user_id'];
-$user_role = $_SESSION['user_role'] ?? 'user';
+$user_role = $_SESSION['role'] ?? 'user';
 
 // Total projects by type
 $fspf_count = $conn->query("SELECT COUNT(*) as cnt FROM fspf_projects")->fetch_assoc()['cnt'];
@@ -55,12 +55,12 @@ $financial = $financial_query->fetch_assoc();
 
 // Recent projects
 $recent_query = $conn->query("
-    SELECT id, project_code, project_title, current_stage, 'fspf' as type FROM fspf_projects
+    SELECT id, project_code, project_title, current_stage, created_at, 'fspf' as type FROM fspf_projects
     UNION ALL
-    SELECT id, project_code, project_title, current_stage, 'idp' as type FROM idp_projects
+    SELECT id, project_code, project_title, current_stage, created_at, 'idp' as type FROM idp_projects
     UNION ALL
-    SELECT id, project_code, project_title, current_stage, 'afme' as type FROM afme_projects
-    ORDER BY created_date DESC LIMIT 10
+    SELECT id, project_code, project_title, current_stage, created_at, 'afme' as type FROM afme_projects
+    ORDER BY created_at DESC LIMIT 10
 ");
 $recent_projects = $recent_query->fetch_all(MYSQLI_ASSOC);
 
@@ -161,11 +161,9 @@ $performers = $performers_query->fetch_all(MYSQLI_ASSOC);
                                                 SELECT physical_progress FROM fspf_projects
                                                 UNION ALL
                                                 SELECT physical_progress FROM idp_projects
-                                                UNION ALL
-                                                SELECT physical_progress FROM afme_projects
                                             ) as combined
                                         ")->fetch_assoc()['avg'];
-                                        echo round($avg_physical, 1);
+                                        echo round($avg_physical ?? 0, 1);
                                     ?>%</h2>
                                 </div>
                                 <div class="rounded-circle p-3" style="background-color: rgba(23, 162, 184, 0.1);">
@@ -296,8 +294,6 @@ $performers = $performers_query->fetch_all(MYSQLI_ASSOC);
                                                     SELECT physical_progress FROM fspf_projects WHERE physical_progress < 25
                                                     UNION ALL
                                                     SELECT physical_progress FROM idp_projects WHERE physical_progress < 25
-                                                    UNION ALL
-                                                    SELECT physical_progress FROM afme_projects WHERE physical_progress < 25
                                                 ) as combined
                                             ")->fetch_assoc()['cnt']; ?>
                                         </small>
@@ -315,8 +311,6 @@ $performers = $performers_query->fetch_all(MYSQLI_ASSOC);
                                                     SELECT physical_progress FROM fspf_projects WHERE physical_progress >= 25 AND physical_progress < 50
                                                     UNION ALL
                                                     SELECT physical_progress FROM idp_projects WHERE physical_progress >= 25 AND physical_progress < 50
-                                                    UNION ALL
-                                                    SELECT physical_progress FROM afme_projects WHERE physical_progress >= 25 AND physical_progress < 50
                                                 ) as combined
                                             ")->fetch_assoc()['cnt']; ?>
                                         </small>
@@ -334,8 +328,6 @@ $performers = $performers_query->fetch_all(MYSQLI_ASSOC);
                                                     SELECT physical_progress FROM fspf_projects WHERE physical_progress >= 50 AND physical_progress < 75
                                                     UNION ALL
                                                     SELECT physical_progress FROM idp_projects WHERE physical_progress >= 50 AND physical_progress < 75
-                                                    UNION ALL
-                                                    SELECT physical_progress FROM afme_projects WHERE physical_progress >= 50 AND physical_progress < 75
                                                 ) as combined
                                             ")->fetch_assoc()['cnt']; ?>
                                         </small>
@@ -353,8 +345,6 @@ $performers = $performers_query->fetch_all(MYSQLI_ASSOC);
                                                     SELECT physical_progress FROM fspf_projects WHERE physical_progress >= 75
                                                     UNION ALL
                                                     SELECT physical_progress FROM idp_projects WHERE physical_progress >= 75
-                                                    UNION ALL
-                                                    SELECT physical_progress FROM afme_projects WHERE physical_progress >= 75
                                                 ) as combined
                                             ")->fetch_assoc()['cnt']; ?>
                                         </small>

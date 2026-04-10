@@ -143,33 +143,6 @@ if (!isset($_SESSION['user_id'])) {
                                 </div>
                             </div>
 
-                            <div class="card border-0 shadow-sm">
-                                <div class="card-header bg-info text-white">
-                                    <h6 class="mb-0">Keyboard Shortcuts</h6>
-                                </div>
-                                <div class="card-body p-0">
-                                    <table class="table table-sm mb-0">
-                                        <tbody>
-                                            <tr>
-                                                <td><kbd>Ctrl</kbd> + <kbd>D</kbd></td>
-                                                <td>Dashboard</td>
-                                            </tr>
-                                            <tr>
-                                                <td><kbd>Ctrl</kbd> + <kbd>P</kbd></td>
-                                                <td>Projects</td>
-                                            </tr>
-                                            <tr>
-                                                <td><kbd>Ctrl</kbd> + <kbd>F</kbd></td>
-                                                <td>Search</td>
-                                            </tr>
-                                            <tr>
-                                                <td><kbd>Ctrl</kbd> + <kbd>Q</kbd></td>
-                                                <td>Logout</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>

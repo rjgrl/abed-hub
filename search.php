@@ -46,7 +46,7 @@ foreach ($type_filter as $type) {
 
     $q = "SELECT '$type' as type, id, project_code, project_title, municipality, 
                   proposed_amount, allocated_amount, current_stage, 
-                  physical_progress, financial_progress, created_date
+                  physical_progress, financial_progress, created_at
            FROM $table
            WHERE 1=1";
 
@@ -62,7 +62,7 @@ foreach ($type_filter as $type) {
 
     if (!empty($year_filter)) {
         $years_str = "'" . implode("','", array_map(fn($y) => (int)$y, $year_filter)) . "'";
-        $q .= " AND YEAR(created_date) IN ($years_str)";
+        $q .= " AND YEAR(created_at) IN ($years_str)";
     }
 
     if (!empty($location_filter)) {
@@ -87,7 +87,7 @@ if (!empty($queries)) {
 
     // Get paginated results
     $full_query = "SELECT * FROM ($combined_query) as temp 
-                   ORDER BY created_date DESC LIMIT $offset, $per_page";
+                   ORDER BY created_at DESC LIMIT $offset, $per_page";
     $results = $conn->query($full_query)->fetch_all(MYSQLI_ASSOC);
 } else {
     $results = [];
@@ -123,11 +123,11 @@ $stages_facet = $conn->query($stages_facet_query)->fetch_all(MYSQLI_ASSOC);
 
 // Get years facet
 $years_facet_query = "
-    SELECT DISTINCT YEAR(created_date) as year FROM fspf_projects
+    SELECT DISTINCT YEAR(created_at) as year FROM fspf_projects
     UNION
-    SELECT DISTINCT YEAR(created_date) FROM idp_projects
+    SELECT DISTINCT YEAR(created_at) FROM idp_projects
     UNION
-    SELECT DISTINCT YEAR(created_date) FROM afme_projects
+    SELECT DISTINCT YEAR(created_at) FROM afme_projects
     ORDER BY year DESC
 ";
 $years_facet = $conn->query($years_facet_query)->fetch_all(MYSQLI_ASSOC);
