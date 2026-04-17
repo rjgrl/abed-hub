@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once 'config/database.php';
+require_once 'functions/helpers.php';
 
 requireLogin();
 header('Content-Type: application/json');
@@ -42,7 +43,7 @@ $stmt = $conn->prepare("
 ");
 
 $stmt->bind_param(
-    "sssisddii",
+    "sssissddi",
     $project_code, $project_title, $fund_source, $funding_year,
     $beneficiary, $description, $proposed_amount, $allocated_amount, $user_id
 );

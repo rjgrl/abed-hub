@@ -80,9 +80,12 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                     <p class="text-muted">Agricultural Farm Mechanization Equipment - Project Overview</p>
                 </div>
                 <div class="col-auto">
-                    <a href="projects-advanced.php?type=afme" class="btn btn-outline-warning">
+                    <a href="projects-advanced.php?type=afme" class="btn btn-outline-warning me-2">
                         <i class="fas fa-list"></i> View All AFME Projects
                     </a>
+                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#addAfmeProjectModal">
+                        <i class="fas fa-plus"></i> New AFME Project
+                    </button>
                 </div>
             </div>
 
@@ -670,6 +673,131 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                     }
                 }
             }
+        });
+    </script>
+
+    <!-- Add New AFME Project Modal -->
+    <div class="modal fade" id="addAfmeProjectModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Register New AFME Project</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="afmeProjectForm">
+                        <div class="row g-3">
+                            <!-- Project Code -->
+                            <div class="col-md-6">
+                                <label class="form-label">Project Code <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="project_code" placeholder="e.g., AFME-2026-001" required>
+                            </div>
+
+                            <!-- Funding Year -->
+                            <div class="col-md-6">
+                                <label class="form-label">Funding Year <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" name="funding_year" value="<?php echo date('Y'); ?>" required>
+                            </div>
+
+                            <!-- Project Title -->
+                            <div class="col-12">
+                                <label class="form-label">Project Title <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="project_title" placeholder="Enter project title" required>
+                            </div>
+
+                            <!-- Fund Source -->
+                            <div class="col-md-6">
+                                <label class="form-label">Fund Source <span class="text-danger">*</span></label>
+                                <select class="form-select" name="fund_source" required>
+                                    <option value="">Select fund source</option>
+                                    <option value="National Government">National Government</option>
+                                    <option value="Local Government Unit">Local Government Unit</option>
+                                    <option value="Private">Private</option>
+                                    <option value="Donors">Donors</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <!-- Beneficiary -->
+                            <div class="col-md-6">
+                                <label class="form-label">Beneficiary Organization</label>
+                                <input type="text" class="form-control" name="beneficiary" placeholder="Enter beneficiary name">
+                            </div>
+
+                            <!-- Proposed Amount -->
+                            <div class="col-md-6">
+                                <label class="form-label">Proposed Amount (₱)</label>
+                                <input type="number" class="form-control" name="proposed_amount" placeholder="0.00" step="0.01" value="0">
+                            </div>
+
+                            <!-- Allocated Amount -->
+                            <div class="col-md-6">
+                                <label class="form-label">Allocated Amount (₱)</label>
+                                <input type="number" class="form-control" name="allocated_amount" placeholder="0.00" step="0.01" value="0">
+                            </div>
+
+                            <!-- Description -->
+                            <div class="col-12">
+                                <label class="form-label">Project Description</label>
+                                <textarea class="form-control" name="description" rows="3" placeholder="Enter project description"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-warning" id="submitAfmeProjectBtn">
+                        <i class="fas fa-save me-2"></i>Register Project
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Handle AFME Project Form Submission
+        document.getElementById('submitAfmeProjectBtn').addEventListener('click', function() {
+            const form = document.getElementById('afmeProjectForm');
+            
+            // Basic validation
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const formData = new FormData(form);
+
+            // Submit form via AJAX
+            fetch('register-afme-project.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('AFME Project registered successfully!');
+                    // Reset form
+                    form.reset();
+                    // Close modal
+                    bootstrap.Modal.getInstance(document.getElementById('addAfmeProjectModal')).hide();
+                    // Reload page to show new project
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500);
+                } else {
+                    alert('Error: ' + (data.message || 'Failed to register project'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while registering the project');
+            });
+        });
+
+        // Reset form when modal is opened
+        document.getElementById('addAfmeProjectModal').addEventListener('show.bs.modal', function() {
+            document.getElementById('afmeProjectForm').reset();
+            document.querySelector('input[name="funding_year"]').value = new Date().getFullYear();
         });
     </script>
 

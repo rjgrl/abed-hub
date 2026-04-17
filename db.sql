@@ -58,6 +58,18 @@ CREATE TABLE password_reset_tokens (
     INDEX idx_expires_at (expires_at)
 );
 
+CREATE TABLE saved_views (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    view_name VARCHAR(255) NOT NULL,
+    project_type ENUM('fspf', 'idp', 'afme') NOT NULL,
+    filters JSON NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY user_view_unique (user_id, view_name, project_type),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- =====================================================
 -- FSPF PROJECTS (Farm Structure and Processing Facilities)
 -- =====================================================

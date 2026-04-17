@@ -102,6 +102,9 @@ renderAppLayout($page_title);
                     <p class="text-muted">Browse and manage all projects</p>
                 </div>
                 <div class="col-auto">
+                    <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#newProjectModal">
+                        <i class="fas fa-plus"></i> New Project
+                    </button>
                     <div class="btn-group" role="group">
                         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exportModal">
                             <i class="fas fa-download"></i> Export
@@ -425,268 +428,404 @@ renderAppLayout($page_title);
             </div>
         </div>
 
+        <!-- New Project Modal -->
+        <div class="modal fade" id="newProjectModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Register New Project</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="newProjectForm">
+                            <!-- Project Type Selection -->
+                            <div class="mb-3">
+                                <label class="form-label">Project Type <span class="text-danger">*</span></label>
+                                <div class="btn-group w-100" role="group">
+                                    <input type="radio" class="btn-check" name="project_type" id="type_fspf_form" value="fspf" checked onclick="updateFormFields()">
+                                    <label class="btn btn-outline-primary" for="type_fspf_form">FSPF</label>
+
+                                    <input type="radio" class="btn-check" name="project_type" id="type_idp_form" value="idp" onclick="updateFormFields()">
+                                    <label class="btn btn-outline-primary" for="type_idp_form">IDP</label>
+
+                                    <input type="radio" class="btn-check" name="project_type" id="type_afme_form" value="afme" onclick="updateFormFields()">
+                                    <label class="btn btn-outline-primary" for="type_afme_form">AFME</label>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <!-- Project Code -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Project Code <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="project_code" placeholder="e.g., FSPF-2026-001" required>
+                                </div>
+
+                                <!-- Funding Year -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Funding Year <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" name="funding_year" value="<?php echo date('Y'); ?>" required>
+                                </div>
+
+                                <!-- Project Title -->
+                                <div class="col-12">
+                                    <label class="form-label">Project Title <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="project_title" placeholder="Enter project title" required>
+                                </div>
+
+                                <!-- Fund Source -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Fund Source <span class="text-danger">*</span></label>
+                                    <select class="form-select" name="fund_source" required>
+                                        <option value="">Select fund source</option>
+                                        <option value="National Government">National Government</option>
+                                        <option value="Local Government Unit">Local Government Unit</option>
+                                        <option value="Private">Private</option>
+                                        <option value="Donors">Donors</option>
+                                    </select>
+                                </div>
+
+                                <!-- Beneficiary -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Beneficiary</label>
+                                    <input type="text" class="form-control" name="beneficiary" placeholder="Enter beneficiary name">
+                                </div>
+
+                                <!-- Scope of Work (FSPF/IDP only) -->
+                                <div class="col-md-6" id="scopeOfWorkField" style="display: none;">
+                                    <label class="form-label">Scope of Work</label>
+                                    <select class="form-select" name="scope_of_work">
+                                        <option value="">Select scope</option>
+                                        <option value="Construction">Construction</option>
+                                        <option value="Rehabilitation">Rehabilitation</option>
+                                        <option value="Upgrading">Upgrading</option>
+                                        <option value="Additional Work">Additional Work</option>
+                                    </select>
+                                </div>
+
+                                <!-- Proposed Amount -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Proposed Amount (₱)</label>
+                                    <input type="number" class="form-control" name="proposed_amount" placeholder="0.00" step="0.01" value="0">
+                                </div>
+
+                                <!-- Allocated Amount -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Allocated Amount (₱)</label>
+                                    <input type="number" class="form-control" name="allocated_amount" placeholder="0.00" step="0.01" value="0">
+                                </div>
+
+                                <!-- Description -->
+                                <div class="col-12">
+                                    <label class="form-label">Project Description</label>
+                                    <textarea class="form-control" name="description" rows="3" placeholder="Enter project description"></textarea>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="submitNewProject()">
+                            <i class="fas fa-save me-2"></i>Register Project
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
         <script>
-            // Saved Views Functionality
-            document.getElementById('savedViewsSelect').addEventListener('change', function() {
-                const selectedOption = this.options[this.selectedIndex];
-                if (selectedOption.value) {
-                    const filters = JSON.parse(selectedOption.getAttribute('data-filters'));
-                    // Apply filters to form
-                    if (filters.search) document.querySelector('input[name="search"]').value = filters.search;
-                    if (filters.stage) document.querySelector('select[name="stage"]').value = filters.stage;
-                    if (filters.year) document.querySelector('select[name="year"]').value = filters.year;
-                    // Submit form to apply filters
-                    document.querySelector('form').submit();
-                }
-            });
+            // Global function for submitting new project
+            function submitNewProject() {
+                const form = document.getElementById('newProjectForm');
+                const projectType = document.querySelector('input[name="project_type"]:checked').value;
 
-            document.getElementById('saveViewBtn').addEventListener('click', function() {
-                // Get current filter values
-                const search = document.querySelector('input[name="search"]').value;
-                const stage = document.querySelector('select[name="stage"]').value;
-                const year = document.querySelector('select[name="year"]').value;
-
-                // Store current filters for saving
-                window.currentFilters = { search, stage, year };
-            });
-
-            document.getElementById('confirmSaveView').addEventListener('click', function() {
-                const viewName = document.getElementById('viewNameInput').value.trim();
-                if (!viewName) {
-                    alert('Please enter a view name');
+                // Validate form
+                if (!form.checkValidity()) {
+                    form.reportValidity();
                     return;
                 }
 
-                // Save view via AJAX
-                fetch('api/saved-views.php', {
+                console.log('Submitting form for project type:', projectType);
+                const formData = new FormData(form);
+                const handler = 'register-' + projectType + '-project.php';
+
+                console.log('Sending to handler:', handler);
+
+                fetch(handler, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'save',
-                        view_name: viewName,
-                        project_type: '<?php echo $project_type; ?>',
-                        filters: window.currentFilters
-                    })
+                    body: formData
                 })
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
                 .then(data => {
-                    if (data.success) {
-                        alert('View saved successfully!');
-                        location.reload();
+                    console.log('Response data:', data);
+                    if (data.status === 'success') {
+                        alert(data.message);
+                        form.reset();
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('newProjectModal'));
+                        if (modal) modal.hide();
+                        setTimeout(() => location.reload(), 500);
                     } else {
-                        alert('Error saving view: ' + data.message);
+                        alert('Error: ' + (data.message || 'Failed to register project'));
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error saving view');
+                    console.error('Fetch error:', error);
+                    alert('An error occurred: ' + error.message);
                 });
-
-                // Close modal
-                bootstrap.Modal.getInstance(document.getElementById('saveViewModal')).hide();
-            });
-
-            // Show delete button when a view is selected
-            document.getElementById('savedViewsSelect').addEventListener('change', function() {
-                const deleteBtn = document.getElementById('deleteViewBtn');
-                if (this.value) {
-                    deleteBtn.style.display = 'inline-block';
-                    deleteBtn.onclick = function() {
-                        if (confirm('Are you sure you want to delete this saved view?')) {
-                            fetch('api/saved-views.php', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    action: 'delete',
-                                    view_id: document.getElementById('savedViewsSelect').value
-                                })
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    alert('View deleted successfully!');
-                                    location.reload();
-                                } else {
-                                    alert('Error deleting view: ' + data.message);
-                                }
-                            });
-                        }
-                    };
-                } else {
-                    deleteBtn.style.display = 'none';
-                }
-            });
-
-            // Batch Operations Functionality
-            const masterCheckbox = document.getElementById('masterCheckbox');
-            const rowCheckboxes = document.querySelectorAll('.row-checkbox');
-            const batchActionsBtn = document.getElementById('batchActionsBtn');
-            const selectAllBtn = document.getElementById('selectAllBtn');
-
-            function updateBatchActionsState() {
-                const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
-                batchActionsBtn.disabled = checkedBoxes.length === 0;
             }
 
-            masterCheckbox.addEventListener('change', function() {
+            document.addEventListener('DOMContentLoaded', function() {
+                
+                // Saved Views - only if element exists
+                const savedViewsSelect = document.getElementById('savedViewsSelect');
+                if (savedViewsSelect) {
+                    savedViewsSelect.addEventListener('change', function() {
+                        const selectedOption = this.options[this.selectedIndex];
+                        if (selectedOption.value) {
+                            const filters = JSON.parse(selectedOption.getAttribute('data-filters'));
+                            if (filters.search) document.querySelector('input[name="search"]').value = filters.search;
+                            if (filters.stage) document.querySelector('select[name="stage"]').value = filters.stage;
+                            if (filters.year) document.querySelector('select[name="year"]').value = filters.year;
+                            document.querySelector('form').submit();
+                        }
+                    });
+                }
+
+                // Save View Button
+                const saveViewBtn = document.getElementById('saveViewBtn');
+                if (saveViewBtn) {
+                    saveViewBtn.addEventListener('click', function() {
+                        const search = document.querySelector('input[name="search"]').value;
+                        const stage = document.querySelector('select[name="stage"]').value;
+                        const year = document.querySelector('select[name="year"]').value;
+                        window.currentFilters = { search, stage, year };
+                    });
+                }
+
+                // Confirm Save View
+                const confirmSaveView = document.getElementById('confirmSaveView');
+                if (confirmSaveView) {
+                    confirmSaveView.addEventListener('click', function() {
+                        const viewName = document.getElementById('viewNameInput').value.trim();
+                        if (!viewName) {
+                            alert('Please enter a view name');
+                            return;
+                        }
+
+                        fetch('api/saved-views.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                action: 'save',
+                                view_name: viewName,
+                                project_type: '<?php echo $project_type; ?>',
+                                filters: window.currentFilters
+                            })
+                        })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('View saved successfully!');
+                                location.reload();
+                            } else {
+                                alert('Error: ' + data.message);
+                            }
+                        });
+
+                        bootstrap.Modal.getInstance(document.getElementById('saveViewModal')).hide();
+                    });
+                }
+
+                // Delete View Button
+                const deleteViewBtn = document.getElementById('deleteViewBtn');
+                if (deleteViewBtn && savedViewsSelect) {
+                    savedViewsSelect.addEventListener('change', function() {
+                        if (this.value) {
+                            deleteViewBtn.style.display = 'inline-block';
+                            deleteViewBtn.onclick = function() {
+                                if (confirm('Delete this saved view?')) {
+                                    fetch('api/saved-views.php', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                            action: 'delete',
+                                            view_id: savedViewsSelect.value
+                                        })
+                                    })
+                                    .then(r => r.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            alert('View deleted!');
+                                            location.reload();
+                                        }
+                                    });
+                                }
+                            };
+                        } else {
+                            deleteViewBtn.style.display = 'none';
+                        }
+                    });
+                }
+
+                // Batch Operations
+                const masterCheckbox = document.getElementById('masterCheckbox');
+                const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+                const batchActionsBtn = document.getElementById('batchActionsBtn');
+                const selectAllBtn = document.getElementById('selectAllBtn');
+                const batchExportBtn = document.getElementById('batchExportBtn');
+                const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+                const batchUpdateBtn = document.getElementById('batchUpdateBtn');
+                const confirmBulkUpdate = document.getElementById('confirmBulkUpdate');
+
+                function updateBatchActionsState() {
+                    const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+                    batchActionsBtn.disabled = checkedBoxes.length === 0;
+                }
+
+                if (masterCheckbox) {
+                    masterCheckbox.addEventListener('change', function() {
+                        rowCheckboxes.forEach(cb => cb.checked = this.checked);
+                        updateBatchActionsState();
+                    });
+                }
+
                 rowCheckboxes.forEach(checkbox => {
-                    checkbox.checked = this.checked;
+                    checkbox.addEventListener('change', function() {
+                        const allChecked = Array.from(rowCheckboxes).every(cb => cb.checked);
+                        const someChecked = Array.from(rowCheckboxes).some(cb => cb.checked);
+                        if (masterCheckbox) {
+                            masterCheckbox.checked = allChecked;
+                            masterCheckbox.indeterminate = someChecked && !allChecked;
+                        }
+                        updateBatchActionsState();
+                    });
                 });
-                updateBatchActionsState();
-            });
 
-            rowCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    const allChecked = Array.from(rowCheckboxes).every(cb => cb.checked);
-                    const someChecked = Array.from(rowCheckboxes).some(cb => cb.checked);
-
-                    masterCheckbox.checked = allChecked;
-                    masterCheckbox.indeterminate = someChecked && !allChecked;
-                    updateBatchActionsState();
-                });
-            });
-
-            selectAllBtn.addEventListener('click', function() {
-                const allChecked = Array.from(rowCheckboxes).every(cb => cb.checked);
-                const newState = !allChecked;
-
-                masterCheckbox.checked = newState;
-                masterCheckbox.indeterminate = false;
-                rowCheckboxes.forEach(checkbox => {
-                    checkbox.checked = newState;
-                });
-                updateBatchActionsState();
-
-                this.innerHTML = newState ?
-                    '<i class="fas fa-square"></i> Deselect All' :
-                    '<i class="fas fa-check-square"></i> Select All';
-            });
-
-            // Batch Export
-            document.getElementById('batchExportBtn').addEventListener('click', function() {
-                const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
-                if (selectedIds.length === 0) return;
-
-                // Create form and submit to export selected projects
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = 'api/export-projects.php';
-
-                const typeInput = document.createElement('input');
-                typeInput.type = 'hidden';
-                typeInput.name = 'type';
-                typeInput.value = '<?php echo $project_type; ?>';
-                form.appendChild(typeInput);
-
-                const idsInput = document.createElement('input');
-                idsInput.type = 'hidden';
-                idsInput.name = 'selected_ids';
-                idsInput.value = JSON.stringify(selectedIds);
-                form.appendChild(idsInput);
-
-                document.body.appendChild(form);
-                form.submit();
-                document.body.removeChild(form);
-            });
-
-            // Batch Delete
-            document.getElementById('batchDeleteBtn').addEventListener('click', function() {
-                const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
-                if (selectedIds.length === 0) return;
-
-                if (!confirm(`Are you sure you want to delete ${selectedIds.length} selected projects? This action cannot be undone.`)) {
-                    return;
+                if (selectAllBtn) {
+                    selectAllBtn.addEventListener('click', function() {
+                        const allChecked = Array.from(rowCheckboxes).every(cb => cb.checked);
+                        const newState = !allChecked;
+                        if (masterCheckbox) masterCheckbox.checked = newState;
+                        rowCheckboxes.forEach(cb => cb.checked = newState);
+                        updateBatchActionsState();
+                        this.innerHTML = newState ? '<i class="fas fa-square"></i> Deselect All' : '<i class="fas fa-check-square"></i> Select All';
+                    });
                 }
 
-                fetch('api/batch-operations.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'delete',
-                        project_type: '<?php echo $project_type; ?>',
-                        ids: selectedIds
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(`Successfully deleted ${data.deleted_count} projects`);
-                        location.reload();
-                    } else {
-                        alert('Error deleting projects: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error deleting projects');
-                });
-            });
+                // Batch Export
+                if (batchExportBtn) {
+                    batchExportBtn.addEventListener('click', function() {
+                        const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+                        if (selectedIds.length === 0) return;
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = 'api/export-projects.php';
+                        form.appendChild(Object.assign(document.createElement('input'), {type: 'hidden', name: 'type', value: '<?php echo $project_type; ?>'}));
+                        form.appendChild(Object.assign(document.createElement('input'), {type: 'hidden', name: 'selected_ids', value: JSON.stringify(selectedIds)}));
+                        document.body.appendChild(form);
+                        form.submit();
+                        document.body.removeChild(form);
+                    });
+                }
 
-            // Batch Update
-            document.getElementById('batchUpdateBtn').addEventListener('click', function() {
-                const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
-                if (selectedIds.length === 0) return;
+                // Batch Delete
+                if (batchDeleteBtn) {
+                    batchDeleteBtn.addEventListener('click', function() {
+                        const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+                        if (selectedIds.length === 0) return;
+                        if(!confirm(`Delete ${selectedIds.length} projects?`)) return;
+                        
+                        fetch('api/batch-operations.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                action: 'delete',
+                                project_type: '<?php echo $project_type; ?>',
+                                ids: selectedIds
+                            })
+                        })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert(`Deleted ${data.deleted_count} projects`);
+                                location.reload();
+                            } else {
+                                alert('Error: ' + data.message);
+                            }
+                        });
+                    });
+                }
 
-                // Store selected IDs for bulk update
-                window.selectedIdsForUpdate = selectedIds;
+                // Batch Update
+                if (batchUpdateBtn) {
+                    batchUpdateBtn.addEventListener('click', function() {
+                        const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+                        if (selectedIds.length === 0) return;
+                        window.selectedIdsForUpdate = selectedIds;
+                        new bootstrap.Modal(document.getElementById('bulkUpdateModal')).show();
+                    });
+                }
 
-                // Show bulk update modal
-                const modal = new bootstrap.Modal(document.getElementById('bulkUpdateModal'));
-                modal.show();
-            });
+                if (confirmBulkUpdate) {
+                    confirmBulkUpdate.addEventListener('click', function() {
+                        const formData = new FormData(document.getElementById('bulkUpdateForm'));
+                        const updates = {};
+                        for (let [key, value] of formData.entries()) {
+                            if (value.trim() !== '') {
+                                updates[key] = key.includes('progress') || key.includes('amount') ? parseFloat(value) : value;
+                            }
+                        }
+                        if (Object.keys(updates).length === 0) {
+                            alert('Specify at least one field to update');
+                            return;
+                        }
+                        fetch('api/batch-operations.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                action: 'update',
+                                project_type: '<?php echo $project_type; ?>',
+                                ids: window.selectedIdsForUpdate,
+                                updates: updates
+                            })
+                        })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert(`Updated ${data.updated_count} projects`);
+                                location.reload();
+                            }
+                        });
+                        bootstrap.Modal.getInstance(document.getElementById('bulkUpdateModal')).hide();
+                    });
+                }
 
-            // Confirm Bulk Update
-            document.getElementById('confirmBulkUpdate').addEventListener('click', function() {
-                const formData = new FormData(document.getElementById('bulkUpdateForm'));
-                const updates = {};
-
-                for (let [key, value] of formData.entries()) {
-                    if (value.trim() !== '') {
-                        updates[key] = key.includes('progress') || key.includes('amount') ? parseFloat(value) : value;
+                // New Project Form
+                function updateFormFields() {
+                    const projectType = document.querySelector('input[name="project_type"]:checked').value;
+                    const scopeField = document.getElementById('scopeOfWorkField');
+                    if (scopeField) {
+                        scopeField.style.display = (projectType === 'fspf' || projectType === 'idp') ? '' : 'none';
                     }
                 }
 
-                if (Object.keys(updates).length === 0) {
-                    alert('Please specify at least one field to update');
-                    return;
+                // Reset form on modal open
+                const newProjectModal = document.getElementById('newProjectModal');
+                if (newProjectModal) {
+                    newProjectModal.addEventListener('show.bs.modal', function() {
+                        const form = document.getElementById('newProjectForm');
+                        if (form) form.reset();
+                        const scopeField = document.getElementById('scopeOfWorkField');
+                        if (scopeField) scopeField.style.display = 'none';
+                        const yearInput = document.querySelector('input[name="funding_year"]');
+                        if (yearInput) yearInput.value = new Date().getFullYear();
+                    });
                 }
 
-                fetch('api/batch-operations.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'update',
-                        project_type: '<?php echo $project_type; ?>',
-                        ids: window.selectedIdsForUpdate,
-                        updates: updates
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(`Successfully updated ${data.updated_count} projects`);
-                        location.reload();
-                    } else {
-                        alert('Error updating projects: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error updating projects');
-                });
-
-                // Close modal
-                bootstrap.Modal.getInstance(document.getElementById('bulkUpdateModal')).hide();
-            });
+            }); // End DOMContentLoaded
         </script>
 
 <?php

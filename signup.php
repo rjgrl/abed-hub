@@ -12,20 +12,21 @@ if (isset($_SESSION['user_id'])) {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sign Up - ABED IDM Hub</title>
-    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="assets/css/style.css" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
   </head>
-  <body class="auth-body">
-    <div class="auth-container">
+  <body class="auth-body" style="background-image: url('logos/City.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat; min-height: 100vh; display: flex; justify-content: center; align-items: center;">
+    <div class="auth-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
       <div class="card auth-card">
         <div class="card-header auth-header text-center py-4">
-          <h3 class="mb-0"><i class="fas fa-user-plus"></i> ABED IDM Hub</h3>
-          <small>Malaybalay City</small>
-          <p class="mb-0">Create Your Account</p>
+          <img src="logos/abed_logo.png" alt="AgriTrack Logo" style="width: 200px; height: 80px; object-fit: contain; margin-bottom: 8px;">
+          <div class="fw-bold" style="font-size: 1.40rem; line-height: 1.3; color: #fff;">ABED Integrated Data Management Hub</div>
+          <small style="font-size: 0.78rem; color: rgba(255,255,255,0.85);">Agricultural and Biosystems Engineering Division - LGU Malaybalay City</small>
+          <p class="mb-0 mt-1" style="font-size: 0.85rem; color: rgba(255,255,255,0.9);">Create Your Account</p>
         </div>
 
         <div class="card-body auth-card-body">
@@ -35,7 +36,7 @@ if (isset($_SESSION['user_id'])) {
             <div class="row">
               <div class="col-md-6 mb-3">
                 <label class="form-label">
-                  <i class="fas fa-user"></i>Full Name
+                  <i class="fas fa-user"></i> Full Name
                 </label>
                 <input
                   type="text"
@@ -47,7 +48,7 @@ if (isset($_SESSION['user_id'])) {
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label">
-                  <i class="fas fa-id-card"></i>Employee ID
+                  <i class="fas fa-id-card"></i> Employee ID
                 </label>
                 <input
                   type="text"
@@ -61,7 +62,7 @@ if (isset($_SESSION['user_id'])) {
 
             <div class="mb-3">
               <label class="form-label">
-                <i class="fas fa-envelope"></i>Email Address
+                <i class="fas fa-envelope"></i> Email Address
               </label>
               <div class="input-group">
                 <span class="input-group-text">
@@ -79,7 +80,7 @@ if (isset($_SESSION['user_id'])) {
 
             <div class="mb-3">
               <label class="form-label">
-                <i class="fas fa-login"></i>Username
+                <i class="fas fa-user"></i> Username
               </label>
               <div class="input-group">
                 <span class="input-group-text">
@@ -94,30 +95,20 @@ if (isset($_SESSION['user_id'])) {
                 />
               </div>
               <small class="text-muted">
-                <i class="fas fa-info-circle"></i> Username must be 4-20
-                characters
+                <i class="fas fa-info-circle"></i> Username must be 4-20 characters
               </small>
             </div>
 
             <div class="mb-3">
               <label class="form-label">
-                <i class="fas fa-building"></i>Office Unit
+                <i class="fas fa-building"></i> Office Unit
               </label>
               <select class="form-select" name="officeUnit" required>
                 <option value="">-- Select Office Unit --</option>
-                <option value="BKSP">
-                  Bureau of Soils and Water Management (BKSP)
-                </option>
-                <option value="LGED">
-                  Land and Geospatial Engineering Division (LGED)
-                </option>
-                <option value="APD">
-                  Agronomic and Plant Development Division (APD)
-                </option>
-                <option value="AFMAD">
-                  Agricultural and Fisheries Machineries and Equipment Division
-                  (AFMAD)
-                </option>
+                <option value="BKSP">Bureau of Soils and Water Management (BKSP)</option>
+                <option value="LGED">Land and Geospatial Engineering Division (LGED)</option>
+                <option value="APD">Agronomic and Plant Development Division (APD)</option>
+                <option value="AFMAD">Agricultural and Fisheries Machineries and Equipment Division (AFMAD)</option>
                 <option value="Other">Other</option>
               </select>
             </div>
@@ -129,7 +120,7 @@ if (isset($_SESSION['user_id'])) {
             <div class="row">
               <div class="col-md-6 mb-3">
                 <label class="form-label">
-                  <i class="fas fa-lock"></i>Password
+                  <i class="fas fa-lock"></i> Password
                 </label>
                 <input
                   type="password"
@@ -146,7 +137,7 @@ if (isset($_SESSION['user_id'])) {
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label">
-                  <i class="fas fa-check-circle"></i>Confirm Password
+                  <i class="fas fa-check-circle"></i> Confirm Password
                 </label>
                 <input
                   type="password"
@@ -162,35 +153,19 @@ if (isset($_SESSION['user_id'])) {
 
             <div class="small mb-4">
               <div class="mb-1">
-                <i
-                  class="fas fa-check-circle"
-                  id="check-length"
-                  style="color: #ccc"
-                ></i>
+                <i class="fas fa-check-circle" id="check-length" style="color: #ccc"></i>
                 At least 8 characters
               </div>
               <div class="mb-1">
-                <i
-                  class="fas fa-check-circle"
-                  id="check-upper"
-                  style="color: #ccc"
-                ></i>
+                <i class="fas fa-check-circle" id="check-upper" style="color: #ccc"></i>
                 At least one uppercase letter
               </div>
               <div class="mb-1">
-                <i
-                  class="fas fa-check-circle"
-                  id="check-number"
-                  style="color: #ccc"
-                ></i>
+                <i class="fas fa-check-circle" id="check-number" style="color: #ccc"></i>
                 At least one number
               </div>
               <div>
-                <i
-                  class="fas fa-check-circle"
-                  id="check-special"
-                  style="color: #ccc"
-                ></i>
+                <i class="fas fa-check-circle" id="check-special" style="color: #ccc"></i>
                 At least one special character (!@#$%^&*)
               </div>
             </div>
@@ -211,6 +186,7 @@ if (isset($_SESSION['user_id'])) {
             <button type="submit" class="btn btn-auth-submit w-100">
               <i class="fas fa-user-check me-2"></i>Create Account
             </button>
+          </form>
 
           <div class="divider-text mt-4">
             <span>Already have an account?</span>
@@ -224,8 +200,7 @@ if (isset($_SESSION['user_id'])) {
 
           <div class="text-center">
             <p class="text-muted small mb-0">
-              <i class="fas fa-shield-alt"></i> Your data is secure and
-              encrypted
+              <i class="fas fa-shield-alt"></i> Your data is secure and encrypted
             </p>
           </div>
         </div>
@@ -241,4 +216,3 @@ if (isset($_SESSION['user_id'])) {
     <script src="assets/js/signup.js"></script>
   </body>
 </html>
-

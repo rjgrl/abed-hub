@@ -4,10 +4,10 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 $current_page = basename($_SERVER['SCRIPT_NAME']);
 ?>
-<div class="sidebar-fixed bg-dark text-white p-3 v-100 d-flex flex-column">
-  <h4 class="fw-bold mb-4">
-    <i class="fas fa-building me-2"></i>ABED IDM Hub
-  </h4>
+<div class="sidebar-fixed bg-dark text-white p-3 vh-100 d-flex flex-column">
+  <div class="d-flex justify-content-center align-items-center mb-4">
+    <img src="logos/Agri.png" alt="AgriTrack Logo" style="width: 200px; height: 115px; object-fit: contain;">
+  </div>
 
   <ul class="nav nav-pills flex-column mb-auto">
     <li class="nav-item mb-2">
