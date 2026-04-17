@@ -21,16 +21,21 @@
    ======================================== */
 
 .auth-body {
-  background: var(--primary-gradient);
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+} 
 
 .auth-container {
-  width: 100%;
-  padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    width: 100%;
 }
 
 .auth-card {

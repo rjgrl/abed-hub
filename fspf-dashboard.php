@@ -73,9 +73,12 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                     <p class="text-muted">Financial Sector Program for the Poor - Project Overview</p>
                 </div>
                 <div class="col-auto">
-                    <a href="projects-advanced.php?type=fspf" class="btn btn-outline-primary">
+                    <a href="projects-advanced.php?type=fspf" class="btn btn-outline-primary me-2">
                         <i class="fas fa-list"></i> View All FSPF Projects
                     </a>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFspfProjectModal">
+                        <i class="fas fa-plus"></i> New FSPF Project
+                    </button>
                 </div>
             </div>
 
@@ -562,6 +565,117 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
             </div>
         </div>
     </div>
+
+    <!-- Add New FSPF Project Modal -->
+    <div class="modal fade" id="addFspfProjectModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Register New FSPF Project</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="fspfProjectForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Project Code <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="project_code" placeholder="e.g., FSPF-2026-001" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Funding Year <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" name="funding_year" value="<?php echo date('Y'); ?>" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Project Title <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="project_title" placeholder="Enter project title" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Fund Source <span class="text-danger">*</span></label>
+                                <select class="form-select" name="fund_source" required>
+                                    <option value="">Select fund source</option>
+                                    <option value="National Government">National Government</option>
+                                    <option value="Local Government Unit">Local Government Unit</option>
+                                    <option value="Private">Private</option>
+                                    <option value="Donors">Donors</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Scope of Work</label>
+                                <select class="form-select" name="scope_of_work">
+                                    <option value="">Select scope</option>
+                                    <option value="Construction">Construction</option>
+                                    <option value="Rehabilitation">Rehabilitation</option>
+                                    <option value="Upgrading">Upgrading</option>
+                                    <option value="Additional Work">Additional Work</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Beneficiary</label>
+                                <input type="text" class="form-control" name="beneficiary" placeholder="Enter beneficiary name">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Proposed Amount (₱)</label>
+                                <input type="number" class="form-control" name="proposed_amount" placeholder="0.00" step="0.01" value="0">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Allocated Amount (₱)</label>
+                                <input type="number" class="form-control" name="allocated_amount" placeholder="0.00" step="0.01" value="0">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" name="description" rows="3" placeholder="Enter project description"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitFspfProject()">
+                        <i class="fas fa-save me-2"></i>Register Project
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function submitFspfProject() {
+            const form = document.getElementById('fspfProjectForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            console.log('Submitting FSPF form...');
+            const formData = new FormData(form);
+            
+            fetch('register-fspf-project.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.status === 'success') {
+                    alert(data.message);
+                    form.reset();
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addFspfProjectModal'));
+                    if (modal) modal.hide();
+                    setTimeout(() => location.reload(), 500);
+                } else {
+                    alert('Error: ' + (data.message || 'Failed to register'));
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                alert('An error occurred: ' + error.message);
+            });
+        }
+    </script>
 
 <?php
 renderAppLayoutFooter();
