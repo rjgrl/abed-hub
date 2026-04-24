@@ -174,7 +174,7 @@ renderAppLayout($page_title, $extra_head);
                                             <a href="<?php 
                                                 echo $project['type'] === 'AFME' 
                                                     ? 'afme-machinery-details.php?id=' . $project['id']
-                                                    : 'project-details.php?type=' . $project['type'] . '&id=' . $project['id'];
+                                                    : 'project-detail-enhanced.php?type=' . $project['type'] . '&id=' . $project['id'];
                                             ?>" class="btn btn-sm btn-outline-primary">
                                                 <i class="fas fa-eye"></i>
                                             </a>
@@ -236,7 +236,7 @@ renderAppLayout($page_title, $extra_head);
                             <p class="mb-1"><strong>Status:</strong> ${project.current_stage}</p>
                             <p class="mb-1"><strong>Budget:</strong> ₱${Number(project.allocated_amount || 0).toLocaleString()}</p>
                             <p class="mb-1"><strong>Location:</strong> ${project.municipality}, ${project.province}</p>
-                            <a href="${project.type === 'AFME' ? 'afme-machinery-details.php?id=' + project.id : 'project-details.php?type=' + project.type + '&id=' + project.id}" class="btn btn-sm btn-primary">View Details</a>
+                            <a href="${project.type === 'AFME' ? 'afme-machinery-details.php?id=' + project.id : 'project-detail-enhanced.php?type=' + project.type + '&id=' + project.id}" class="btn btn-sm btn-primary">View Details</a>
                         </div>
                     `;
 

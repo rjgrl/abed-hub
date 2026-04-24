@@ -2,6 +2,7 @@
 require_once __DIR__ . '/components/layout.php';
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/functions/helpers.php';
+require_once __DIR__ . '/services/ProjectRepository.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -12,81 +13,43 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-// Fetch statistics
-$user_id = $_SESSION['user_id'];
+$user_id   = $_SESSION['user_id'];
 $user_role = $_SESSION['role'] ?? 'user';
-
-// Total projects by type
-$fspf_count = $conn->query("SELECT COUNT(*) as cnt FROM fspf_projects")->fetch_assoc()['cnt'];
-$idp_count = $conn->query("SELECT COUNT(*) as cnt FROM idp_projects")->fetch_assoc()['cnt'];
-$afme_count = $conn->query("SELECT COUNT(*) as cnt FROM afme_projects")->fetch_assoc()['cnt'];
-$total_projects = $fspf_count + $idp_count + $afme_count;
-
-// Projects by stage
-$stages_query = $conn->query("
-    SELECT current_stage, COUNT(*) as count FROM (
-        SELECT current_stage FROM fspf_projects
-        UNION ALL
-        SELECT current_stage FROM idp_projects
-        UNION ALL
-        SELECT current_stage FROM afme_projects
-    ) AS combined
-    GROUP BY current_stage
-");
-$stages = [];
-while ($row = $stages_query->fetch_assoc()) {
-    $stages[$row['current_stage']] = $row['count'];
+$module    = strtolower($_GET['module'] ?? 'all');
+if (!in_array($module, ['all', 'fspf', 'idp', 'afme'], true)) {
+    $module = 'all';
 }
 
-// Financial overview
-$financial_query = $conn->query("
-    SELECT 
-        SUM(proposed_amount) as total_proposed,
-        SUM(allocated_amount) as total_allocated
-    FROM (
-        SELECT proposed_amount, allocated_amount FROM fspf_projects
-        UNION ALL
-        SELECT proposed_amount, allocated_amount FROM idp_projects
-        UNION ALL
-        SELECT proposed_amount, allocated_amount FROM afme_projects
-    ) AS combined
-");
-$financial = $financial_query->fetch_assoc();
+$moduleLabels = [
+    'all'  => 'Dashboard',
+    'fspf' => 'FSPF Dashboard',
+    'idp'  => 'IDP Dashboard',
+    'afme' => 'AFME Dashboard',
+];
+$moduleSubtitle = $module === 'all'
+    ? 'Overview of all projects and activities'
+    : 'Centralized view for ' . strtoupper($module) . ' projects';
 
-// Recent projects
-$recent_query = $conn->query("
-    SELECT id, project_code, project_title, current_stage, created_at, 'fspf' as type FROM fspf_projects
-    UNION ALL
-    SELECT id, project_code, project_title, current_stage, created_at, 'idp' as type FROM idp_projects
-    UNION ALL
-    SELECT id, project_code, project_title, current_stage, created_at, 'afme' as type FROM afme_projects
-    ORDER BY created_at DESC LIMIT 10
-");
-$recent_projects = $recent_query->fetch_all(MYSQLI_ASSOC);
+$repo = new ProjectRepository($conn);
 
-// Pending approvals (if user is admin)
-$pending_count = 0;
+$counts         = $repo->counts($module);
+$fspf_count     = $counts['fspf'];
+$idp_count      = $counts['idp'];
+$afme_count     = $counts['afme'];
+$total_projects = $counts['total'];
+
+$stages   = $repo->stageDistribution($module);
+$financial = $repo->financialSummary($module);
+$recent_projects = $repo->recent($module, 10);
+
+$pending_count    = 0;
 $pending_projects = [];
 if ($user_role === 'admin' || $user_role === 'coordinator') {
-    $pending_query = $conn->query("
-        SELECT id, project_code, project_title, 'fspf' as type FROM fspf_projects WHERE approval_status = 'Pending'
-        UNION ALL
-        SELECT id, project_code, project_title, 'idp' as type FROM idp_projects WHERE approval_status = 'Pending'
-        UNION ALL
-        SELECT id, project_code, project_title, 'afme' as type FROM afme_projects WHERE approval_status = 'Pending'
-        LIMIT 5
-    ");
-    $pending_projects = $pending_query->fetch_all(MYSQLI_ASSOC);
-    $pending_count = count($pending_projects);
+    $pending_projects = $repo->pendingApprovals($module, 5);
+    $pending_count    = count($pending_projects);
 }
 
-// Get high/low performers
-$performers_query = $conn->query("
-    SELECT project_code, project_title, physical_progress, financial_progress, current_stage, 'fspf' as type
-    FROM fspf_projects WHERE current_stage IN ('Implementation', 'Completed')
-    ORDER BY physical_progress DESC LIMIT 5
-");
-$performers = $performers_query->fetch_all(MYSQLI_ASSOC);
+$performers = $repo->topPerformers($module, 5);
 
 ?>
 <!DOCTYPE html>
@@ -110,8 +73,8 @@ $performers = $performers_query->fetch_all(MYSQLI_ASSOC);
             <!-- Welcome Section -->
             <div class="row mb-4">
                 <div class="col">
-                    <h1 class="h3 mb-0">Dashboard</h1>
-                    <p class="text-muted">Overview of all projects and activities</p>
+                    <h1 class="h3 mb-0"><?php echo htmlspecialchars($moduleLabels[$module]); ?></h1>
+                    <p class="text-muted"><?php echo htmlspecialchars($moduleSubtitle); ?></p>
                 </div>
             </div>
 
@@ -155,16 +118,8 @@ $performers = $performers_query->fetch_all(MYSQLI_ASSOC);
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
                                     <p class="text-muted small mb-1">Avg. Physical Progress</p>
-                                    <h2 class="mb-0"><?php 
-                                        $avg_physical = $conn->query("
-                                            SELECT AVG(physical_progress) as avg FROM (
-                                                SELECT physical_progress FROM fspf_projects
-                                                UNION ALL
-                                                SELECT physical_progress FROM idp_projects
-                                            ) as combined
-                                        ")->fetch_assoc()['avg'];
-                                        echo round($avg_physical ?? 0, 1);
-                                    ?>%</h2>
+                                    <?php $avgProgress = $repo->avgProgress($module); ?>
+                                    <h2 class="mb-0"><?php echo $avgProgress['avg_physical']; ?>%</h2>
                                 </div>
                                 <div class="rounded-circle p-3" style="background-color: rgba(23, 162, 184, 0.1);">
                                     <i class="fas fa-chart-pie fa-lg text-info"></i>

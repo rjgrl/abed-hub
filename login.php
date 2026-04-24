@@ -2,7 +2,7 @@
 session_name('ABED_IDM_HUB');
 session_start();
 if (isset($_SESSION['user_id'])) {
-    header('Location: dashboard-enhanced.php');
+    header('Location: dashboard.php');
     exit;
 }
 ?>
@@ -32,6 +32,14 @@ if (isset($_SESSION['user_id'])) {
           <div id="alertContainer"></div>
 
           <form id="loginForm">
+            <div class="mb-3">
+              <label class="form-label">Login As</label>
+              <select class="form-select" name="login_role" required>
+                <option value="employee" selected>Employee Login</option>
+                <option value="admin">Admin Login (Super Admin)</option>
+              </select>
+            </div>
+
             <div class="mb-3">
               <label class="form-label">Username</label>
               <div class="input-group">

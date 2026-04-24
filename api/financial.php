@@ -1,303 +1,289 @@
 <?php
-header('Content-Type: application/json');
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../functions/helpers.php';
+/**
+ * Financial Records API
+ *
+ * Uses the normalized `project_financial_entries` table.
+ * Accepts project_type (fspf|idp|afme) + project_id instead of
+ * the old three-nullable-FK pattern.
+ */
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/common.php';
 
-// Check authentication
-if (!isset($_SESSION['user_id'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized']);
-    exit;
-}
+apiRequireAuth();
 
 $action = $_GET['action'] ?? 'list';
 $method = $_SERVER['REQUEST_METHOD'];
-$response = [];
 
 try {
     switch ($action) {
         case 'list':
-            $response = listFinancialRecords();
-            break;
+            apiSuccess(listFinancialRecords(), 'OK');
 
         case 'summary':
-            $response = getFinancialSummary();
-            break;
+            apiSuccess(getFinancialSummary(), 'OK');
 
         case 'create':
             if ($method !== 'POST') {
-                http_response_code(405);
-                throw new Exception('Method not allowed');
+                apiError('Method not allowed', 405);
             }
-            $response = createFinancialRecord();
-            break;
+            apiSuccess(createFinancialRecord(), 'Financial record created', 201);
 
         case 'update':
             if ($method !== 'PUT') {
-                http_response_code(405);
-                throw new Exception('Method not allowed');
+                apiError('Method not allowed', 405);
             }
-            $response = updateFinancialRecord();
-            break;
+            apiSuccess(updateFinancialRecord(), 'Financial record updated');
 
         case 'delete':
             if ($method !== 'DELETE') {
-                http_response_code(405);
-                throw new Exception('Method not allowed');
+                apiError('Method not allowed', 405);
             }
-            $response = deleteFinancialRecord();
-            break;
+            apiSuccess(archiveFinancialRecord(), 'Financial record archived');
 
         default:
-            http_response_code(400);
-            throw new Exception('Invalid action');
+            apiError('Invalid action', 400);
     }
-
-    http_response_code(200);
-    echo json_encode($response);
-
 } catch (Exception $e) {
-    http_response_code(400);
-    echo json_encode(['error' => $e->getMessage()]);
+    apiError($e->getMessage(), 400);
 }
 
-function listFinancialRecords() {
+// ─── Handler functions ────────────────────────────────────────────────────────
+
+function listFinancialRecords(): array {
     global $conn;
 
-    $project_id = $_GET['project_id'] ?? null;
-    $project_type = $_GET['project_type'] ?? 'fspf';
-    $status = $_GET['status'] ?? null;
-    $limit = min((int)($_GET['limit'] ?? 100), 500);
-    $offset = (int)($_GET['offset'] ?? 0);
+    $project_type = strtoupper($_GET['project_type'] ?? '');
+    $project_id   = isset($_GET['project_id']) ? intval($_GET['project_id']) : null;
+    $status       = $_GET['status'] ?? null;
+    $limit        = min(intval($_GET['limit'] ?? 100), 500);
+    $page         = max(1, intval($_GET['page'] ?? 1));
+    $offset       = ($page - 1) * $limit;
 
-    // Map project type to column name
-    $type_map = [
-        'fspf' => 'fspf_project_id',
-        'idp' => 'idp_project_id',
-        'afme' => 'afme_project_id'
-    ];
-
-    $project_col = $type_map[$project_type] ?? 'fspf_project_id';
-
-    $query = "SELECT * FROM project_financial_tracker WHERE 1=1";
+    $where  = ['1=1'];
     $params = [];
+    $types  = '';
 
+    if ($project_type && in_array($project_type, ['FSPF', 'IDP', 'AFME'])) {
+        $where[]  = 'project_type = ?';
+        $params[] = $project_type;
+        $types   .= 's';
+    }
     if ($project_id) {
-        $query .= " AND $project_col = ?";
+        $where[]  = 'project_id = ?';
         $params[] = $project_id;
+        $types   .= 'i';
     }
-
     if ($status) {
-        $query .= " AND record_status = ?";
+        $where[]  = 'record_status = ?';
         $params[] = $status;
+        $types   .= 's';
     }
 
-    $query .= " ORDER BY record_date DESC LIMIT ? OFFSET ?";
-    $params[] = $limit;
-    $params[] = $offset;
+    $whereClause = implode(' AND ', $where);
 
-    $stmt = $conn->prepare($query);
-    if ($stmt === false) {
-        throw new Exception('prepare failed: ' . $conn->error);
+    $countStmt = $conn->prepare("SELECT COUNT(*) AS total FROM project_financial_entries WHERE $whereClause");
+    if (!$countStmt) {
+        throw new Exception('Query prepare failed: ' . $conn->error);
     }
-
     if (!empty($params)) {
-        $types = str_repeat('s', count($params) - 2) . 'ii';
+        $countStmt->bind_param($types, ...$params);
+    }
+    $countStmt->execute();
+    $total = (int) $countStmt->get_result()->fetch_assoc()['total'];
+    $countStmt->close();
+
+    $stmt = $conn->prepare(
+        "SELECT * FROM project_financial_entries WHERE $whereClause ORDER BY record_date DESC LIMIT ? OFFSET ?"
+    );
+    if (!$stmt) {
+        throw new Exception('Query prepare failed: ' . $conn->error);
+    }
+    $allParams = array_merge($params, [$limit, $offset]);
+    $allTypes  = $types . 'ii';
+    $stmt->bind_param($allTypes, ...$allParams);
+    $stmt->execute();
+    $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+
+    return [
+        'records' => $rows,
+        'meta'    => [
+            'total'  => $total,
+            'page'   => $page,
+            'limit'  => $limit,
+            'pages'  => $limit > 0 ? (int) ceil($total / $limit) : 1,
+        ],
+    ];
+}
+
+function getFinancialSummary(): array {
+    global $conn;
+
+    $project_type = strtoupper($_GET['project_type'] ?? '');
+    $project_id   = isset($_GET['project_id']) ? intval($_GET['project_id']) : null;
+
+    $where  = ['1=1'];
+    $params = [];
+    $types  = '';
+
+    if ($project_type && in_array($project_type, ['FSPF', 'IDP', 'AFME'])) {
+        $where[]  = 'project_type = ?';
+        $params[] = $project_type;
+        $types   .= 's';
+    }
+    if ($project_id) {
+        $where[]  = 'project_id = ?';
+        $params[] = $project_id;
+        $types   .= 'i';
+    }
+
+    $whereClause = implode(' AND ', $where);
+
+    $stmt = $conn->prepare(
+        "SELECT
+            SUM(CASE WHEN record_type = 'Obligation'   THEN amount ELSE 0 END) AS total_obligations,
+            SUM(CASE WHEN record_type = 'Disbursement' THEN amount ELSE 0 END) AS total_disbursed,
+            SUM(CASE WHEN record_type = 'Liquidation'  THEN amount ELSE 0 END) AS total_liquidated,
+            COUNT(DISTINCT project_id) AS project_count
+         FROM project_financial_entries
+         WHERE $whereClause AND record_status = 'Active'"
+    );
+    if (!$stmt) {
+        throw new Exception('Query prepare failed: ' . $conn->error);
+    }
+    if (!empty($params)) {
         $stmt->bind_param($types, ...$params);
     }
-
     $stmt->execute();
-    return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-}
+    $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
 
-function getFinancialSummary() {
-    global $conn;
+    $obligations = (float) ($row['total_obligations'] ?? 0);
+    $disbursed   = (float) ($row['total_disbursed']   ?? 0);
+    $liquidated  = (float) ($row['total_liquidated']  ?? 0);
 
-    $project_id = $_GET['project_id'] ?? null;
-    $project_type = $_GET['project_type'] ?? 'fspf';
-
-    $type_map = [
-        'fspf' => 'fspf_project_id',
-        'idp' => 'idp_project_id',
-        'afme' => 'afme_project_id'
+    return [
+        'total_obligations'   => $obligations,
+        'total_disbursed'     => $disbursed,
+        'total_liquidated'    => $liquidated,
+        'project_count'       => (int) ($row['project_count'] ?? 0),
+        'disbursement_rate'   => $obligations > 0 ? round(($disbursed  / $obligations) * 100, 2) : 0,
+        'liquidation_rate'    => $disbursed   > 0 ? round(($liquidated / $disbursed)   * 100, 2) : 0,
     ];
+}
 
-    $project_col = $type_map[$project_type] ?? 'fspf_project_id';
+function createFinancialRecord(): array {
+    global $conn;
 
+    $data         = $_POST;
+    $project_type = strtoupper($data['project_type'] ?? '');
+    $project_id   = intval($data['project_id'] ?? 0);
+    $record_type  = $data['record_type'] ?? '';
+    $amount       = (float) ($data['amount'] ?? 0);
+
+    if (!in_array($project_type, ['FSPF', 'IDP', 'AFME'])) {
+        throw new Exception('project_type must be FSPF, IDP, or AFME');
+    }
     if (!$project_id) {
-        // Get aggregate across all projects
-        $query = "SELECT 
-                  SUM(CASE WHEN record_type = 'Obligation' THEN amount ELSE 0 END) as total_obligations,
-                  SUM(CASE WHEN record_type = 'Disbursement' THEN amount ELSE 0 END) as total_disbursed,
-                  SUM(CASE WHEN record_type = 'Liquidation' THEN amount ELSE 0 END) as total_liquidated,
-                  COUNT(DISTINCT $project_col) as project_count
-                  FROM project_financial_tracker";
-
-        $result = $conn->query($query);
-    } else {
-        $stmt = $conn->prepare("SELECT 
-                  SUM(CASE WHEN record_type = 'Obligation' THEN amount ELSE 0 END) as total_obligations,
-                  SUM(CASE WHEN record_type = 'Disbursement' THEN amount ELSE 0 END) as total_disbursed,
-                  SUM(CASE WHEN record_type = 'Liquidation' THEN amount ELSE 0 END) as total_liquidated
-                  FROM project_financial_tracker 
-                  WHERE $project_col = ?");
-
-        $stmt->bind_param('i', $project_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        throw new Exception('project_id is required');
+    }
+    if (!in_array($record_type, ['Obligation', 'Disbursement', 'Liquidation'])) {
+        throw new Exception('record_type must be Obligation, Disbursement, or Liquidation');
+    }
+    if ($amount <= 0) {
+        throw new Exception('amount must be a positive number');
     }
 
-    $summary = $result->fetch_assoc();
-
-    // Add calculated fields
-    $summary['total_obligations'] = (float)($summary['total_obligations'] ?? 0);
-    $summary['total_disbursed'] = (float)($summary['total_disbursed'] ?? 0);
-    $summary['total_liquidated'] = (float)($summary['total_liquidated'] ?? 0);
-    $summary['disbursement_rate'] = $summary['total_obligations'] > 0 
-        ? round(($summary['total_disbursed'] / $summary['total_obligations']) * 100, 2) 
-        : 0;
-    $summary['liquidation_rate'] = $summary['total_disbursed'] > 0 
-        ? round(($summary['total_liquidated'] / $summary['total_disbursed']) * 100, 2) 
-        : 0;
-
-    return $summary;
-}
-
-function createFinancialRecord() {
-    global $conn;
-
-    $data = $_POST;
-    $required = ['record_type', 'amount'];
-
-    foreach ($required as $field) {
-        if (empty($data[$field])) {
-            throw new Exception("Missing required field: $field");
-        }
-    }
-
-    // Determine which project ID column to use
-    $project_col = null;
-    $project_id = null;
-
-    if (!empty($data['fspf_project_id'])) {
-        $project_col = 'fspf_project_id';
-        $project_id = (int)$data['fspf_project_id'];
-    } elseif (!empty($data['idp_project_id'])) {
-        $project_col = 'idp_project_id';
-        $project_id = (int)$data['idp_project_id'];
-    } elseif (!empty($data['afme_project_id'])) {
-        $project_col = 'afme_project_id';
-        $project_id = (int)$data['afme_project_id'];
-    } else {
-        throw new Exception('Project ID required (fspf_project_id, idp_project_id, or afme_project_id)');
-    }
-
-    $record_type = $data['record_type'];
-    $amount = (float)$data['amount'];
     $reference_number = $data['reference_number'] ?? null;
-    $particulars = $data['particulars'] ?? null;
-    $record_status = 'Active';
-    $recorded_by = $_SESSION['user_id'];
+    $particulars      = $data['particulars'] ?? null;
+    $recorded_by      = $_SESSION['user_id'];
 
-    $columns = ["$project_col", "record_type", "amount", "record_status", "record_date", "recorded_by"];
-    $placeholders = ["?", "?", "?", "?", "NOW()", "?"];
-
-    if ($reference_number || $particulars) {
-        if ($reference_number) {
-            $columns[] = "reference_number";
-            $placeholders[] = "?";
-        }
-        if ($particulars) {
-            $columns[] = "particulars";
-            $placeholders[] = "?";
-        }
+    $stmt = $conn->prepare(
+        'INSERT INTO project_financial_entries
+            (project_type, project_id, record_type, amount, reference_number, particulars, record_status, recorded_by)
+         VALUES (?, ?, ?, ?, ?, ?, "Active", ?)'
+    );
+    if (!$stmt) {
+        throw new Exception('Prepare failed: ' . $conn->error);
     }
+    $stmt->bind_param('siidssi', $project_type, $project_id, $record_type, $amount, $reference_number, $particulars, $recorded_by);
 
-    $query = "INSERT INTO project_financial_tracker (" . implode(", ", $columns) . ") 
-              VALUES (" . implode(", ", $placeholders) . ")";
-
-    $stmt = $conn->prepare($query);
-    if ($stmt === false) {
-        throw new Exception('prepare failed: ' . $conn->error);
+    if (!$stmt->execute()) {
+        throw new Exception('Insert failed: ' . $stmt->error);
     }
+    $new_id = $stmt->insert_id;
+    $stmt->close();
 
-    $bind_params = [$project_id, $record_type, $amount, $record_status, $recorded_by];
-    if ($reference_number) $bind_params[] = $reference_number;
-    if ($particulars) $bind_params[] = $particulars;
+    logAudit('CREATE_FINANCIAL_RECORD', $project_type, $project_id);
 
-    $types = 'isdssi';
-    if ($reference_number) $types = 'issdssi';
-    if ($particulars && !$reference_number) $types = 'isdssi';
-
-    $stmt->bind_param($types, ...$bind_params);
-    $stmt->execute();
-
-    $record_id = $conn->insert_id;
-
-    logActivity($_SESSION['user_id'], "Created $record_type record for project $project_id", 'financial_tracker', 'CREATE');
-
-    return ['success' => true, 'record_id' => $record_id, 'message' => 'Financial record created successfully'];
+    return ['record_id' => $new_id];
 }
 
-function updateFinancialRecord() {
+function updateFinancialRecord(): array {
     global $conn;
 
-    parse_str(file_get_contents("php://input"), $data);
-
-    $id = $_GET['id'] ?? $data['id'] ?? null;
+    $data = apiInputJson();
+    $id   = intval($_GET['id'] ?? $data['id'] ?? 0);
     if (!$id) {
         throw new Exception('Record ID required');
     }
 
-    $updates = [];
-    $params = [];
-    $types = '';
+    $updateable = ['amount', 'reference_number', 'particulars', 'record_status'];
+    $updates    = [];
+    $params     = [];
+    $types      = '';
 
-    $updateable_fields = ['amount', 'reference_number', 'particulars', 'record_status'];
-
-    foreach ($updateable_fields as $field) {
-        if (isset($data[$field])) {
+    foreach ($updateable as $field) {
+        if (array_key_exists($field, $data)) {
             $updates[] = "$field = ?";
-            $params[] = $data[$field];
-            $types .= is_numeric($data[$field]) ? 'd' : 's';
+            $params[]  = $data[$field];
+            $types    .= is_numeric($data[$field]) ? 'd' : 's';
         }
     }
 
     if (empty($updates)) {
-        throw new Exception('No fields to update');
+        throw new Exception('No updatable fields provided');
     }
 
     $params[] = $id;
-    $types .= 'i';
+    $types   .= 'i';
 
-    $query = "UPDATE project_financial_tracker SET " . implode(', ', $updates) . " WHERE id = ?";
-    $stmt = $conn->prepare($query);
+    $stmt = $conn->prepare('UPDATE project_financial_entries SET ' . implode(', ', $updates) . ' WHERE id = ?');
+    if (!$stmt) {
+        throw new Exception('Prepare failed: ' . $conn->error);
+    }
     $stmt->bind_param($types, ...$params);
-    $stmt->execute();
 
-    logActivity($_SESSION['user_id'], "Updated financial record ID $id", 'financial_tracker', 'UPDATE');
+    if (!$stmt->execute()) {
+        throw new Exception('Update failed: ' . $stmt->error);
+    }
+    $stmt->close();
 
-    return ['success' => true, 'message' => 'Financial record updated successfully'];
+    logAudit('UPDATE_FINANCIAL_RECORD', null, $id);
+
+    return ['record_id' => $id];
 }
 
-function deleteFinancialRecord() {
+function archiveFinancialRecord(): array {
     global $conn;
 
-    $id = $_GET['id'] ?? null;
+    $id = intval($_GET['id'] ?? 0);
     if (!$id) {
         throw new Exception('Record ID required');
     }
 
-    // Soft delete
-    $stmt = $conn->prepare("UPDATE project_financial_tracker SET record_status = 'Archived' WHERE id = ?");
+    $stmt = $conn->prepare("UPDATE project_financial_entries SET record_status = 'Archived' WHERE id = ?");
+    if (!$stmt) {
+        throw new Exception('Prepare failed: ' . $conn->error);
+    }
     $stmt->bind_param('i', $id);
-    $stmt->execute();
 
-    logActivity($_SESSION['user_id'], "Archived financial record ID $id", 'financial_tracker', 'DELETE');
+    if (!$stmt->execute()) {
+        throw new Exception('Archive failed: ' . $stmt->error);
+    }
+    $stmt->close();
 
-    return ['success' => true, 'message' => 'Financial record archived successfully'];
+    logAudit('ARCHIVE_FINANCIAL_RECORD', null, $id);
+
+    return ['record_id' => $id];
 }

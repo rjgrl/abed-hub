@@ -738,22 +738,21 @@ renderAppLayout($page_title);
                         if (selectedIds.length === 0) return;
                         if(!confirm(`Delete ${selectedIds.length} projects?`)) return;
                         
-                        fetch('api/batch-operations.php', {
+                        fetch('api/batch.php?action=delete-projects', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                                action: 'delete',
                                 project_type: '<?php echo $project_type; ?>',
                                 ids: selectedIds
                             })
                         })
                         .then(r => r.json())
                         .then(data => {
-                            if (data.success) {
-                                alert(`Deleted ${data.deleted_count} projects`);
+                            if (data.status === 'success') {
+                                alert(`Deleted ${data.data.deleted_count} projects`);
                                 location.reload();
                             } else {
-                                alert('Error: ' + data.message);
+                                alert('Error: ' + (data.message || 'Unknown error'));
                             }
                         });
                     });
@@ -782,11 +781,10 @@ renderAppLayout($page_title);
                             alert('Specify at least one field to update');
                             return;
                         }
-                        fetch('api/batch-operations.php', {
+                        fetch('api/batch.php?action=bulk-update', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                                action: 'update',
                                 project_type: '<?php echo $project_type; ?>',
                                 ids: window.selectedIdsForUpdate,
                                 updates: updates
@@ -794,8 +792,8 @@ renderAppLayout($page_title);
                         })
                         .then(r => r.json())
                         .then(data => {
-                            if (data.success) {
-                                alert(`Updated ${data.updated_count} projects`);
+                            if (data.status === 'success') {
+                                alert(`Updated ${data.data.updated_count} projects`);
                                 location.reload();
                             }
                         });
@@ -1304,24 +1302,23 @@ renderAppLayoutFooter();
                 return;
             }
 
-            fetch('api/batch-operations.php', {
+            fetch('api/batch.php?action=delete-projects', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    action: 'delete',
                     project_type: '<?php echo $project_type; ?>',
                     ids: selectedIds
                 })
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    alert(`Successfully deleted ${data.deleted_count} projects`);
+                if (data.status === 'success') {
+                    alert(`Successfully deleted ${data.data.deleted_count} projects`);
                     location.reload();
                 } else {
-                    alert('Error deleting projects: ' + data.message);
+                    alert('Error deleting projects: ' + (data.message || 'Unknown error'));
                 }
             })
             .catch(error => {
@@ -1359,13 +1356,12 @@ renderAppLayoutFooter();
                 return;
             }
 
-            fetch('api/batch-operations.php', {
+            fetch('api/batch.php?action=bulk-update', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    action: 'update',
                     project_type: '<?php echo $project_type; ?>',
                     ids: window.selectedIdsForUpdate,
                     updates: updates
@@ -1373,8 +1369,8 @@ renderAppLayoutFooter();
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    alert(`Successfully updated ${data.updated_count} projects`);
+                if (data.status === 'success') {
+                    alert(`Successfully updated ${data.data.updated_count} projects`);
                     location.reload();
                 } else {
                     alert('Error updating projects: ' + data.message);

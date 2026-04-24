@@ -384,7 +384,7 @@ $locations_facet = $conn->query($locations_facet_query)->fetch_all(MYSQLI_ASSOC)
                                                 <small class="text-muted">Physical Progress</small>
                                             </div>
 
-                                            <a href="project-details.php?type=<?php echo $result['type']; ?>&id=<?php echo $result['id']; ?>"
+                                            <a href="project-detail-enhanced.php?type=<?php echo $result['type']; ?>&id=<?php echo $result['id']; ?>"
                                                class="btn btn-sm btn-outline-primary w-100">
                                                 <i class="fas fa-arrow-right"></i> View Details
                                             </a>

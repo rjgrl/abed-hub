@@ -1,23 +1,10 @@
 <?php
-header('Content-Type: application/json');
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../functions/helpers.php';
+require_once __DIR__ . '/common.php';
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// Check authentication
-if (!isset($_SESSION['user_id'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized']);
-    exit;
-}
+apiRequireAuth();
 
 $action = $_GET['action'] ?? 'list';
 $method = $_SERVER['REQUEST_METHOD'];
-$response = [];
-
 try {
     switch ($action) {
         case 'list':
@@ -54,14 +41,12 @@ try {
     }
 
     if ($action !== 'download' && $action !== 'preview') {
-        http_response_code(200);
-        echo json_encode($response);
+        apiSuccess($response, 'Documents API request completed');
     }
 
 } catch (Exception $e) {
     if ($action !== 'download' && $action !== 'preview') {
-        http_response_code(400);
-        echo json_encode(['error' => $e->getMessage()]);
+        apiError($e->getMessage(), 400);
     }
 }
 

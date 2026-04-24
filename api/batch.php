@@ -1,383 +1,328 @@
 <?php
-header('Content-Type: application/json');
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../functions/helpers.php';
+/**
+ * Batch Operations API
+ *
+ * All actions require the admin or coordinator role.
+ *
+ * Supported actions (via ?action=):
+ *   update-stage      POST   Update current_stage for a list of projects.
+ *   update-progress   POST   Update physical/financial progress for a list.
+ *   update-field      POST   Update a single whitelisted field for a list.
+ *   bulk-update       POST   Update multiple fields at once (used by the project grid).
+ *   delete-projects   POST   Soft-archive a list of projects.
+ *   export            POST   Return project data as JSON or CSV.
+ */
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/common.php';
 
-// Check authentication
-if (!isset($_SESSION['user_id'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized']);
-    exit;
-}
+apiRequireRoles(['admin', 'coordinator']);
 
+$action = $_GET['action'] ?? null;
 $method = $_SERVER['REQUEST_METHOD'];
-$action = $_GET['action'] ?? $_POST['action'] ?? null;
-$response = [];
 
 try {
-    switch ($action) {
-        case 'update-stage':
-            if ($method !== 'POST') {
-                http_response_code(405);
-                throw new Exception('Method not allowed');
-            }
-            $response = batchUpdateStage();
-            break;
-
-        case 'update-progress':
-            if ($method !== 'POST') {
-                http_response_code(405);
-                throw new Exception('Method not allowed');
-            }
-            $response = batchUpdateProgress();
-            break;
-
-        case 'update-field':
-            if ($method !== 'POST') {
-                http_response_code(405);
-                throw new Exception('Method not allowed');
-            }
-            $response = batchUpdateField();
-            break;
-
-        case 'delete-projects':
-            if ($method !== 'DELETE') {
-                http_response_code(405);
-                throw new Exception('Method not allowed');
-            }
-            $response = batchDeleteProjects();
-            break;
-
-        case 'export':
-            if ($method !== 'POST') {
-                http_response_code(405);
-                throw new Exception('Method not allowed');
-            }
-            $response = batchExport();
-            break;
-
-        defaults:
-            http_response_code(400);
-            throw new Exception('Invalid action');
+    if ($method !== 'POST') {
+        apiError('Method not allowed', 405);
     }
 
-    http_response_code(200);
-    echo json_encode($response);
+    switch ($action) {
+        case 'update-stage':
+            apiSuccess(batchUpdateStage(), 'Batch stage update complete');
 
+        case 'update-progress':
+            apiSuccess(batchUpdateProgress(), 'Batch progress update complete');
+
+        case 'update-field':
+            apiSuccess(batchUpdateField(), 'Batch field update complete');
+
+        case 'bulk-update':
+            apiSuccess(batchBulkUpdate(), 'Bulk update complete');
+
+        case 'delete-projects':
+            apiSuccess(batchDeleteProjects(), 'Batch archive complete');
+
+        case 'export':
+            apiSuccess(batchExport(), 'Export complete');
+
+        default:
+            apiError('Invalid action', 400);
+    }
 } catch (Exception $e) {
-    http_response_code(400);
-    echo json_encode(['error' => $e->getMessage()]);
+    apiError($e->getMessage(), 400);
 }
 
-function batchUpdateStage() {
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+/** Resolve type → table, throw on invalid. */
+function batchTable(string $type): string {
+    return apiTableFor($type);
+}
+
+// ─── Handlers ────────────────────────────────────────────────────────────────
+
+function batchUpdateStage(): array {
     global $conn;
 
-    $data = json_decode(file_get_contents('php://input'), true);
-
+    $data = apiInputJson();
     if (!isset($data['projects']) || !is_array($data['projects'])) {
         throw new Exception('projects array required');
     }
-
-    if (!isset($data['stage'])) {
+    if (empty($data['stage'])) {
         throw new Exception('stage parameter required');
     }
 
+    $table    = batchTable($data['type'] ?? '');
+    $stage    = $data['stage'];
     $projects = $data['projects'];
-    $project_type = $data['type'] ?? 'fspf';
-    $new_stage = $data['stage'];
-    $updated_count = 0;
-    $errors = [];
 
-    $type_map = [
-        'fspf' => 'fspf_projects',
-        'idp' => 'idp_projects',
-        'afme' => 'afme_projects'
-    ];
-
-    $table = $type_map[$project_type] ?? null;
-    if (!$table) {
-        throw new Exception('Invalid project type');
+    $valid = ['Proposal','Pre-Implementation','Procurement','Implementation','Completed','Turned-Over'];
+    if (!in_array($stage, $valid)) {
+        throw new Exception('Invalid stage value');
     }
 
-    // Valid stages
-    $valid_stages = ['Proposal', 'Pre-Implementation', 'Procurement', 'Implementation', 'Completed', 'Turned-Over'];
-    if (!in_array($new_stage, $valid_stages)) {
-        throw new Exception('Invalid stage');
-    }
+    $updated = 0;
+    $errors  = [];
 
-    foreach ($projects as $project_id) {
-        $project_id = (int)$project_id;
-
+    foreach ($projects as $id) {
+        $id   = (int) $id;
         $stmt = $conn->prepare("UPDATE $table SET current_stage = ?, updated_at = NOW() WHERE id = ?");
-        $stmt->bind_param('si', $new_stage, $project_id);
-
-        if ($stmt->execute()) {
-            $updated_count++;
-            logActivity($_SESSION['user_id'], "Batch updated project $project_id to stage $new_stage", 'batch_operations', 'UPDATE');
-        } else {
-            $errors[] = "Failed to update project $project_id";
-        }
+        $stmt->bind_param('si', $stage, $id);
+        $stmt->execute() ? $updated++ : $errors[] = "Failed to update project $id";
     }
 
-    return [
-        'success' => true,
-        'updated' => $updated_count,
-        'total' => count($projects),
-        'errors' => $errors,
-        'message' => "$updated_count project(s) updated successfully"
-    ];
+    logAudit("BATCH_UPDATE_STAGE:$stage", $data['type'] ?? null);
+
+    return ['updated' => $updated, 'total' => count($projects), 'errors' => $errors];
 }
 
-function batchUpdateProgress() {
+function batchUpdateProgress(): array {
     global $conn;
 
-    $data = json_decode(file_get_contents('php://input'), true);
-
+    $data = apiInputJson();
     if (!isset($data['projects']) || !is_array($data['projects'])) {
         throw new Exception('projects array required');
     }
 
-    $projects = $data['projects'];
-    $project_type = $data['type'] ?? 'fspf';
-    $physical_progress = isset($data['physical_progress']) ? (float)$data['physical_progress'] : null;
-    $financial_progress = isset($data['financial_progress']) ? (float)$data['financial_progress'] : null;
+    $table    = batchTable($data['type'] ?? '');
+    $physical  = isset($data['physical_progress'])  ? (float) $data['physical_progress']  : null;
+    $financial = isset($data['financial_progress']) ? (float) $data['financial_progress'] : null;
 
-    if ($physical_progress === null && $financial_progress === null) {
+    if ($physical === null && $financial === null) {
         throw new Exception('At least one progress value required');
     }
-
-    // Validate percentages
-    if ($physical_progress !== null && ($physical_progress < 0 || $physical_progress > 100)) {
-        throw new Exception('Physical progress must be between 0 and 100');
+    if ($physical !== null && ($physical < 0 || $physical > 100)) {
+        throw new Exception('physical_progress must be 0–100');
+    }
+    if ($financial !== null && ($financial < 0 || $financial > 100)) {
+        throw new Exception('financial_progress must be 0–100');
     }
 
-    if ($financial_progress !== null && ($financial_progress < 0 || $financial_progress > 100)) {
-        throw new Exception('Financial progress must be between 0 and 100');
-    }
+    $updated = 0;
+    $errors  = [];
 
-    $updated_count = 0;
-    $errors = [];
+    foreach ($data['projects'] as $id) {
+        $id      = (int) $id;
+        $sets    = [];
+        $params  = [];
+        $types   = '';
 
-    $type_map = [
-        'fspf' => 'fspf_projects',
-        'idp' => 'idp_projects',
-        'afme' => 'afme_projects'
-    ];
-
-    $table = $type_map[$project_type] ?? null;
-    if (!$table) {
-        throw new Exception('Invalid project type');
-    }
-
-    foreach ($projects as $project_id) {
-        $project_id = (int)$project_id;
-
-        $updates = [];
-        $params = [];
-        $types = '';
-
-        if ($physical_progress !== null) {
-            $updates[] = 'physical_progress = ?';
-            $params[] = $physical_progress;
-            $types .= 'd';
+        if ($physical !== null) {
+            $sets[]  = 'physical_progress = ?';
+            $params[] = $physical;
+            $types   .= 'd';
         }
-
-        if ($financial_progress !== null) {
-            $updates[] = 'financial_progress = ?';
-            $params[] = $financial_progress;
-            $types .= 'd';
+        if ($financial !== null) {
+            $sets[]  = 'financial_progress = ?';
+            $params[] = $financial;
+            $types   .= 'd';
         }
+        $sets[]  = 'updated_at = NOW()';
+        $params[] = $id;
+        $types   .= 'i';
 
-        $updates[] = 'updated_at = NOW()';
-        $params[] = $project_id;
-        $types .= 'i';
-
-        $query = "UPDATE $table SET " . implode(', ', $updates) . " WHERE id = ?";
-        $stmt = $conn->prepare($query);
+        $stmt = $conn->prepare('UPDATE ' . $table . ' SET ' . implode(', ', $sets) . ' WHERE id = ?');
         $stmt->bind_param($types, ...$params);
-
-        if ($stmt->execute()) {
-            $updated_count++;
-            logActivity($_SESSION['user_id'], "Batch updated progress for project $project_id", 'batch_operations', 'UPDATE');
-        } else {
-            $errors[] = "Failed to update project $project_id";
-        }
+        $stmt->execute() ? $updated++ : $errors[] = "Failed to update project $id";
     }
 
-    return [
-        'success' => true,
-        'updated' => $updated_count,
-        'total' => count($projects),
-        'errors' => $errors,
-        'message' => "$updated_count project(s) updated successfully"
-    ];
+    logAudit('BATCH_UPDATE_PROGRESS', $data['type'] ?? null);
+
+    return ['updated' => $updated, 'total' => count($data['projects']), 'errors' => $errors];
 }
 
-function batchUpdateField() {
+function batchUpdateField(): array {
     global $conn;
 
-    $data = json_decode(file_get_contents('php://input'), true);
-
+    $data = apiInputJson();
     if (!isset($data['projects']) || !is_array($data['projects'])) {
         throw new Exception('projects array required');
     }
-
     if (!isset($data['field']) || !isset($data['value'])) {
         throw new Exception('field and value required');
     }
 
-    $projects = $data['projects'];
-    $project_type = $data['type'] ?? 'fspf';
-    $field = $data['field'];
-    $value = $data['value'];
+    $table   = batchTable($data['type'] ?? '');
+    $field   = $data['field'];
+    $value   = $data['value'];
+    $allowed = ['allocated_amount', 'proposed_amount', 'commodity', 'description'];
 
-    // Whitelisted fields that can be updated
-    $allowed_fields = ['allocated_amount', 'proposed_amount', 'commodity', 'description'];
-    if (!in_array($field, $allowed_fields)) {
+    if (!in_array($field, $allowed)) {
         throw new Exception("Cannot update field '$field'");
     }
 
-    $updated_count = 0;
-    $errors = [];
+    $updated = 0;
+    $errors  = [];
 
-    $type_map = [
-        'fspf' => 'fspf_projects',
-        'idp' => 'idp_projects',
-        'afme' => 'afme_projects'
-    ];
-
-    $table = $type_map[$project_type] ?? null;
-    if (!$table) {
-        throw new Exception('Invalid project type');
-    }
-
-    foreach ($projects as $project_id) {
-        $project_id = (int)$project_id;
-
+    foreach ($data['projects'] as $id) {
+        $id   = (int) $id;
         $stmt = $conn->prepare("UPDATE $table SET $field = ?, updated_at = NOW() WHERE id = ?");
-        $stmt->bind_param('si', $value, $project_id);
-
-        if ($stmt->execute()) {
-            $updated_count++;
-        } else {
-            $errors[] = "Failed to update project $project_id";
-        }
+        $stmt->bind_param('si', $value, $id);
+        $stmt->execute() ? $updated++ : $errors[] = "Failed to update project $id";
     }
 
-    logActivity($_SESSION['user_id'], "Batch updated $field for " . $updated_count . " projects", 'batch_operations', 'UPDATE');
+    logAudit("BATCH_UPDATE_FIELD:$field", $data['type'] ?? null);
 
-    return [
-        'success' => true,
-        'updated' => $updated_count,
-        'total' => count($projects),
-        'errors' => $errors
-    ];
+    return ['updated' => $updated, 'total' => count($data['projects']), 'errors' => $errors];
 }
 
-function batchDeleteProjects() {
+/**
+ * Bulk-update: accepts `{ project_type, ids: [], updates: {field: value, ...} }`.
+ * Mirrors the old api/batch-operations.php update action.
+ */
+function batchBulkUpdate(): array {
     global $conn;
 
-    $data = json_decode(file_get_contents('php://input'), true);
+    $data = apiInputJson();
+    $ids     = $data['ids'] ?? [];
+    $updates = $data['updates'] ?? [];
 
-    if (!isset($data['projects']) || !is_array($data['projects'])) {
-        throw new Exception('projects array required');
+    if (empty($ids) || !is_array($ids)) {
+        throw new Exception('ids array required');
+    }
+    if (empty($updates)) {
+        throw new Exception('updates object required');
     }
 
-    $projects = $data['projects'];
-    $project_type = $data['type'] ?? 'fspf';
-    $deleted_count = 0;
-    $errors = [];
+    $table = batchTable($data['project_type'] ?? '');
 
-    $type_map = [
-        'fspf' => 'fspf_projects',
-        'idp' => 'idp_projects',
-        'afme' => 'afme_projects'
+    $allowed = [
+        'fspf_projects' => ['project_code','project_title','allocated_amount','physical_progress','financial_progress','current_stage','proposal_status'],
+        'idp_projects'  => ['project_code','project_title','allocated_amount','physical_progress','financial_progress','current_stage','proposal_status'],
+        'afme_projects' => ['project_code','project_title','allocated_amount','current_stage','proposal_status'],
     ];
 
-    $table = $type_map[$project_type] ?? null;
-    if (!$table) {
-        throw new Exception('Invalid project type');
-    }
-
-    foreach ($projects as $project_id) {
-        $project_id = (int)$project_id;
-
-        // Soft delete by setting status
-        $stmt = $conn->prepare("UPDATE $table SET current_stage = 'Archived' WHERE id = ?");
-        $stmt->bind_param('i', $project_id);
-
-        if ($stmt->execute()) {
-            $deleted_count++;
-            logActivity($_SESSION['user_id'], "Archived project $project_id via batch operation", 'batch_operations', 'DELETE');
-        } else {
-            $errors[] = "Failed to delete project $project_id";
+    $filtered = [];
+    foreach ($updates as $f => $v) {
+        if (in_array($f, $allowed[$table] ?? [])) {
+            $filtered[$f] = $v;
         }
     }
+    if (empty($filtered)) {
+        throw new Exception('No valid fields to update');
+    }
 
-    return [
-        'success' => true,
-        'deleted' => $deleted_count,
-        'total' => count($projects),
-        'errors' => $errors,
-        'message' => "$deleted_count project(s) archived successfully"
-    ];
+    $sets   = [];
+    $params = [];
+    $types  = '';
+    foreach ($filtered as $f => $v) {
+        $sets[]  = "$f = ?";
+        $params[] = $v;
+        $types   .= is_numeric($v) ? 'd' : 's';
+    }
+
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $stmt = $conn->prepare(
+        'UPDATE ' . $table . ' SET ' . implode(', ', $sets) . ', updated_at = CURRENT_TIMESTAMP WHERE id IN (' . $placeholders . ')'
+    );
+    if (!$stmt) {
+        throw new Exception('Prepare failed: ' . $conn->error);
+    }
+    $allParams = array_merge($params, array_map('intval', $ids));
+    $stmt->bind_param($types . str_repeat('i', count($ids)), ...$allParams);
+
+    if (!$stmt->execute()) {
+        throw new Exception('Update failed: ' . $stmt->error);
+    }
+    $updated = $stmt->affected_rows;
+    $stmt->close();
+
+    logAudit('BATCH_BULK_UPDATE', $data['project_type'] ?? null);
+
+    return ['success' => true, 'updated_count' => $updated];
 }
 
-function batchExport() {
+/**
+ * Soft-archive projects. Accepts `{ project_type, ids: [] }` (legacy) or `{ type, projects: [] }`.
+ */
+function batchDeleteProjects(): array {
     global $conn;
 
-    $data = json_decode(file_get_contents('php://input'), true);
+    $data     = apiInputJson();
+    $ids      = $data['ids'] ?? $data['projects'] ?? [];
+    $typeRaw  = $data['project_type'] ?? $data['type'] ?? '';
 
-    if (!isset($data['projects']) || !is_array($data['projects'])) {
-        throw new Exception('projects array required');
+    if (empty($ids) || !is_array($ids)) {
+        throw new Exception('ids (or projects) array required');
     }
 
-    $projects = $data['projects'];
-    $project_type = $data['type'] ?? 'fspf';
-    $format = $data['format'] ?? 'json';
+    $table = batchTable($typeRaw);
 
-    $type_map = [
-        'fspf' => 'fspf_projects',
-        'idp' => 'idp_projects',
-        'afme' => 'afme_projects'
-    ];
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $stmt = $conn->prepare(
+        "UPDATE $table SET proposal_status = 'Archived', updated_at = CURRENT_TIMESTAMP WHERE id IN ($placeholders)"
+    );
+    if (!$stmt) {
+        throw new Exception('Prepare failed: ' . $conn->error);
+    }
+    $intIds = array_map('intval', $ids);
+    $stmt->bind_param(str_repeat('i', count($intIds)), ...$intIds);
 
-    $table = $type_map[$project_type] ?? null;
-    if (!$table) {
-        throw new Exception('Invalid project type');
+    if (!$stmt->execute()) {
+        throw new Exception('Archive failed: ' . $stmt->error);
+    }
+    $deleted = $stmt->affected_rows;
+    $stmt->close();
+
+    logAudit('BATCH_ARCHIVE', $typeRaw);
+
+    return ['success' => true, 'deleted_count' => $deleted];
+}
+
+function batchExport(): array {
+    global $conn;
+
+    $data     = apiInputJson();
+    $ids      = $data['ids'] ?? $data['projects'] ?? [];
+    $typeRaw  = $data['project_type'] ?? $data['type'] ?? '';
+    $format   = $data['format'] ?? 'json';
+
+    if (empty($ids) || !is_array($ids)) {
+        throw new Exception('ids (or projects) array required');
     }
 
-    // Get project data
-    $project_ids = implode(',', array_map('intval', $projects));
-    $query = "SELECT * FROM $table WHERE id IN ($project_ids)";
-    $result = $conn->query($query)->fetch_all(MYSQLI_ASSOC);
+    $table = batchTable($typeRaw);
+
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $stmt = $conn->prepare("SELECT * FROM $table WHERE id IN ($placeholders)");
+    if (!$stmt) {
+        throw new Exception('Prepare failed: ' . $conn->error);
+    }
+    $intIds = array_map('intval', $ids);
+    $stmt->bind_param(str_repeat('i', count($intIds)), ...$intIds);
+    $stmt->execute();
+    $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
 
     if ($format === 'csv') {
-        // Format as CSV
-        $csv_data = [];
-        if (!empty($result)) {
-            $csv_data[] = array_keys($result[0]);
-            foreach ($result as $row) {
-                $csv_data[] = array_values($row);
+        $csv = [];
+        if (!empty($rows)) {
+            $csv[] = array_keys($rows[0]);
+            foreach ($rows as $row) {
+                $csv[] = array_values($row);
             }
         }
-        return [
-            'success' => true,
-            'format' => 'csv',
-            'data' => $csv_data,
-            'count' => count($result)
-        ];
-    } else {
-        // JSON format
-        return [
-            'success' => true,
-            'format' => 'json',
-            'data' => $result,
-            'count' => count($result)
-        ];
+        return ['format' => 'csv', 'data' => $csv, 'count' => count($rows)];
     }
+
+    return ['format' => 'json', 'data' => $rows, 'count' => count($rows)];
 }

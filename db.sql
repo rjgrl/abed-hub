@@ -1,8 +1,14 @@
+-- ABED IDM Hub — canonical schema (matches PHP application as of 2026-04)
+-- Import order: DROP children before parents; CREATE parents before children.
+
 SET FOREIGN_KEY_CHECKS = 0;
 
+DROP TABLE IF EXISTS notifications;
+DROP TABLE IF EXISTS project_alerts;
 DROP TABLE IF EXISTS audit_log;
 DROP TABLE IF EXISTS potential_duplicates;
 DROP TABLE IF EXISTS geotagged_photos;
+DROP TABLE IF EXISTS project_financial_entries;
 DROP TABLE IF EXISTS project_liquidations;
 DROP TABLE IF EXISTS project_disbursements;
 DROP TABLE IF EXISTS project_obligations;
@@ -23,6 +29,7 @@ DROP TABLE IF EXISTS afme_machinery;
 DROP TABLE IF EXISTS afme_projects;
 DROP TABLE IF EXISTS idp_projects;
 DROP TABLE IF EXISTS fspf_projects;
+DROP TABLE IF EXISTS saved_views;
 DROP TABLE IF EXISTS password_reset_tokens;
 DROP TABLE IF EXISTS users;
 
@@ -35,14 +42,15 @@ CREATE TABLE users (
     full_name VARCHAR(255) NOT NULL,
     employee_id VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    role ENUM('admin', 'operator', 'viewer') DEFAULT 'operator',
+    role ENUM('admin', 'coordinator', 'operator', 'viewer') DEFAULT 'operator',
     office_unit VARCHAR(255),
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_email (email),
     INDEX idx_username (username),
-    INDEX idx_role (role)
+    INDEX idx_role (role),
+    INDEX idx_users_active_created_at (is_active, created_at)
 );
 
 CREATE TABLE password_reset_tokens (
@@ -97,11 +105,13 @@ CREATE TABLE fspf_projects (
     province VARCHAR(255),
     district VARCHAR(255),
     municipality VARCHAR(255),
+    barangay VARCHAR(255),
     barangay_ids JSON,
     households_benefited INT,
     
-    current_stage ENUM('Proposal','Pre-Implementation','Procurement','Implementation','Completed') DEFAULT 'Proposal',
+    current_stage ENUM('Proposal','Pre-Implementation','Procurement','Implementation','Completed','Turned-Over') DEFAULT 'Proposal',
     proposal_status ENUM('For Validation','Proposal Validated','Not Feasible','Archived','Cancelled') DEFAULT 'For Validation',
+    approval_status ENUM('Pending','Approved','Rejected') DEFAULT 'Approved',
     
     date_validation_start DATE,
     date_validation_end DATE,
@@ -157,11 +167,13 @@ CREATE TABLE idp_projects (
     province VARCHAR(255),
     district VARCHAR(255),
     municipality VARCHAR(255),
+    barangay VARCHAR(255),
     barangay_ids JSON,
     households_benefited INT,
     
-    current_stage ENUM('Proposal','Pre-Implementation','Procurement','Implementation','Completed') DEFAULT 'Proposal',
+    current_stage ENUM('Proposal','Pre-Implementation','Procurement','Implementation','Completed','Turned-Over') DEFAULT 'Proposal',
     proposal_status ENUM('For Validation','Proposal Validated','Not Feasible','Archived','Cancelled') DEFAULT 'For Validation',
+    approval_status ENUM('Pending','Approved','Rejected') DEFAULT 'Approved',
     
     date_validation_start DATE,
     date_validation_end DATE,
@@ -212,6 +224,7 @@ CREATE TABLE afme_projects (
     
     current_stage ENUM('Proposal','Pre-Implementation','Procurement','Implementation','Delivered','Turned-Over','Operation and Maintenance') DEFAULT 'Proposal',
     proposal_status ENUM('For Validation','Proposal Validated','Not Feasible','Archived','Cancelled') DEFAULT 'For Validation',
+    approval_status ENUM('Pending','Approved','Rejected') DEFAULT 'Approved',
     
     latitude DECIMAL(11,8),
     longitude DECIMAL(11,8),
@@ -374,7 +387,7 @@ CREATE TABLE project_milestones (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_type ENUM('FSPF', 'IDP', 'AFME'),
     project_id INT NOT NULL,
-    stage ENUM('Proposal','Pre-Implementation','Procurement','Implementation','Completed'),
+    stage ENUM('Proposal','Pre-Implementation','Procurement','Implementation','Completed','Delivered','Turned-Over'),
     milestone_name VARCHAR(255) NOT NULL,
     target_date DATE,
     actual_date DATE,
@@ -506,12 +519,13 @@ CREATE TABLE geotagged_photos (
     INDEX idx_project (project_type, project_id)
 );
 
-CREATE TABLE project_financial_tracker (
+-- Normalized financial entries table (replaces denormalized project_financial_tracker).
+-- Uses a polymorphic (project_type, project_id) key instead of three nullable FK columns.
+CREATE TABLE project_financial_entries (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    fspf_project_id INT,
-    idp_project_id INT,
-    afme_project_id INT,
-    record_type ENUM('Obligation', 'Disbursement', 'Liquidation'),
+    project_type ENUM('FSPF', 'IDP', 'AFME') NOT NULL,
+    project_id INT NOT NULL,
+    record_type ENUM('Obligation', 'Disbursement', 'Liquidation') NOT NULL,
     amount DECIMAL(15, 2) NOT NULL,
     reference_number VARCHAR(100),
     particulars TEXT,
@@ -519,12 +533,7 @@ CREATE TABLE project_financial_tracker (
     record_status ENUM('Active', 'Archived') DEFAULT 'Active',
     recorded_by INT,
     FOREIGN KEY (recorded_by) REFERENCES users(id),
-    FOREIGN KEY (fspf_project_id) REFERENCES fspf_projects(id) ON DELETE CASCADE,
-    FOREIGN KEY (idp_project_id) REFERENCES idp_projects(id) ON DELETE CASCADE,
-    FOREIGN KEY (afme_project_id) REFERENCES afme_projects(id) ON DELETE CASCADE,
-    INDEX idx_fspf (fspf_project_id),
-    INDEX idx_idp (idp_project_id),
-    INDEX idx_afme (afme_project_id),
+    INDEX idx_project_lookup (project_type, project_id, record_type),
     INDEX idx_record_type (record_type),
     INDEX idx_record_date (record_date)
 );
@@ -555,4 +564,36 @@ CREATE TABLE audit_log (
     FOREIGN KEY (user_id) REFERENCES users(id),
     INDEX idx_created_at (created_at),
     INDEX idx_user_id (user_id)
+);
+
+-- =====================================================
+-- NOTIFICATIONS & ALERTS (api/notifications.php)
+-- =====================================================
+
+CREATE TABLE project_alerts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    alert_type VARCHAR(50) NOT NULL,
+    severity ENUM('low', 'medium', 'high', 'critical') DEFAULT 'medium',
+    message TEXT NOT NULL,
+    created_by INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (created_by) REFERENCES users(id),
+    INDEX idx_project_active (project_id, is_active),
+    INDEX idx_created_at (created_at)
+);
+
+CREATE TABLE notifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    project_id INT,
+    alert_type VARCHAR(50),
+    title VARCHAR(255) NOT NULL,
+    message TEXT,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_user_unread (user_id, is_read),
+    INDEX idx_created_at (created_at)
 );

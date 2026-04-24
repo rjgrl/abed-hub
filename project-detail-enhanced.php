@@ -44,15 +44,17 @@ $docs_stmt->bind_param('si', strtoupper($project_type), $project_id);
 $docs_stmt->execute();
 $documents = $docs_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-// Fetch financial records
-$fin_column = match($project_type) {
-    'fspf' => 'fspf_project_id',
-    'idp' => 'idp_project_id',
-    'afme' => 'afme_project_id'
-};
-
-$fin_stmt = $conn->prepare("SELECT * FROM project_financial_tracker WHERE $fin_column = ? ORDER BY record_date DESC LIMIT 10");
-$fin_stmt->bind_param('i', $project_id);
+// Fetch financial records (normalized project_financial_entries table)
+$fin_type = strtoupper($project_type);
+if (!in_array($fin_type, ['FSPF', 'IDP', 'AFME'], true)) {
+    $fin_type = 'FSPF';
+}
+$fin_stmt = $conn->prepare(
+    'SELECT * FROM project_financial_entries
+     WHERE project_type = ? AND project_id = ? AND record_status = "Active"
+     ORDER BY record_date DESC LIMIT 10'
+);
+$fin_stmt->bind_param('si', $fin_type, $project_id);
 $fin_stmt->execute();
 $financial_records = $fin_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 

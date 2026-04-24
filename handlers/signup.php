@@ -62,14 +62,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Insert user
     $stmt = $conn->prepare("
-        INSERT INTO users (username, email, full_name, employee_id, password, office_unit, role)
-        VALUES (?, ?, ?, ?, ?, ?, 'operator')
+        INSERT INTO users (username, email, full_name, employee_id, password, office_unit, role, is_active)
+        VALUES (?, ?, ?, ?, ?, ?, 'operator', 0)
     ");
 
     $stmt->bind_param("ssssss", $username, $email, $full_name, $employee_id, $password_hash, $office_unit);
 
     if ($stmt->execute()) {
-        echo json_encode(['status' => 'success', 'message' => 'Account created successfully. Please login.']);
+        echo json_encode(['status' => 'success', 'message' => 'Account created. Please wait for Super Admin approval before logging in.']);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Error creating account']);
     }

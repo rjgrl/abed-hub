@@ -226,15 +226,15 @@ try {
                 throw new Exception('Milestone ID required');
             }
 
-            // Get milestone details
+            // Resolve project code/title via milestone.project_type + project_id (IDs are not unique across tables).
             $milestone_query = $conn->prepare("
-                SELECT m.*, p.project_code, p.project_title
+                SELECT m.*,
+                    COALESCE(fp.project_code, idp.project_code, af.project_code) AS project_code,
+                    COALESCE(fp.project_title, idp.project_title, af.project_title) AS project_title
                 FROM project_milestones m
-                JOIN (
-                    SELECT id, project_code, project_title FROM fspf_projects
-                    UNION SELECT id, project_code, project_title FROM idp_projects
-                    UNION SELECT id, project_code, project_title FROM afme_projects
-                ) p ON m.project_id = p.id
+                LEFT JOIN fspf_projects fp ON m.project_type = 'FSPF' AND m.project_id = fp.id
+                LEFT JOIN idp_projects idp ON m.project_type = 'IDP' AND m.project_id = idp.id
+                LEFT JOIN afme_projects af ON m.project_type = 'AFME' AND m.project_id = af.id
                 WHERE m.id = ?
             ");
             $milestone_query->bind_param('i', $milestone_id);
@@ -255,11 +255,13 @@ try {
                     $user_result = $user_query->get_result()->fetch_assoc();
 
                     if ($user_result && $user_result['email']) {
+                        $due = $milestone['target_date'] ?? null;
+                        $dueStr = $due ? date('M d, Y', strtotime($due)) : 'TBD';
                         $success = sendMilestoneEmail(
                             $user_result['email'],
                             $milestone['project_code'],
                             $milestone['milestone_name'],
-                            date('M d, Y', strtotime($milestone['due_date']))
+                            $dueStr
                         );
 
                         if ($success) {
@@ -273,8 +275,8 @@ try {
                             ");
 
                             $title = "Milestone Reminder: " . $milestone['milestone_name'];
-                            $message = "Milestone '{$milestone['milestone_name']}' for project {$milestone['project_code']} is due on " . date('M d, Y', strtotime($milestone['due_date']));
-                            $notif_stmt->bind_param('iisss', $target_user, $milestone['project_id'], $title, $message);
+                            $message = "Milestone '{$milestone['milestone_name']}' for project {$milestone['project_code']} is due on " . $dueStr;
+                            $notif_stmt->bind_param('iiss', $target_user, $milestone['project_id'], $title, $message);
                             $notif_stmt->execute();
                         }
                     }

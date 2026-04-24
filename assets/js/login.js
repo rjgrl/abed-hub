@@ -11,11 +11,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const username = document.querySelector('input[name="username"]').value;
     const password = document.querySelector('input[name="password"]').value;
+    const loginRole = document.querySelector('select[name="login_role"]').value;
     const alertContainer = document.getElementById("alertContainer");
 
     const formData = new FormData();
     formData.append("username", username);
     formData.append("password", password);
+    formData.append("login_role", loginRole);
 
     const submitBtn = this.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
@@ -33,7 +35,7 @@ document.addEventListener("DOMContentLoaded", function () {
           showAlert("Login successful! Redirecting...", "success");
           setTimeout(() => {
             window.location.href =
-              data.redirect_url || "dashboard-enhanced.php";
+              data.redirect_url || "dashboard.php";
           }, 1000);
         } else if (data.status === "redirect") {
           window.location.href = data.redirect_url || "dashboard.php";

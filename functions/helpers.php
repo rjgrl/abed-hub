@@ -39,6 +39,31 @@ function requireRole($role) {
 }
 
 /**
+ * Require any role from a whitelist.
+ */
+function requireRoles(array $roles) {
+    $userRole = $_SESSION['role'] ?? '';
+    if (!in_array($userRole, $roles, true)) {
+        http_response_code(403);
+        die(json_encode(['status' => 'error', 'message' => 'Insufficient permissions']));
+    }
+}
+
+/**
+ * Check if current user has super admin privileges.
+ */
+function isSuperAdmin() {
+    return ($_SESSION['role'] ?? '') === 'admin';
+}
+
+/**
+ * Route all users through one dashboard entry point.
+ */
+function getDashboardRoute() {
+    return 'dashboard.php';
+}
+
+/**
  * Sanitize input for security
  */
 function sanitize($input) {

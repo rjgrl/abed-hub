@@ -2,6 +2,7 @@
 require_once __DIR__ . '/components/layout.php';
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/functions/helpers.php';
+require_once __DIR__ . '/services/ProjectRepository.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -11,120 +12,40 @@ requireLogin();
 
 $page_title = 'Analytics & Reports - ABED IDM Hub';
 
-$year = intval($_GET['year'] ?? date('Y'));
-$month = $_GET['month'] ?? date('m');
+$year        = intval($_GET['year'] ?? date('Y'));
+$month       = $_GET['month'] ?? date('m');
 $report_type = $_GET['report'] ?? 'summary';
 
-// Get overall statistics
-$all_projects = $conn->query("
-    SELECT COUNT(*) as count FROM (
-        SELECT id FROM fspf_projects
-        UNION ALL
-        SELECT id FROM idp_projects
-        UNION ALL
-        SELECT id FROM afme_projects
-    ) as combined
-")->fetch_assoc()['count'];
+$repo = new ProjectRepository($conn);
 
-$total_proposed = $conn->query("
-    SELECT SUM(proposed_amount) as total FROM (
-        SELECT proposed_amount FROM fspf_projects
-        UNION ALL
-        SELECT proposed_amount FROM idp_projects
-        UNION ALL
-        SELECT proposed_amount FROM afme_projects
-    ) as combined
-")->fetch_assoc()['total'] ?? 0;
+$counts          = $repo->counts();
+$all_projects    = $counts['total'];
+$fspf_count      = $counts['fspf'];
+$idp_count       = $counts['idp'];
+$afme_count      = $counts['afme'];
 
-$total_allocated = $conn->query("
-    SELECT SUM(allocated_amount) as total FROM (
-        SELECT allocated_amount FROM fspf_projects
-        UNION ALL
-        SELECT allocated_amount FROM idp_projects
-        UNION ALL
-        SELECT allocated_amount FROM afme_projects
-    ) as combined
-")->fetch_assoc()['total'] ?? 0;
+$finance         = $repo->financialSummary();
+$total_proposed  = $finance['total_proposed'];
+$total_allocated = $finance['total_allocated'];
 
-// Get project distribution
-$fspf_count = $conn->query("SELECT COUNT(*) as count FROM fspf_projects")->fetch_assoc()['count'];
-$idp_count = $conn->query("SELECT COUNT(*) as count FROM idp_projects")->fetch_assoc()['count'];
-$afme_count = $conn->query("SELECT COUNT(*) as count FROM afme_projects")->fetch_assoc()['count'];
+$stage_dist_map  = $repo->stageDistribution();
+$stage_dist      = array_map(
+    fn($stage, $cnt) => ['current_stage' => $stage, 'count' => $cnt],
+    array_keys($stage_dist_map),
+    $stage_dist_map
+);
 
-// Get stage distribution
-$stage_dist = $conn->query("
-    SELECT current_stage, COUNT(*) as count FROM (
-        SELECT current_stage FROM fspf_projects
-        UNION ALL
-        SELECT current_stage FROM idp_projects
-        UNION ALL
-        SELECT current_stage FROM afme_projects
-    ) as combined
-    GROUP BY current_stage
-")->fetch_all(MYSQLI_ASSOC);
+$monthly_data    = $repo->monthlyTrend($year);
 
-// Get monthly data for the selected year
-$monthly_query = $conn->query("
-    SELECT 
-        MONTH(created_at) as month,
-        COUNT(*) as count,
-        ROUND(AVG(physical_progress), 1) as avg_physical,
-        ROUND(AVG(financial_progress), 1) as avg_financial
-    FROM (
-        SELECT created_at, physical_progress, financial_progress FROM fspf_projects WHERE YEAR(created_at) = $year
-        UNION ALL
-        SELECT created_at, physical_progress, financial_progress FROM idp_projects WHERE YEAR(created_at) = $year
-        UNION ALL
-        SELECT created_at, 0 as physical_progress, 0 as financial_progress FROM afme_projects WHERE YEAR(created_at) = $year
-    ) as combined
-    GROUP BY MONTH(created_at)
-    ORDER BY month
-");
+$stage_yearly_map = $repo->stageDistributionByYear($year);
+$stage_yearly     = array_map(
+    fn($stage, $cnt) => ['current_stage' => $stage, 'count' => $cnt],
+    array_keys($stage_yearly_map),
+    $stage_yearly_map
+);
 
-$monthly_data = [];
-while ($row = $monthly_query->fetch_assoc()) {
-    $monthly_data[$row['month']] = $row;
-}
-
-// Get projects by stage for selected year
-$stage_yearly = $conn->query("
-    SELECT current_stage, COUNT(*) as count FROM (
-        SELECT current_stage FROM fspf_projects WHERE YEAR(created_at) = $year
-        UNION ALL
-        SELECT current_stage FROM idp_projects WHERE YEAR(created_at) = $year
-        UNION ALL
-        SELECT current_stage FROM afme_projects WHERE YEAR(created_at) = $year
-    ) as combined
-    GROUP BY current_stage
-")->fetch_all(MYSQLI_ASSOC);
-
-// Get top performers
-$top_performers = $conn->query("
-    SELECT project_code, project_title, physical_progress, financial_progress, 'fspf' as type
-    FROM fspf_projects WHERE current_stage IN ('Implementation', 'Completed')
-    UNION ALL
-    SELECT project_code, project_title, physical_progress, financial_progress, 'idp' as type
-    FROM idp_projects WHERE current_stage IN ('Implementation', 'Completed')
-    UNION ALL
-    SELECT project_code, project_title, 0 as physical_progress, 0 as financial_progress, 'afme' as type
-    FROM afme_projects WHERE current_stage IN ('Implementation', 'Delivered', 'Turned-Over', 'Operation and Maintenance')
-    ORDER BY physical_progress DESC
-    LIMIT 10
-")->fetch_all(MYSQLI_ASSOC);
-
-// Get at-risk projects
-$at_risk = $conn->query("
-    SELECT project_code, project_title, physical_progress, financial_progress, (physical_progress - financial_progress) as variance, 'fspf' as type
-    FROM fspf_projects WHERE (physical_progress - financial_progress) < -15 OR (physical_progress - financial_progress) > 20
-    UNION ALL
-    SELECT project_code, project_title, physical_progress, financial_progress, (physical_progress - financial_progress) as variance, 'idp' as type
-    FROM idp_projects WHERE (physical_progress - financial_progress) < -15 OR (physical_progress - financial_progress) > 20
-    UNION ALL
-    SELECT project_code, project_title, 0 as physical_progress, 0 as financial_progress, 0 as variance, 'afme' as type
-    FROM afme_projects WHERE current_stage IN ('Implementation', 'Delivered', 'Turned-Over')
-    ORDER BY ABS(variance) DESC
-    LIMIT 10
-")->fetch_all(MYSQLI_ASSOC);
+$top_performers  = $repo->topPerformers('all', 10);
+$at_risk         = $repo->atRiskProjects(10);
 
 renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>');
 ?>
@@ -136,7 +57,7 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                     <p class="text-muted">Comprehensive project performance analysis</p>
                 </div>
                 <div class="col-auto">
-                    <button class="btn btn-outline-primary" onclick="window.print()">
+                    <button class="btn btn-outline-primary" onclick="openAnalyticsPdf()">
                         <i class="fas fa-print"></i> Print
                     </button>
                 </div>
@@ -189,18 +110,8 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                 <div class="col-md-3">
                     <div class="card border-0 shadow-sm">
                         <div class="card-body text-center">
-                            <?php
-                            $avg_physical = $conn->query("
-                                SELECT AVG(physical_progress) as avg FROM (
-                                    SELECT physical_progress FROM fspf_projects
-                                    UNION ALL
-                                    SELECT physical_progress FROM idp_projects
-                                    UNION ALL
-                                    SELECT 0 as physical_progress FROM afme_projects
-                                ) as combined
-                            ")->fetch_assoc()['avg'] ?? 0;
-                            ?>
-                            <h3 class="text-info"><?php echo round($avg_physical, 1); ?>%</h3>
+                            <?php $avg_progress = $repo->avgProgress('all'); ?>
+                            <h3 class="text-info"><?php echo $avg_progress['avg_physical']; ?>%</h3>
                             <small class="text-muted">Avg Physical Progress</small>
                         </div>
                     </div>
@@ -208,17 +119,7 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                 <div class="col-md-3">
                     <div class="card border-0 shadow-sm">
                         <div class="card-body text-center">
-                            <?php
-                            $completed = $conn->query("
-                                SELECT COUNT(*) as count FROM (
-                                    SELECT id FROM fspf_projects WHERE current_stage IN ('Completed', 'Turned-Over')
-                                    UNION ALL
-                                    SELECT id FROM idp_projects WHERE current_stage IN ('Completed', 'Turned-Over')
-                                    UNION ALL
-                                    SELECT id FROM afme_projects WHERE current_stage IN ('Completed', 'Turned-Over')
-                                ) as combined
-                            ")->fetch_assoc()['count'];
-                            ?>
+                            <?php $completed = $repo->completedCount(); ?>
                             <h3 class="text-warning"><?php echo $completed; ?></h3>
                             <small class="text-muted">Completed Projects</small>
                         </div>
@@ -440,6 +341,11 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
 
     <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script>
+        function openAnalyticsPdf() {
+            const year = encodeURIComponent('<?php echo htmlspecialchars((string) $year); ?>');
+            window.open(`exports/reports-pdf.php?source=analytics&year=${year}`, '_blank');
+        }
+
         // Type Distribution Chart
         new Chart(document.getElementById('typeChart'), {
             type: 'doughnut',

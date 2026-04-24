@@ -11,7 +11,7 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
 
   <ul class="nav nav-pills flex-column mb-auto">
     <li class="nav-item mb-2">
-      <a href="dashboard-enhanced.php" class="nav-link text-white <?php echo (in_array($current_page, ['dashboard-enhanced.php', 'dashboard.php'])) ? 'active' : ''; ?>">
+      <a href="dashboard.php" class="nav-link text-white <?php echo (in_array($current_page, ['dashboard-enhanced.php', 'dashboard.php', 'admin-dashboard.php'])) ? 'active' : ''; ?>">
         <i class="fas fa-tachometer-alt me-2"></i>Dashboard
         <span class="badge bg-danger ms-auto d-none" id="notificationBadge" data-notification-badge>0</span>
       </a>
@@ -38,19 +38,19 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
     </li>
 
     <li class="nav-item mb-2">
-      <a href="fspf-dashboard.php" class="nav-link text-white <?php echo ($current_page === 'fspf-dashboard.php') ? 'active' : ''; ?>">
+      <a href="dashboard.php?module=fspf" class="nav-link text-white <?php echo (isset($_GET['module']) && $_GET['module'] === 'fspf') ? 'active' : ''; ?>">
         <i class="fas fa-project-diagram me-2"></i>FSPF Dashboard
       </a>
     </li>
 
     <li class="nav-item mb-2">
-      <a href="idp-dashboard.php" class="nav-link text-white <?php echo ($current_page === 'idp-dashboard.php') ? 'active' : ''; ?>">
+      <a href="dashboard.php?module=idp" class="nav-link text-white <?php echo (isset($_GET['module']) && $_GET['module'] === 'idp') ? 'active' : ''; ?>">
         <i class="fas fa-home me-2"></i>IDP Dashboard
       </a>
     </li>
 
     <li class="nav-item mb-2">
-      <a href="afme-dashboard.php" class="nav-link text-white <?php echo ($current_page === 'afme-dashboard.php') ? 'active' : ''; ?>">
+      <a href="dashboard.php?module=afme" class="nav-link text-white <?php echo (isset($_GET['module']) && $_GET['module'] === 'afme') ? 'active' : ''; ?>">
         <i class="fas fa-cogs me-2"></i>AFME Dashboard
       </a>
     </li>
@@ -77,7 +77,7 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
     </li>
 
     <li class="nav-item mb-2">
-      <a href="admin-users.php" class="nav-link text-white <?php echo ($current_page === 'admin-users.php') ? 'active' : ''; ?>">
+      <a href="admin-dashboard.php" class="nav-link text-white <?php echo (in_array($current_page, ['admin-users.php', 'admin-dashboard.php'])) ? 'active' : ''; ?>">
         <i class="fas fa-users me-2"></i>User Management
       </a>
     </li>

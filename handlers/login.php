@@ -7,13 +7,14 @@ header('Content-Type: application/json');
 
 // If already logged in, redirect to dashboard
 if (isset($_SESSION['user_id'])) {
-    echo json_encode(['status' => 'redirect', 'redirect_url' => 'dashboard-enhanced.php']);
+    echo json_encode(['status' => 'redirect', 'redirect_url' => getDashboardRoute()]);
     exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = trim($_POST['password'] ?? '');
+    $loginRole = trim($_POST['login_role'] ?? 'employee');
 
     // Validate input
     if (empty($username) || empty($password)) {
@@ -46,6 +47,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // Enforce role-aware login entry point.
+    if ($loginRole === 'admin' && $user['role'] !== 'admin') {
+        echo json_encode(['status' => 'error', 'message' => 'Only Super Admin accounts can use Admin Login']);
+        exit;
+    }
+    if ($loginRole === 'employee' && $user['role'] === 'admin') {
+        echo json_encode(['status' => 'error', 'message' => 'Please use Admin Login for Super Admin accounts']);
+        exit;
+    }
+
     // Set session variables
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['username'] = $user['username'];
@@ -67,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     echo json_encode([
         'status' => 'success',
         'message' => 'Login successful',
-        'redirect_url' => 'dashboard-enhanced.php'
+        'redirect_url' => getDashboardRoute()
     ]);
 
     $stmt->close();

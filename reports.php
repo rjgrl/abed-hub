@@ -174,7 +174,7 @@ renderAppLayout($page_title);
                                 <small>Generate comprehensive reports and view project analytics</small>
                             </div>
                             <div>
-                                <button class="btn btn-light" onclick="window.print()">
+                                <button class="btn btn-light" onclick="openPdfReport()">
                                     <i class="fas fa-print me-1"></i>Print Report
                                 </button>
                                 <button class="btn btn-light ms-2" onclick="exportToExcel()">
@@ -423,6 +423,12 @@ renderAppLayout($page_title);
 
     <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script>
+        function openPdfReport() {
+            const year = encodeURIComponent('<?php echo htmlspecialchars((string) $year); ?>');
+            const status = encodeURIComponent('<?php echo htmlspecialchars((string) $status); ?>');
+            window.open(`exports/reports-pdf.php?source=reports&year=${year}&status=${status}`, '_blank');
+        }
+
         function exportToExcel() {
             // Create a simple CSV export
             const table = document.getElementById('reportsTable');
