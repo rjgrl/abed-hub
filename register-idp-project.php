@@ -59,7 +59,7 @@ $stmt = $conn->prepare("
 ");
 
 $stmt->bind_param(
-    "sssissdssdddddiii",
+    "sssisssidssssddddii",
     $project_code, $project_title, $fund_source, $funding_year, $scope_of_work,
     $beneficiary, $description, $implementation_schedule_days, $quantity, $unit,
     $province, $municipality, $barangay, $latitude, $longitude, $proposed_amount,
