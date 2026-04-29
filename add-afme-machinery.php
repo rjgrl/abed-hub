@@ -28,6 +28,7 @@ $allocated_amount = floatval($_POST['allocated_amount'] ?? 0);
 $funding_year = intval($_POST['funding_year'] ?? date('Y'));
 $indicative_funding_year = intval($_POST['indicative_funding_year'] ?? $funding_year);
 $fund_source = sanitize($_POST['fund_source'] ?? '');
+$current_status = 'For Validation';
 
 // Validate required fields
 if (empty($machine_name) || empty($farm_operation) || empty($beneficiary_name)) {
@@ -35,22 +36,22 @@ if (empty($machine_name) || empty($farm_operation) || empty($beneficiary_name)) 
     exit;
 }
 
-// Insert machinery
+// Insert machinery into consolidated afme table
 $stmt = $conn->prepare("
-    INSERT INTO afme_machinery (
-        afme_project_id, machine_name, farm_operation, beneficiary_name,
+    INSERT INTO afme (
+        project_id, machine_name, farm_operation, beneficiary_name,
         beneficiary_contact, recipient_type, farm_location, beneficiary_households,
-        description, proposed_amount, allocated_amount, funding_year,
-        indicative_funding_year, fund_source, created_by
+        description, amount_proposed, amount_allocated, funding_year,
+        indicative_funding_year, fund_source, current_status
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ");
 
 $stmt->bind_param(
-    "issssisssddiiisi",
+    "issssssisddiiss",
     $afme_project_id, $machine_name, $farm_operation, $beneficiary_name,
     $beneficiary_contact, $recipient_type, $farm_location, $beneficiary_households,
     $description, $proposed_amount, $allocated_amount, $funding_year,
-    $indicative_funding_year, $fund_source, $user_id
+    $indicative_funding_year, $fund_source, $current_status
 );
 
 if ($stmt->execute()) {

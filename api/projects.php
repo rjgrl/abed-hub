@@ -86,7 +86,7 @@ function listProjects(mysqli $conn, ?string $project_type): never {
         $types    .= 'i';
     }
     if (isset($_GET['status'])) {
-        $filters[] = 'proposal_status = ?';
+        $filters[] = 'status = ?';
         $params[]  = $_GET['status'];
         $types    .= 's';
     }
@@ -98,6 +98,11 @@ function listProjects(mysqli $conn, ?string $project_type): never {
     if (isset($_GET['location'])) {
         $filters[] = 'municipality LIKE ?';
         $params[]  = '%' . $_GET['location'] . '%';
+        $types    .= 's';
+    }
+    if ($project_type) {
+        $filters[] = 'project_type = ?';
+        $params[]  = $project_type;
         $types    .= 's';
     }
 
@@ -119,7 +124,13 @@ function listProjects(mysqli $conn, ?string $project_type): never {
         apiError('Database error: ' . $conn->error, 500);
     }
 
-    $stmt = $conn->prepare("SELECT * FROM $table $where ORDER BY created_at DESC LIMIT ? OFFSET ?");
+    $stmt = $conn->prepare(
+        "SELECT *,
+                title AS project_title,
+                status AS proposal_status
+         FROM $table $where
+         ORDER BY created_at DESC LIMIT ? OFFSET ?"
+    );
     if (!$stmt) {
         apiError('Database error: ' . $conn->error, 500);
     }
@@ -136,11 +147,22 @@ function listProjects(mysqli $conn, ?string $project_type): never {
 
 function getProjectDetail(mysqli $conn, ?string $project_type, int $project_id): never {
     $table = apiTableFor($project_type ?? '');
-    $stmt  = $conn->prepare("SELECT * FROM $table WHERE id = ?");
+    $sql = "SELECT *,
+                   title AS project_title,
+                   status AS proposal_status
+            FROM $table WHERE id = ?";
+    if ($project_type) {
+        $sql .= " AND project_type = ?";
+    }
+    $stmt  = $conn->prepare($sql);
     if (!$stmt) {
         apiError('Database error: ' . $conn->error, 500);
     }
-    $stmt->bind_param('i', $project_id);
+    if ($project_type) {
+        $stmt->bind_param('is', $project_id, $project_type);
+    } else {
+        $stmt->bind_param('i', $project_id);
+    }
     $stmt->execute();
     $project = $stmt->get_result()->fetch_assoc();
     $stmt->close();
@@ -154,7 +176,16 @@ function getProjectDetail(mysqli $conn, ?string $project_type, int $project_id):
 function createProject(mysqli $conn, ?string $project_type, array $data, array $files): never {
     $table = apiTableFor($project_type ?? '');
 
-    $required = ['project_code', 'project_title', 'funding_year'];
+    if (!empty($data['project_title']) && empty($data['title'])) {
+        $data['title'] = $data['project_title'];
+        unset($data['project_title']);
+    }
+    if (!empty($data['proposal_status']) && empty($data['status'])) {
+        $data['status'] = $data['proposal_status'];
+        unset($data['proposal_status']);
+    }
+
+    $required = ['project_code', 'title', 'funding_year'];
     foreach ($required as $field) {
         if (empty($data[$field])) {
             apiError("Missing required field: $field", 400);
@@ -162,9 +193,11 @@ function createProject(mysqli $conn, ?string $project_type, array $data, array $
     }
 
     $fields       = array_keys($data);
-    $fields[]     = 'created_by';
+    $fields[]     = 'project_type';
+    $fields[]     = 'user_id';
     $placeholders = array_fill(0, count($fields), '?');
     $values       = array_values($data);
+    $values[]     = $project_type;
     $values[]     = $_SESSION['user_id'];
 
     $query = 'INSERT INTO ' . $table . ' (' . implode(', ', $fields) . ') VALUES (' . implode(', ', $placeholders) . ')';
@@ -189,6 +222,14 @@ function updateProject(mysqli $conn, ?string $project_type, int $project_id, arr
     $table   = apiTableFor($project_type ?? '');
     if (empty($data)) {
         apiError('No fields provided for update', 400);
+    }
+    if (array_key_exists('project_title', $data) && !array_key_exists('title', $data)) {
+        $data['title'] = $data['project_title'];
+        unset($data['project_title']);
+    }
+    if (array_key_exists('proposal_status', $data) && !array_key_exists('status', $data)) {
+        $data['status'] = $data['proposal_status'];
+        unset($data['proposal_status']);
     }
 
     $updates = [];
@@ -265,11 +306,11 @@ function updateProgress(mysqli $conn, ?string $project_type, ?int $project_id, a
 function archiveProject(mysqli $conn, ?string $project_type, int $project_id): never {
     $table = apiTableFor($project_type ?? '');
 
-    $stmt = $conn->prepare("UPDATE $table SET proposal_status = 'Archived' WHERE id = ?");
+    $stmt = $conn->prepare("UPDATE $table SET status = 'Archived' WHERE id = ? AND project_type = ?");
     if (!$stmt) {
         apiError('Database error: ' . $conn->error, 500);
     }
-    $stmt->bind_param('i', $project_id);
+    $stmt->bind_param('is', $project_id, $project_type);
 
     if (!$stmt->execute()) {
         apiError('Failed to archive project: ' . $stmt->error, 500);
@@ -289,9 +330,10 @@ function detectDuplicates(mysqli $conn, ?string $project_type): never {
     }
 
     $stmt = $conn->prepare(
-        "SELECT id, project_code, project_title, municipality, created_at
+        "SELECT id, project_code, title AS project_title, municipality, created_at
          FROM $table
-         WHERE (project_title LIKE ? OR project_code LIKE ?)
+         WHERE project_type = ?
+           AND (title LIKE ? OR project_code LIKE ?)
          ORDER BY created_at DESC
          LIMIT 10"
     );
@@ -300,7 +342,7 @@ function detectDuplicates(mysqli $conn, ?string $project_type): never {
     }
 
     $pattern = '%' . $search_term . '%';
-    $stmt->bind_param('ss', $pattern, $pattern);
+    $stmt->bind_param('sss', $project_type, $pattern, $pattern);
     $stmt->execute();
     $duplicates = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $stmt->close();

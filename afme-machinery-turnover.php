@@ -17,7 +17,7 @@ $turnover_date = $_POST['turnover_date'] ?? date('Y-m-d');
 $documentary_requirements_met = isset($_POST['documentary_requirements_met']) ? 1 : 0;
 
 // Verify machinery
-$stmt = $conn->prepare("SELECT id, current_status FROM afme_machinery WHERE id = ?");
+$stmt = $conn->prepare("SELECT id, current_status FROM afme WHERE id = ?");
 $stmt->bind_param("i", $machinery_id);
 $stmt->execute();
 $machinery = $stmt->get_result()->fetch_assoc();
@@ -53,37 +53,26 @@ if (isset($_FILES['turnover_photos'])) {
                 if (move_uploaded_file($tmp_name, $photo_path)) {
                     $turnover_photos[] = $photo_path;
                     
-                    // Store in geotagged photos
-                    $stage = 'Turned-Over';
-                    $stmt_photo = $conn->prepare("
-                        INSERT INTO geotagged_photos (
-                            project_type, project_id, photo_path, stage, uploaded_by
-                        ) VALUES ('AFME', ?, ?, ?, ?)
-                    ");
-                    $stmt_photo->bind_param("issi", $machinery_id, $photo_path, $stage, $user_id);
-                    $stmt_photo->execute();
+                    // photos are kept on disk only in refactored schema
                 }
             }
         }
     }
 }
 
-// Insert turn-over record
+// Update turn-over fields in consolidated afme table
 $stmt = $conn->prepare("
-    INSERT INTO afme_machinery_turnover (
-        machinery_id, turnover_date, turnover_status, documentary_requirements_met
-    ) VALUES (?, ?, 'Completed', ?)
+    UPDATE afme
+    SET turnover_date = ?,
+        turnover_status = 'Completed',
+        documentary_requirements_met = ?,
+        current_status = 'Turned-Over'
+    WHERE id = ?
 ");
 
-$stmt->bind_param("isi", $machinery_id, $turnover_date, $documentary_requirements_met);
+$stmt->bind_param("sii", $turnover_date, $documentary_requirements_met, $machinery_id);
 
 if ($stmt->execute()) {
-    // Update status
-    $new_status = 'Turned-Over';
-    $update_stmt = $conn->prepare("UPDATE afme_machinery SET current_status = ? WHERE id = ?");
-    $update_stmt->bind_param("si", $new_status, $machinery_id);
-    $update_stmt->execute();
-
     logAudit('AFME_MACHINERY_TURNOVER', 'AFME', $machinery_id, null, $_POST);
 
     echo json_encode([

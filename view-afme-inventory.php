@@ -11,10 +11,9 @@ $search_term = $_GET['search'] ?? '';
 
 $query = "SELECT 
     m.id, m.machine_name, m.farm_operation, m.beneficiary_name,
-    m.current_status, m.funding_year, m.allocated_amount,
-    COUNT(d.id) as document_count
-FROM afme_machinery m
-LEFT JOIN afme_machinery_documents d ON m.id = d.machinery_id
+    m.current_status, m.funding_year, m.amount_allocated AS allocated_amount,
+    COALESCE(JSON_LENGTH(m.documents), 0) as document_count
+FROM afme m
 WHERE 1=1";
 
 $params = [];
@@ -40,7 +39,7 @@ if ($search_term) {
     $types .= 'ss';
 }
 
-$query .= " GROUP BY m.id ORDER BY m.created_at DESC";
+$query .= " ORDER BY m.created_at DESC";
 
 $stmt = $conn->prepare($query);
 
@@ -54,7 +53,7 @@ $machinery_list = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 // Get status statistics
 $stmt = $conn->prepare("
     SELECT current_status, COUNT(*) as count
-    FROM afme_machinery
+    FROM afme
     GROUP BY current_status
 ");
 $stmt->execute();

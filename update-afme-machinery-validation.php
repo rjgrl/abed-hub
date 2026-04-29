@@ -20,7 +20,7 @@ $latitude = floatval($_POST['latitude'] ?? 0);
 $longitude = floatval($_POST['longitude'] ?? 0);
 
 // Verify machinery
-$stmt = $conn->prepare("SELECT id FROM afme_machinery WHERE id = ?");
+$stmt = $conn->prepare("SELECT id FROM afme WHERE id = ?");
 $stmt->bind_param("i", $machinery_id);
 $stmt->execute();
 if ($stmt->get_result()->num_rows === 0) {
@@ -73,51 +73,29 @@ if (isset($_FILES['geotagged_photos'])) {
 
 $geotagged_photos_json = json_encode($geotagged_photos);
 
-// Insert or update validation
-$stmt = $conn->prepare("SELECT id FROM afme_machinery_validation WHERE machinery_id = ?");
-$stmt->bind_param("i", $machinery_id);
-$stmt->execute();
-$existing = $stmt->get_result()->fetch_assoc();
-
-if ($existing) {
-    $stmt = $conn->prepare("
-        UPDATE afme_machinery_validation SET
-        date_validation_start = ?, date_validation_end = ?, 
-        implementation_type = ?, service_area = ?,
+// Update validation fields in consolidated afme table
+$stmt = $conn->prepare("
+    UPDATE afme SET
+        date_validation_start = ?,
+        date_validation_end = ?,
+        implementation_type = ?,
+        service_area = ?,
         validation_report_path = COALESCE(?, validation_report_path),
-        geotagged_photo_paths = ?, latitude = ?, longitude = ?,
-        validation_status = 'Completed'
-        WHERE machinery_id = ?
-    ");
-    $stmt->bind_param(
-        "sssssdddi",
-        $date_validation_start, $date_validation_end,
-        $implementation_type, $service_area, $validation_report_path,
-        $geotagged_photos_json, $latitude, $longitude, $machinery_id
-    );
-} else {
-    $stmt = $conn->prepare("
-        INSERT INTO afme_machinery_validation (
-            machinery_id, date_validation_start, date_validation_end,
-            implementation_type, service_area, validation_report_path,
-            geotagged_photo_paths, latitude, longitude, validation_status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Completed')
-    ");
-    $stmt->bind_param(
-        "isssssddd",
-        $machinery_id, $date_validation_start, $date_validation_end,
-        $implementation_type, $service_area, $validation_report_path,
-        $geotagged_photos_json, $latitude, $longitude
-    );
-}
+        geotagged_photo_paths = ?,
+        latitude = ?,
+        longitude = ?,
+        validation_status = 'Completed',
+        current_status = 'Pre-Implementation'
+    WHERE id = ?
+");
+$stmt->bind_param(
+    "ssssssddi",
+    $date_validation_start, $date_validation_end,
+    $implementation_type, $service_area, $validation_report_path,
+    $geotagged_photos_json, $latitude, $longitude, $machinery_id
+);
 
 if ($stmt->execute()) {
-    // Update machinery status
-    $new_status = 'Pre-Implementation';
-    $update_stmt = $conn->prepare("UPDATE afme_machinery SET current_status = ? WHERE id = ?");
-    $update_stmt->bind_param("si", $new_status, $machinery_id);
-    $update_stmt->execute();
-
     logAudit('UPDATE_AFME_MACHINERY_VALIDATION', 'AFME', $machinery_id, null, $_POST);
 
     echo json_encode([

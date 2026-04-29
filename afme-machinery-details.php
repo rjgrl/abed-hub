@@ -14,12 +14,15 @@ if ($id <= 0) {
     exit;
 }
 
-// Get machinery details
+// Get machinery details from consolidated afme table
 $stmt = $conn->prepare("
-    SELECT m.*, p.project_title as afme_project_title
-    FROM afme_machinery m
-    LEFT JOIN afme_projects p ON m.afme_project_id = p.id
-    WHERE m.id = ?
+    SELECT a.*,
+           p.title as afme_project_title,
+           a.amount_proposed AS proposed_amount,
+           a.amount_allocated AS allocated_amount
+    FROM afme a
+    LEFT JOIN projects p ON a.project_id = p.id
+    WHERE a.id = ?
 ");
 $stmt->bind_param("i", $id);
 $stmt->execute();
@@ -30,41 +33,45 @@ if (!$machinery) {
     exit;
 }
 
-// Get machinery specifications
-$stmt = $conn->prepare("SELECT * FROM afme_machinery_specs WHERE machinery_id = ?");
-$stmt->bind_param("i", $id);
-$stmt->execute();
-$specs = $stmt->get_result()->fetch_assoc();
-
-// Get machinery validation details
-$stmt = $conn->prepare("SELECT * FROM afme_machinery_validation WHERE machinery_id = ?");
-$stmt->bind_param("i", $id);
-$stmt->execute();
-$validation = $stmt->get_result()->fetch_assoc();
-
-// Get machinery milestones
-$stmt = $conn->prepare("SELECT * FROM afme_machinery_milestones WHERE machinery_id = ? ORDER BY target_date DESC");
-$stmt->bind_param("i", $id);
-$stmt->execute();
-$milestones = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-// Get machinery documents
-$stmt = $conn->prepare("SELECT * FROM afme_machinery_documents WHERE machinery_id = ? ORDER BY upload_date DESC");
-$stmt->bind_param("i", $id);
-$stmt->execute();
-$documents = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-// Get delivery information
-$stmt = $conn->prepare("SELECT * FROM afme_machinery_delivery WHERE machinery_id = ?");
-$stmt->bind_param("i", $id);
-$stmt->execute();
-$delivery = $stmt->get_result()->fetch_assoc();
-
-// Get turnover information
-$stmt = $conn->prepare("SELECT * FROM afme_machinery_turnover WHERE machinery_id = ?");
-$stmt->bind_param("i", $id);
-$stmt->execute();
-$turnover = $stmt->get_result()->fetch_assoc();
+// Materialize legacy views from afme single-row structure
+$specs = [
+    'machinery_type' => $machinery['machinery_type'] ?? null,
+    'mode_of_procurement' => $machinery['mode_of_procurement'] ?? null,
+    'brand' => $machinery['brand'] ?? null,
+    'engine_type' => $machinery['engine_type'] ?? null,
+    'serial_number' => $machinery['serial_number'] ?? null,
+    'chassis_serial_number' => $machinery['chassis_serial_number'] ?? null,
+    'specifications' => $machinery['specifications'] ?? null,
+];
+$validation = [
+    'date_validation_start' => $machinery['date_validation_start'] ?? null,
+    'date_validation_end' => $machinery['date_validation_end'] ?? null,
+    'implementation_type' => $machinery['implementation_type'] ?? null,
+    'service_area' => $machinery['service_area'] ?? null,
+    'validation_status' => $machinery['validation_status'] ?? null,
+    'latitude' => $machinery['latitude'] ?? null,
+    'longitude' => $machinery['longitude'] ?? null,
+];
+$milestones = json_decode((string)($machinery['milestones'] ?? '[]'), true);
+if (!is_array($milestones)) {
+    $milestones = [];
+}
+$documents = json_decode((string)($machinery['documents'] ?? '[]'), true);
+if (!is_array($documents)) {
+    $documents = [];
+}
+$delivery = [
+    'notice_to_proceed_date' => $machinery['notice_to_proceed_date'] ?? null,
+    'delivery_date' => $machinery['delivery_date'] ?? null,
+    'delivery_status' => $machinery['delivery_status'] ?? null,
+    'delivery_location' => $machinery['delivery_location'] ?? null,
+    'delivery_remarks' => $machinery['delivery_remarks'] ?? null,
+];
+$turnover = [
+    'turnover_date' => $machinery['turnover_date'] ?? null,
+    'turnover_status' => $machinery['turnover_status'] ?? null,
+    'documentary_requirements_met' => (int)($machinery['documentary_requirements_met'] ?? 0),
+];
 
 $user_id = $_SESSION['user_id'];
 $user_role = $_SESSION['role'] ?? 'viewer';

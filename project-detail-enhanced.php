@@ -19,18 +19,11 @@ if (!$project_id) {
     die('Project ID required');
 }
 
-// Map type to table
-$type_map = [
-    'fspf' => 'fspf_projects',
-    'idp' => 'idp_projects',
-    'afme' => 'afme_projects'
-];
-
-$table = $type_map[$project_type] ?? 'fspf_projects';
+$table = 'projects';
 
 // Fetch project details
-$stmt = $conn->prepare("SELECT * FROM $table WHERE id = ?");
-$stmt->bind_param('i', $project_id);
+$stmt = $conn->prepare("SELECT *, title AS project_title FROM $table WHERE id = ? AND project_type = ?");
+$stmt->bind_param('is', $project_id, $project_type);
 $stmt->execute();
 $project = $stmt->get_result()->fetch_assoc();
 
@@ -38,30 +31,14 @@ if (!$project) {
     die('Project not found');
 }
 
-// Fetch related documents
-$docs_stmt = $conn->prepare("SELECT * FROM project_documents WHERE project_type = ? AND project_id = ? ORDER BY upload_date DESC");
-$docs_stmt->bind_param('si', strtoupper($project_type), $project_id);
-$docs_stmt->execute();
-$documents = $docs_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-// Fetch financial records (normalized project_financial_entries table)
-$fin_type = strtoupper($project_type);
-if (!in_array($fin_type, ['FSPF', 'IDP', 'AFME'], true)) {
-    $fin_type = 'FSPF';
-}
-$fin_stmt = $conn->prepare(
-    'SELECT * FROM project_financial_entries
-     WHERE project_type = ? AND project_id = ? AND record_status = "Active"
-     ORDER BY record_date DESC LIMIT 10'
-);
-$fin_stmt->bind_param('si', $fin_type, $project_id);
-$fin_stmt->execute();
-$financial_records = $fin_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+// Legacy documents/financial tables were removed in the refactored schema.
+$documents = [];
+$financial_records = [];
 
 // Fetch machinery if AFME project
 $machinery = [];
 if ($project_type === 'afme') {
-    $mach_stmt = $conn->prepare("SELECT * FROM afme_machinery WHERE afme_project_id = ? ORDER BY created_at DESC");
+    $mach_stmt = $conn->prepare("SELECT * FROM afme WHERE project_id = ? ORDER BY created_at DESC");
     $mach_stmt->bind_param('i', $project_id);
     $mach_stmt->execute();
     $machinery = $mach_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -69,7 +46,8 @@ if ($project_type === 'afme') {
 
 // Get comments/audit log
 $audit_stmt = $conn->prepare("SELECT * FROM audit_log WHERE project_type = ? AND project_id = ? ORDER BY created_at DESC LIMIT 20");
-$audit_stmt->bind_param('si', strtoupper($project_type), $project_id);
+$auditProjectType = strtoupper($project_type);
+$audit_stmt->bind_param('si', $auditProjectType, $project_id);
 $audit_stmt->execute();
 $audit_log = $audit_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
@@ -439,12 +417,12 @@ $audit_log = $audit_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                                     <div class="timeline-item mb-3">
                                         <div class="timeline-marker"></div>
                                         <div class="timeline-content">
-                                            <strong><?php echo htmlspecialchars($entry['action_type']); ?></strong>
+                                            <strong><?php echo htmlspecialchars($entry['action']); ?></strong>
                                             <p class="small text-muted mb-1">
-                                                <?php echo htmlspecialchars($entry['description']); ?>
+                                                <?php echo htmlspecialchars($entry['action']); ?>
                                             </p>
                                             <small class="text-muted">
-                                                <?php echo date('M d, Y H:i', strtotime($entry['timestamp'])); ?>
+                                                <?php echo date('M d, Y H:i', strtotime($entry['created_at'])); ?>
                                             </small>
                                         </div>
                                     </div>

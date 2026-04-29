@@ -40,7 +40,7 @@ if (empty($project_code) || empty($project_title) || empty($fund_source)) {
 }
 
 // Check if project code exists
-$stmt = $conn->prepare("SELECT id FROM idp_projects WHERE project_code = ?");
+$stmt = $conn->prepare("SELECT id FROM projects WHERE project_code = ?");
 $stmt->bind_param("s", $project_code);
 $stmt->execute();
 if ($stmt->get_result()->num_rows > 0) {
@@ -49,13 +49,14 @@ if ($stmt->get_result()->num_rows > 0) {
 }
 
 // Insert project
+// Insert project
 $stmt = $conn->prepare("
-    INSERT INTO idp_projects (
-        project_code, project_title, fund_source, funding_year, scope_of_work,
+    INSERT INTO projects (
+        project_type, project_code, title, fund_source, funding_year, scope_of_work,
         beneficiary, description, implementation_schedule_days, quantity, unit,
         province, municipality, barangay, latitude, longitude, proposed_amount,
-        allocated_amount, households_benefited, created_by
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        allocated_amount, households_benefited, user_id
+    ) VALUES ('idp', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ");
 
 $stmt->bind_param(

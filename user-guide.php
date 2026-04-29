@@ -1,4 +1,36 @@
 <?php
+require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/functions/helpers.php';
+require_once __DIR__ . '/components/layout.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+requireLogin();
+
+$page_title = 'Help & Guide';
+renderAppLayout($page_title);
+?>
+<div class="container-fluid py-4">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+            <h4 class="mb-0"><i class="fas fa-question-circle me-2"></i>Help & Guide</h4>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">Quick usage guide for core workflows.</p>
+            <ul>
+                <li><strong>Projects:</strong> Open `Projects` to filter by type, stage, year, and perform batch actions.</li>
+                <li><strong>New Project:</strong> Click `New Project` and the form auto-matches the current tab (FSPF, IDP, AFME).</li>
+                <li><strong>Analytics:</strong> Use `Analytics & Reports` for status distribution and budget insights.</li>
+                <li><strong>GeoMap:</strong> View projects with coordinates on the map and filter by type/status.</li>
+                <li><strong>Admin Tools:</strong> Admin/coordinator users can access user management and audit logs.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+<?php renderAppLayoutFooter(); ?>
+<?php
 require_once __DIR__ . '/components/layout.php';
 
 if (session_status() === PHP_SESSION_NONE) {

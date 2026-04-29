@@ -10,38 +10,14 @@ $page_title = 'GeoMap';
 // Get all projects with coordinates
 $projects = [];
 
-// Get FSPF projects
 $stmt = $conn->prepare("
-    SELECT 'FSPF' as type, id, project_code, project_title, current_stage, latitude, longitude,
+    SELECT UPPER(project_type) as type, id, project_code, title AS project_title, current_stage, latitude, longitude,
            allocated_amount, municipality, province
-    FROM fspf_projects
+    FROM projects
     WHERE latitude IS NOT NULL AND longitude IS NOT NULL
 ");
 $stmt->execute();
-$fspf_projects = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-// Get IDP projects
-$stmt = $conn->prepare("
-    SELECT 'IDP' as type, id, project_code, project_title, current_stage, latitude, longitude,
-           allocated_amount, municipality, province
-    FROM idp_projects
-    WHERE latitude IS NOT NULL AND longitude IS NOT NULL
-");
-$stmt->execute();
-$idp_projects = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-// Get AFME projects
-$stmt = $conn->prepare("
-    SELECT 'AFME' as type, id, project_code, project_title, current_stage, latitude, longitude,
-           allocated_amount, implementing_office AS municipality, source_agency AS province
-    FROM afme_projects
-    WHERE latitude IS NOT NULL AND longitude IS NOT NULL
-");
-$stmt->execute();
-$afme_projects = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-// Combine all projects
-$projects = array_merge($fspf_projects, $idp_projects, $afme_projects);
+$projects = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 ?>
 <?php
 require_once __DIR__ . '/components/layout.php';

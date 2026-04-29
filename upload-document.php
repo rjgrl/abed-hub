@@ -67,38 +67,12 @@ if (!move_uploaded_file($file_tmp, $file_path)) {
     exit;
 }
 
-// Save to database
-$stmt = $conn->prepare("
-    INSERT INTO project_documents (
-        project_type, project_id, stage, doc_type, file_path, file_name, upload_date, uploaded_by
-    ) VALUES (?, ?, ?, ?, ?, ?, NOW(), ?)
-");
-
-$stmt->bind_param(
-    "sissssi",
-    $project_type, $project_id, $stage, $doc_type, $file_path, $file_name, $user_id
-);
-
-if ($stmt->execute()) {
-    $document_id = $stmt->insert_id;
-    logAudit('UPLOAD_DOCUMENT', $project_type, $project_id, null, [
-        'doc_type' => $doc_type,
-        'file_name' => $file_name,
-        'file_path' => $file_path
-    ]);
-
-    echo json_encode([
-        'status' => 'success',
-        'message' => 'Document uploaded successfully',
-        'document_id' => $document_id
-    ]);
-} else {
-    // Delete uploaded file if database insert failed
-    unlink($file_path);
-    echo json_encode(['status' => 'error', 'message' => 'Failed to save document record']);
-}
-
-$stmt->close();
+// Documents table was removed in refactored schema.
+unlink($file_path);
+echo json_encode([
+    'status' => 'error',
+    'message' => 'Document upload endpoint is disabled in the refactored schema.'
+]);
 $conn->close();
 ?>
 

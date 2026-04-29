@@ -35,20 +35,16 @@ if (empty($type_filter)) {
 
 // Build queries for each type
 foreach ($type_filter as $type) {
-    $table = match($type) {
-        'fspf' => 'fspf_projects',
-        'idp' => 'idp_projects',
-        'afme' => 'afme_projects',
-        default => null
-    };
-
-    if (!$table) continue;
-
     $q = "SELECT '$type' as type, id, project_code, project_title, municipality, 
                   proposed_amount, allocated_amount, current_stage, 
                   physical_progress, financial_progress, created_at
-           FROM $table
+           FROM (
+                SELECT project_type, id, project_code, title AS project_title, municipality,
+                       proposed_amount, allocated_amount, current_stage, physical_progress, financial_progress, created_at
+                FROM projects
+           ) p
            WHERE 1=1";
+    $q .= " AND p.project_type = '" . $conn->real_escape_string($type) . "'";
 
     if ($query) {
         $q .= " AND (project_code LIKE '$search_term' OR project_title LIKE '$search_term' 
@@ -98,47 +94,26 @@ if (!empty($queries)) {
 // Get facet data for sidebar
 $types_facet = [];
 foreach (['fspf', 'idp', 'afme'] as $t) {
-    $table = match($t) {
-        'fspf' => 'fspf_projects',
-        'idp' => 'idp_projects',
-        'afme' => 'afme_projects',
-    };
-    
-    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM $table");
+    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM projects WHERE project_type = ?");
+    $stmt->bind_param('s', $t);
     $stmt->execute();
     $result = $stmt->get_result()->fetch_assoc();
     $types_facet[] = ['type' => strtoupper($t), 'code' => $t, 'count' => $result['count']];
 }
 
 // Get stages facet
-$stages_facet_query = "
-    SELECT DISTINCT current_stage as stage FROM fspf_projects
-    UNION
-    SELECT DISTINCT current_stage FROM idp_projects
-    UNION
-    SELECT DISTINCT current_stage FROM afme_projects
-    ORDER BY stage ASC
-";
+$stages_facet_query = "SELECT DISTINCT current_stage as stage FROM projects ORDER BY stage ASC";
 $stages_facet = $conn->query($stages_facet_query)->fetch_all(MYSQLI_ASSOC);
 
 // Get years facet
-$years_facet_query = "
-    SELECT DISTINCT YEAR(created_at) as year FROM fspf_projects
-    UNION
-    SELECT DISTINCT YEAR(created_at) FROM idp_projects
-    UNION
-    SELECT DISTINCT YEAR(created_at) FROM afme_projects
-    ORDER BY year DESC
-";
+$years_facet_query = "SELECT DISTINCT YEAR(created_at) as year FROM projects ORDER BY year DESC";
 $years_facet = $conn->query($years_facet_query)->fetch_all(MYSQLI_ASSOC);
 
 // Get locations facet
 $locations_facet_query = "
-    SELECT DISTINCT municipality FROM fspf_projects WHERE municipality IS NOT NULL
-    UNION
-    SELECT DISTINCT municipality FROM idp_projects WHERE municipality IS NOT NULL
-    UNION
-    SELECT DISTINCT municipality FROM afme_projects WHERE municipality IS NOT NULL
+    SELECT DISTINCT municipality
+    FROM projects
+    WHERE municipality IS NOT NULL AND municipality <> ''
     ORDER BY municipality ASC
 ";
 $locations_facet = $conn->query($locations_facet_query)->fetch_all(MYSQLI_ASSOC);

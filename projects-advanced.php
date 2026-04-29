@@ -20,20 +20,15 @@ $page = (int)($_GET['page'] ?? 1);
 $per_page = 20;
 $offset = ($page - 1) * $per_page;
 
-// Map type to table
-$type_map = [
-    'fspf' => 'fspf_projects',
-    'idp' => 'idp_projects',
-    'afme' => 'afme_projects'
-];
-
-$table = $type_map[$project_type] ?? 'fspf_projects';
+// Unified table in refactored schema
+$table = 'projects';
 
 // Build query
-$query = "SELECT * FROM $table WHERE 1=1";
-$count_query = "SELECT COUNT(*) as total FROM $table WHERE 1=1";
+$query = "SELECT *, title AS project_title FROM $table WHERE project_type = ?";
+$count_query = "SELECT COUNT(*) as total FROM $table WHERE project_type = ?";
 $params = [];
-$types = '';
+$types = 's';
+$params[] = $project_type;
 
 if ($stage_filter) {
     $query .= " AND current_stage = ?";
@@ -44,8 +39,8 @@ if ($stage_filter) {
 
 if ($search) {
     $search_term = "%{$search}%";
-    $query .= " AND (project_code LIKE ? OR project_title LIKE ?)";
-    $count_query .= " AND (project_code LIKE ? OR project_title LIKE ?)";
+    $query .= " AND (project_code LIKE ? OR title LIKE ?)";
+    $count_query .= " AND (project_code LIKE ? OR title LIKE ?)";
     $params[] = $search_term;
     $params[] = $search_term;
     $types .= 'ss';
@@ -88,8 +83,10 @@ $saved_views_query->execute();
 $saved_views = $saved_views_query->get_result()->fetch_all(MYSQLI_ASSOC);
 
 // Get available stages
-$stages_query = $conn->query("SELECT DISTINCT current_stage FROM $table ORDER BY current_stage");
-$available_stages = $stages_query->fetch_all(MYSQLI_ASSOC);
+$stages_stmt = $conn->prepare("SELECT DISTINCT current_stage FROM $table WHERE project_type = ? ORDER BY current_stage");
+$stages_stmt->bind_param('s', $project_type);
+$stages_stmt->execute();
+$available_stages = $stages_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 renderAppLayout($page_title);
 ?>
@@ -102,11 +99,11 @@ renderAppLayout($page_title);
                     <p class="text-muted">Browse and manage all projects</p>
                 </div>
                 <div class="col-auto">
-                    <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#newProjectModal">
+                    <button class="btn btn-success me-2" type="button" id="openNewProjectModalBtn" data-bs-toggle="modal" data-bs-target="#newProjectModal">
                         <i class="fas fa-plus"></i> New Project
                     </button>
                     <div class="btn-group" role="group">
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exportModal">
+                        <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#exportModal">
                             <i class="fas fa-download"></i> Export
                         </button>
                         <button class="btn btn-outline-secondary" id="selectAllBtn">
@@ -442,7 +439,7 @@ renderAppLayout($page_title);
                             <div class="mb-3">
                                 <label class="form-label">Project Type <span class="text-danger">*</span></label>
                                 <div class="btn-group w-100" role="group">
-                                    <input type="radio" class="btn-check" name="project_type" id="type_fspf_form" value="fspf" checked onclick="updateFormFields()">
+                                    <input type="radio" class="btn-check" name="project_type" id="type_fspf_form" value="fspf" onclick="updateFormFields()">
                                     <label class="btn btn-outline-primary" for="type_fspf_form">FSPF</label>
 
                                     <input type="radio" class="btn-check" name="project_type" id="type_idp_form" value="idp" onclick="updateFormFields()">
@@ -532,8 +529,46 @@ renderAppLayout($page_title);
             </div>
         </div>
 
+        <!-- Export Modal -->
+        <div class="modal fade" id="exportModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Export Projects</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-2">Choose what to export for <strong><?php echo strtoupper($project_type); ?></strong>.</p>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="exportScope" id="exportAllScope" value="all" checked>
+                            <label class="form-check-label" for="exportAllScope">All filtered rows on this tab</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="exportScope" id="exportSelectedScope" value="selected">
+                            <label class="form-check-label" for="exportSelectedScope">Only selected rows</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="confirmExportBtn">Export CSV</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
         <script>
+            const currentProjectType = '<?php echo $project_type; ?>';
+
+            function syncNewProjectTypeWithActiveTab() {
+                const current = (new URLSearchParams(window.location.search).get('type') || currentProjectType || 'fspf').toLowerCase();
+                const radio = document.querySelector(`input[name="project_type"][value="${current}"]`);
+                if (radio) {
+                    radio.checked = true;
+                }
+                updateFormFields();
+            }
+
             // Global function for submitting new project
             async function submitNewProject() {
                 const form = document.getElementById('newProjectForm');
@@ -603,6 +638,13 @@ renderAppLayout($page_title);
             }
 
             document.addEventListener('DOMContentLoaded', function() {
+                // Move modals to <body> so Bootstrap backdrop stacking works reliably.
+                ['saveViewModal', 'bulkUpdateModal', 'newProjectModal', 'exportModal'].forEach(function (id) {
+                    const el = document.getElementById(id);
+                    if (el && el.parentElement !== document.body) {
+                        document.body.appendChild(el);
+                    }
+                });
                 
                 // Saved Views - only if element exists
                 const savedViewsSelect = document.getElementById('savedViewsSelect');
@@ -704,6 +746,7 @@ renderAppLayout($page_title);
                 const batchDeleteBtn = document.getElementById('batchDeleteBtn');
                 const batchUpdateBtn = document.getElementById('batchUpdateBtn');
                 const confirmBulkUpdate = document.getElementById('confirmBulkUpdate');
+                const confirmExportBtn = document.getElementById('confirmExportBtn');
 
                 function updateBatchActionsState() {
                     const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
@@ -834,7 +877,30 @@ renderAppLayout($page_title);
                         if (form) form.reset();
                         const yearInput = document.querySelector('input[name="funding_year"]');
                         if (yearInput) yearInput.value = new Date().getFullYear();
-                        updateFormFields();
+                        syncNewProjectTypeWithActiveTab();
+                    });
+                }
+
+                if (confirmExportBtn) {
+                    confirmExportBtn.addEventListener('click', function () {
+                        const scope = document.querySelector('input[name="exportScope"]:checked')?.value || 'all';
+                        const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+                        if (scope === 'selected' && selectedIds.length === 0) {
+                            alert('Select at least one row before exporting selected items.');
+                            return;
+                        }
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = 'api/export-projects.php';
+                        form.appendChild(Object.assign(document.createElement('input'), {type: 'hidden', name: 'type', value: currentProjectType}));
+                        if (scope === 'selected') {
+                            form.appendChild(Object.assign(document.createElement('input'), {type: 'hidden', name: 'selected_ids', value: JSON.stringify(selectedIds)}));
+                        }
+                        document.body.appendChild(form);
+                        form.submit();
+                        document.body.removeChild(form);
+                        const exportModal = bootstrap.Modal.getInstance(document.getElementById('exportModal'));
+                        if (exportModal) exportModal.hide();
                     });
                 }
 
@@ -849,6 +915,8 @@ renderAppLayout($page_title);
                         submitNewProject();
                     });
                 }
+
+                syncNewProjectTypeWithActiveTab();
 
             }); // End DOMContentLoaded
         </script>

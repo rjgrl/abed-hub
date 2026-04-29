@@ -11,7 +11,7 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
 
   <ul class="nav nav-pills flex-column mb-auto">
     <li class="nav-item mb-2">
-      <a href="dashboard.php" class="nav-link text-white <?php echo (in_array($current_page, ['dashboard-enhanced.php', 'dashboard.php', 'admin-dashboard.php'])) ? 'active' : ''; ?>">
+      <a href="dashboard.php" class="nav-link text-white <?php echo (in_array($current_page, ['dashboard-enhanced.php', 'dashboard.php'])) ? 'active' : ''; ?>">
         <i class="fas fa-tachometer-alt me-2"></i>Dashboard
         <span class="badge bg-danger ms-auto d-none" id="notificationBadge" data-notification-badge>0</span>
       </a>
@@ -45,7 +45,7 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
     <?php if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'coordinator'])): ?>
     <hr class="my-3">
     <li class="nav-item mb-2">
-      <span class="nav-link text-muted small fw-bold px-0">
+      <span class="nav-link text-white small fw-bold px-0">
         <i class="fas fa-cog me-2"></i>ADMIN TOOLS
       </span>
     </li>

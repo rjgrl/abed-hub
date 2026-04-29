@@ -1,36 +1,17 @@
--- ABED IDM Hub — canonical schema (matches PHP application as of 2026-04)
--- Import order: DROP children before parents; CREATE parents before children.
+-- ABED IDM Hub - Refactored clean schema (fresh install)
+-- Core domain consolidated into:
+--   1) projects
+--   2) afme
 
 SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS notifications;
 DROP TABLE IF EXISTS project_alerts;
 DROP TABLE IF EXISTS audit_log;
-DROP TABLE IF EXISTS potential_duplicates;
-DROP TABLE IF EXISTS geotagged_photos;
-DROP TABLE IF EXISTS project_financial_entries;
-DROP TABLE IF EXISTS project_liquidations;
-DROP TABLE IF EXISTS project_disbursements;
-DROP TABLE IF EXISTS project_obligations;
-DROP TABLE IF EXISTS financial_progress;
-DROP TABLE IF EXISTS s_curve_monitoring;
-DROP TABLE IF EXISTS program_of_works;
-DROP TABLE IF EXISTS project_status_updates;
-DROP TABLE IF EXISTS project_documents;
-DROP TABLE IF EXISTS project_milestones;
-DROP TABLE IF EXISTS afme_machinery_operation;
-DROP TABLE IF EXISTS afme_machinery_turnover;
-DROP TABLE IF EXISTS afme_machinery_delivery;
-DROP TABLE IF EXISTS afme_machinery_documents;
-DROP TABLE IF EXISTS afme_machinery_milestones;
-DROP TABLE IF EXISTS afme_machinery_validation;
-DROP TABLE IF EXISTS afme_machinery_specs;
-DROP TABLE IF EXISTS afme_machinery;
-DROP TABLE IF EXISTS afme_projects;
-DROP TABLE IF EXISTS idp_projects;
-DROP TABLE IF EXISTS fspf_projects;
 DROP TABLE IF EXISTS saved_views;
 DROP TABLE IF EXISTS password_reset_tokens;
+DROP TABLE IF EXISTS afme;
+DROP TABLE IF EXISTS projects;
 DROP TABLE IF EXISTS users;
 
 SET FOREIGN_KEY_CHECKS = 1;
@@ -47,9 +28,9 @@ CREATE TABLE users (
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_email (email),
-    INDEX idx_username (username),
-    INDEX idx_role (role),
+    INDEX idx_users_email (email),
+    INDEX idx_users_username (username),
+    INDEX idx_users_role (role),
     INDEX idx_users_active_created_at (is_active, created_at)
 );
 
@@ -62,8 +43,126 @@ CREATE TABLE password_reset_tokens (
     is_used BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_token (token),
-    INDEX idx_expires_at (expires_at)
+    INDEX idx_password_reset_token (token),
+    INDEX idx_password_reset_expires_at (expires_at)
+);
+
+CREATE TABLE projects (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_type ENUM('fspf', 'idp', 'afme') NOT NULL,
+    project_insertion BOOLEAN DEFAULT FALSE,
+    project_code VARCHAR(100) UNIQUE NOT NULL,
+    classification VARCHAR(255),
+    project_category VARCHAR(255),
+    scope_of_work ENUM('Construction', 'Rehabilitation', 'Upgrading', 'Additional Work'),
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    beneficiary VARCHAR(255),
+    fund_source VARCHAR(255),
+    source_agency VARCHAR(255),
+    funding_year INT,
+    proposed_amount DECIMAL(15, 2),
+    allocated_amount DECIMAL(15, 2),
+    date_receipt_request DATE,
+    implementation_schedule_days INT,
+    quantity DECIMAL(10, 2),
+    unit VARCHAR(50),
+    province VARCHAR(255),
+    district VARCHAR(255),
+    municipality VARCHAR(255),
+    barangay VARCHAR(255),
+    barangay_ids JSON,
+    households_benefited INT,
+    current_stage VARCHAR(80) DEFAULT 'Proposal',
+    status VARCHAR(80) DEFAULT 'For Validation',
+    approval_status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Approved',
+    date_validation_start DATE,
+    date_validation_end DATE,
+    validation_report_path VARCHAR(500),
+    validation_length_km DECIMAL(10, 2),
+    validation_kml_path VARCHAR(500),
+    implementing_office VARCHAR(255),
+    implementation_type VARCHAR(255),
+    latitude DECIMAL(11, 8),
+    longitude DECIMAL(11, 8),
+    is_fmr_project BOOLEAN DEFAULT FALSE,
+    approved_date DATE,
+    approval_remarks TEXT,
+    physical_progress INT DEFAULT 0,
+    financial_progress INT DEFAULT 0,
+    date_completion DATE,
+    is_active BOOLEAN DEFAULT TRUE,
+    milestones JSON,
+    documents JSON,
+    financial_entries JSON,
+    user_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    INDEX idx_projects_type (project_type),
+    INDEX idx_projects_code (project_code),
+    INDEX idx_projects_stage (current_stage),
+    INDEX idx_projects_status (status),
+    INDEX idx_projects_funding_year (funding_year),
+    INDEX idx_projects_user_id (user_id)
+);
+
+CREATE TABLE afme (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    machine_name VARCHAR(255) NOT NULL,
+    machine_id VARCHAR(100),
+    machinery_type VARCHAR(255),
+    mode_of_procurement ENUM('Public Bidding', 'Small Value Procurement'),
+    brand VARCHAR(255),
+    engine_type VARCHAR(255),
+    serial_number VARCHAR(100),
+    chassis_serial_number VARCHAR(100),
+    specifications TEXT,
+    farm_operation VARCHAR(255),
+    beneficiary_name VARCHAR(255),
+    beneficiary_contact VARCHAR(255),
+    recipient_type VARCHAR(255),
+    farm_location VARCHAR(255),
+    beneficiary_households INT,
+    service_area VARCHAR(255),
+    amount_proposed DECIMAL(15, 2),
+    amount_allocated DECIMAL(15, 2),
+    funding_year INT,
+    indicative_funding_year INT,
+    fund_source VARCHAR(255),
+    current_status VARCHAR(80) DEFAULT 'For Validation',
+    date_receipt DATE,
+    date_validation_start DATE,
+    date_validation_end DATE,
+    validation_status ENUM('Completed', 'Pending') DEFAULT 'Pending',
+    validation_report_path VARCHAR(500),
+    geotagged_photo_paths JSON,
+    latitude DECIMAL(11, 8),
+    longitude DECIMAL(11, 8),
+    notice_to_proceed_date DATE,
+    delivery_date DATE,
+    delivery_status ENUM('Not Delivered', 'In Transit', 'Delivered', 'Received') DEFAULT 'Not Delivered',
+    delivery_location VARCHAR(255),
+    delivery_remarks TEXT,
+    turnover_date DATE,
+    turnover_status ENUM('Pending', 'Completed') DEFAULT 'Pending',
+    documentary_requirements_met BOOLEAN DEFAULT FALSE,
+    operation_status ENUM('Operational', 'Non-operational', 'Intermittently Operational'),
+    serviceability_status VARCHAR(255),
+    operational_remarks TEXT,
+    last_maintenance_date DATE,
+    maintenance_remarks TEXT,
+    audit_date DATE,
+    milestones JSON,
+    documents JSON,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    INDEX idx_afme_project_id (project_id),
+    INDEX idx_afme_status (current_status),
+    INDEX idx_afme_delivery_status (delivery_status),
+    INDEX idx_afme_turnover_status (turnover_status)
 );
 
 CREATE TABLE saved_views (
@@ -74,480 +173,8 @@ CREATE TABLE saved_views (
     filters JSON NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY user_view_unique (user_id, view_name, project_type),
+    UNIQUE KEY uniq_saved_view (user_id, view_name, project_type),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
-
--- =====================================================
--- FSPF PROJECTS (Farm Structure and Processing Facilities)
--- =====================================================
-
-CREATE TABLE fspf_projects (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    project_insertion BOOLEAN DEFAULT FALSE,
-    project_code VARCHAR(100) UNIQUE NOT NULL,
-    classification VARCHAR(255),
-    project_type VARCHAR(255),
-    scope_of_work ENUM('Construction', 'Rehabilitation', 'Upgrading', 'Additional Work'),
-    project_title VARCHAR(255) NOT NULL,
-    fund_source VARCHAR(255),
-    source_agency VARCHAR(255),
-    beneficiary VARCHAR(255),
-    description TEXT,
-    funding_year INT,
-    proposed_amount DECIMAL(15, 2),
-    allocated_amount DECIMAL(15, 2),
-    date_receipt_request DATE,
-    
-    implementation_schedule_days INT,
-    quantity DECIMAL(10, 2),
-    unit VARCHAR(50),
-    province VARCHAR(255),
-    district VARCHAR(255),
-    municipality VARCHAR(255),
-    barangay VARCHAR(255),
-    barangay_ids JSON,
-    households_benefited INT,
-    
-    current_stage ENUM('Proposal','Pre-Implementation','Procurement','Implementation','Completed','Turned-Over') DEFAULT 'Proposal',
-    proposal_status ENUM('For Validation','Proposal Validated','Not Feasible','Archived','Cancelled') DEFAULT 'For Validation',
-    approval_status ENUM('Pending','Approved','Rejected') DEFAULT 'Approved',
-    
-    date_validation_start DATE,
-    date_validation_end DATE,
-    validation_report_path VARCHAR(500),
-    validation_length_km DECIMAL(10, 2),
-    validation_kml_path VARCHAR(500),
-    implementing_office VARCHAR(255),
-    implementation_type VARCHAR(255),
-    
-    latitude DECIMAL(11,8),
-    longitude DECIMAL(11,8),
-    is_fmr_project BOOLEAN DEFAULT FALSE,
-    approved_date DATE,
-    approval_remarks TEXT,
-    
-    physical_progress INT DEFAULT 0,
-    financial_progress INT DEFAULT 0,
-    
-    created_by INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (created_by) REFERENCES users(id),
-    INDEX idx_status (proposal_status),
-    INDEX idx_stage (current_stage),
-    INDEX idx_funding_year (funding_year),
-    INDEX idx_project_code (project_code)
-);
-
--- =====================================================
--- IDP PROJECTS (Irrigation Development Projects)
--- =====================================================
-
-CREATE TABLE idp_projects (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    project_insertion BOOLEAN DEFAULT FALSE,
-    project_code VARCHAR(100) UNIQUE NOT NULL,
-    classification VARCHAR(255),
-    project_type VARCHAR(255),
-    scope_of_work ENUM('Construction', 'Rehabilitation', 'Upgrading', 'Additional Work'),
-    project_title VARCHAR(255) NOT NULL,
-    fund_source VARCHAR(255),
-    source_agency VARCHAR(255),
-    beneficiary VARCHAR(255),
-    description TEXT,
-    funding_year INT,
-    proposed_amount DECIMAL(15, 2),
-    allocated_amount DECIMAL(15, 2),
-    date_receipt_request DATE,
-    
-    implementation_schedule_days INT,
-    quantity DECIMAL(10, 2),
-    unit VARCHAR(50),
-    province VARCHAR(255),
-    district VARCHAR(255),
-    municipality VARCHAR(255),
-    barangay VARCHAR(255),
-    barangay_ids JSON,
-    households_benefited INT,
-    
-    current_stage ENUM('Proposal','Pre-Implementation','Procurement','Implementation','Completed','Turned-Over') DEFAULT 'Proposal',
-    proposal_status ENUM('For Validation','Proposal Validated','Not Feasible','Archived','Cancelled') DEFAULT 'For Validation',
-    approval_status ENUM('Pending','Approved','Rejected') DEFAULT 'Approved',
-    
-    date_validation_start DATE,
-    date_validation_end DATE,
-    validation_report_path VARCHAR(500),
-    validation_length_km DECIMAL(10, 2),
-    validation_kml_path VARCHAR(500),
-    implementing_office VARCHAR(255),
-    implementation_type VARCHAR(255),
-    
-    latitude DECIMAL(11,8),
-    longitude DECIMAL(11,8),
-    is_fmr_project BOOLEAN DEFAULT FALSE,
-    approved_date DATE,
-    approval_remarks TEXT,
-    
-    physical_progress INT DEFAULT 0,
-    financial_progress INT DEFAULT 0,
-    
-    created_by INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (created_by) REFERENCES users(id),
-    INDEX idx_status (proposal_status),
-    INDEX idx_stage (current_stage),
-    INDEX idx_funding_year (funding_year),
-    INDEX idx_project_code (project_code)
-);
-
--- =====================================================
--- AFME PROJECTS (Agricultural and Fisheries Machineries and Equipment)
--- =====================================================
-
-CREATE TABLE afme_projects (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    project_insertion BOOLEAN DEFAULT FALSE,
-    project_code VARCHAR(100) UNIQUE NOT NULL,
-    classification VARCHAR(255),
-    project_type VARCHAR(255),
-    project_title VARCHAR(255) NOT NULL,
-    fund_source VARCHAR(255),
-    source_agency VARCHAR(255),
-    beneficiary VARCHAR(255),
-    description TEXT,
-    funding_year INT,
-    proposed_amount DECIMAL(15, 2),
-    allocated_amount DECIMAL(15, 2),
-    date_receipt_request DATE,
-    
-    current_stage ENUM('Proposal','Pre-Implementation','Procurement','Implementation','Delivered','Turned-Over','Operation and Maintenance') DEFAULT 'Proposal',
-    proposal_status ENUM('For Validation','Proposal Validated','Not Feasible','Archived','Cancelled') DEFAULT 'For Validation',
-    approval_status ENUM('Pending','Approved','Rejected') DEFAULT 'Approved',
-    
-    latitude DECIMAL(11,8),
-    longitude DECIMAL(11,8),
-    implementing_office VARCHAR(255),
-    
-    date_completion DATE,
-    is_active BOOLEAN DEFAULT TRUE,
-    
-    created_by INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (created_by) REFERENCES users(id),
-    INDEX idx_status (proposal_status),
-    INDEX idx_stage (current_stage),
-    INDEX idx_funding_year (funding_year),
-    INDEX idx_project_code (project_code)
-);
-
--- =====================================================
--- AFME MACHINERY
--- =====================================================
-
-CREATE TABLE afme_machinery (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    afme_project_id INT NOT NULL,
-    machine_name VARCHAR(255) NOT NULL,
-    machine_id VARCHAR(100),
-    farm_operation VARCHAR(255),
-    beneficiary_name VARCHAR(255),
-    beneficiary_contact VARCHAR(255),
-    recipient_type ENUM('Registered Farmers Organization','Farmers Cooperative','Agrarian Reform Beneficiary Organization','Rural-based Organization','Local Government Unit','Agricultural School','University or College','Others') DEFAULT 'Farmers Cooperative',
-    farm_location VARCHAR(255),
-    beneficiary_households INT,
-    description TEXT,
-    proposed_amount DECIMAL(15, 2),
-    allocated_amount DECIMAL(15, 2),
-    funding_year INT,
-    indicative_funding_year INT,
-    fund_source VARCHAR(255),
-    current_status ENUM('For Validation','Proposal Validated','Not Feasible','Archived','Cancelled','Pre-Implementation','Procurement','Implementation','Delivered','Turned-Over') DEFAULT 'For Validation',
-    date_receipt DATE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (afme_project_id) REFERENCES afme_projects(id) ON DELETE CASCADE,
-    INDEX idx_status (current_status),
-    INDEX idx_funding_year (funding_year),
-    INDEX idx_project (afme_project_id)
-);
-
-CREATE TABLE afme_machinery_specs (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    machinery_id INT NOT NULL,
-    machinery_type VARCHAR(255),
-    mode_of_procurement ENUM('Public Bidding','Small Value Procurement'),
-    brand VARCHAR(255),
-    engine_type VARCHAR(255),
-    serial_number VARCHAR(100),
-    chassis_serial_number VARCHAR(100),
-    specifications TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (machinery_id) REFERENCES afme_machinery(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_machinery (machinery_id)
-);
-
-CREATE TABLE afme_machinery_validation (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    machinery_id INT NOT NULL,
-    date_validation_start DATE,
-    date_validation_end DATE,
-    implementation_type ENUM('Operating Unit','Beneficiary'),
-    service_area VARCHAR(255),
-    validation_report_path VARCHAR(500),
-    geotagged_photo_paths JSON,
-    latitude DECIMAL(11,8),
-    longitude DECIMAL(11,8),
-    validation_status ENUM('Completed','Pending') DEFAULT 'Pending',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (machinery_id) REFERENCES afme_machinery(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_machinery (machinery_id)
-);
-
-CREATE TABLE afme_machinery_milestones (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    machinery_id INT NOT NULL,
-    stage ENUM('Proposal','Pre-Implementation','Procurement','Implementation','Delivered','Turned-Over'),
-    milestone_name VARCHAR(255),
-    target_date DATE,
-    actual_date DATE,
-    remarks TEXT,
-    factors_affecting_progress TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (machinery_id) REFERENCES afme_machinery(id) ON DELETE CASCADE,
-    INDEX idx_stage (stage),
-    INDEX idx_machinery (machinery_id)
-);
-
-CREATE TABLE afme_machinery_documents (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    machinery_id INT NOT NULL,
-    doc_type ENUM('LGU Deed of Donation','Proof of Shed','Accreditation Certificate','Proof of Organization Structure','Validation Report','Geotagged Photo','Others'),
-    file_path VARCHAR(500),
-    file_name VARCHAR(255),
-    stage VARCHAR(50),
-    upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    uploaded_by INT,
-    FOREIGN KEY (machinery_id) REFERENCES afme_machinery(id) ON DELETE CASCADE,
-    FOREIGN KEY (uploaded_by) REFERENCES users(id),
-    INDEX idx_doc_type (doc_type),
-    INDEX idx_machinery (machinery_id)
-);
-
-CREATE TABLE afme_machinery_delivery (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    machinery_id INT NOT NULL,
-    notice_to_proceed_date DATE,
-    delivery_date DATE,
-    delivery_status ENUM('Not Delivered','In Transit','Delivered','Received') DEFAULT 'Not Delivered',
-    delivery_location VARCHAR(255),
-    delivery_remarks TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (machinery_id) REFERENCES afme_machinery(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_machinery (machinery_id)
-);
-
-CREATE TABLE afme_machinery_turnover (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    machinery_id INT NOT NULL,
-    turnover_date DATE,
-    turnover_status ENUM('Pending','Completed') DEFAULT 'Pending',
-    documentary_requirements_met BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (machinery_id) REFERENCES afme_machinery(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_machinery (machinery_id)
-);
-
-CREATE TABLE afme_machinery_operation (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    machinery_id INT NOT NULL,
-    operation_status ENUM('Operational','Non-operational','Intermittently Operational'),
-    serviceability_status VARCHAR(255),
-    operational_remarks TEXT,
-    last_maintenance_date DATE,
-    maintenance_remarks TEXT,
-    audit_date DATE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (machinery_id) REFERENCES afme_machinery(id) ON DELETE CASCADE,
-    INDEX idx_machinery (machinery_id)
-);
-
--- =====================================================
--- PROJECT MILESTONES AND TRACKING
--- =====================================================
-
-CREATE TABLE project_milestones (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    project_type ENUM('FSPF', 'IDP', 'AFME'),
-    project_id INT NOT NULL,
-    stage ENUM('Proposal','Pre-Implementation','Procurement','Implementation','Completed','Delivered','Turned-Over'),
-    milestone_name VARCHAR(255) NOT NULL,
-    target_date DATE,
-    actual_date DATE,
-    remarks TEXT,
-    factors_affecting_progress TEXT,
-    is_critical BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_project (project_type, project_id),
-    INDEX idx_stage (stage)
-);
-
-CREATE TABLE project_documents (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    project_type ENUM('FSPF', 'IDP', 'AFME'),
-    project_id INT NOT NULL,
-    stage VARCHAR(50),
-    doc_type ENUM('Validation Report','Geotagged Photo','KML','POW','ES','DED','Feasibility Study','Others'),
-    file_path VARCHAR(500) NOT NULL,
-    file_name VARCHAR(255),
-    upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    uploaded_by INT,
-    FOREIGN KEY (uploaded_by) REFERENCES users(id),
-    INDEX idx_project (project_type, project_id),
-    INDEX idx_doc_type (doc_type)
-);
-
-CREATE TABLE project_status_updates (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    project_type ENUM('FSPF', 'IDP', 'AFME'),
-    project_id INT NOT NULL,
-    previous_stage VARCHAR(50),
-    new_stage VARCHAR(50),
-    previous_status VARCHAR(50),
-    new_status VARCHAR(50),
-    update_remarks TEXT,
-    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_by INT,
-    FOREIGN KEY (updated_by) REFERENCES users(id),
-    INDEX idx_update_time (update_time),
-    INDEX idx_project (project_type, project_id)
-);
-
-CREATE TABLE program_of_works (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    project_type ENUM('FSPF', 'IDP', 'AFME'),
-    project_id INT NOT NULL,
-    pow_file_path VARCHAR(500),
-    upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    uploaded_by INT,
-    is_current BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (uploaded_by) REFERENCES users(id),
-    INDEX idx_project (project_type, project_id)
-);
-
-CREATE TABLE s_curve_monitoring (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    project_type ENUM('FSPF', 'IDP', 'AFME'),
-    project_id INT NOT NULL,
-    target_physical_progress INT,
-    actual_physical_progress INT,
-    slippage_status ENUM('On Track','Delayed','Critical') DEFAULT 'On Track',
-    slippage_days INT,
-    recorded_date DATE,
-    remarks TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_project_date (project_type, project_id, recorded_date)
-);
-
-CREATE TABLE financial_progress (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    project_type ENUM('FSPF', 'IDP', 'AFME'),
-    project_id INT NOT NULL,
-    total_project_cost DECIMAL(15, 2),
-    mobilization_percentage DECIMAL(5, 2),
-    target_financial_progress INT,
-    actual_financial_progress INT,
-    recorded_date DATE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_project (project_type, project_id)
-);
-
-CREATE TABLE project_obligations (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    project_type ENUM('FSPF', 'IDP', 'AFME'),
-    project_id INT NOT NULL,
-    cbr_number VARCHAR(100),
-    obligation_amount DECIMAL(15, 2),
-    obligation_date DATE,
-    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_project (project_type, project_id)
-);
-
-CREATE TABLE project_disbursements (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    project_type ENUM('FSPF', 'IDP', 'AFME'),
-    project_id INT NOT NULL,
-    disbursement_amount DECIMAL(15, 2),
-    disbursement_date DATE,
-    check_number VARCHAR(100),
-    remarks TEXT,
-    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_project (project_type, project_id)
-);
-
-CREATE TABLE project_liquidations (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    project_type ENUM('FSPF', 'IDP', 'AFME'),
-    project_id INT NOT NULL,
-    total_disbursements DECIMAL(15, 2),
-    total_obligations DECIMAL(15, 2),
-    liquidated_amount DECIMAL(15, 2),
-    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_project (project_type, project_id)
-);
-
-CREATE TABLE geotagged_photos (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    project_type ENUM('FSPF', 'IDP', 'AFME'),
-    project_id INT NOT NULL,
-    photo_path VARCHAR(500),
-    latitude DECIMAL(11,8),
-    longitude DECIMAL(11,8),
-    photo_date DATE,
-    stage VARCHAR(50),
-    upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    uploaded_by INT,
-    FOREIGN KEY (uploaded_by) REFERENCES users(id),
-    INDEX idx_project (project_type, project_id)
-);
-
--- Normalized financial entries table (replaces denormalized project_financial_tracker).
--- Uses a polymorphic (project_type, project_id) key instead of three nullable FK columns.
-CREATE TABLE project_financial_entries (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    project_type ENUM('FSPF', 'IDP', 'AFME') NOT NULL,
-    project_id INT NOT NULL,
-    record_type ENUM('Obligation', 'Disbursement', 'Liquidation') NOT NULL,
-    amount DECIMAL(15, 2) NOT NULL,
-    reference_number VARCHAR(100),
-    particulars TEXT,
-    record_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    record_status ENUM('Active', 'Archived') DEFAULT 'Active',
-    recorded_by INT,
-    FOREIGN KEY (recorded_by) REFERENCES users(id),
-    INDEX idx_project_lookup (project_type, project_id, record_type),
-    INDEX idx_record_type (record_type),
-    INDEX idx_record_date (record_date)
-);
-
-CREATE TABLE potential_duplicates (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    project_type ENUM('FSPF', 'IDP', 'AFME'),
-    project_id_1 INT NOT NULL,
-    project_id_2 INT NOT NULL,
-    similarity_score DECIMAL(3, 2),
-    reason TEXT,
-    status ENUM('pending', 'merged', 'dismissed') DEFAULT 'pending',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_status (status)
 );
 
 CREATE TABLE audit_log (
@@ -562,13 +189,11 @@ CREATE TABLE audit_log (
     user_agent TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
-    INDEX idx_created_at (created_at),
-    INDEX idx_user_id (user_id)
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL,
+    INDEX idx_audit_created_at (created_at),
+    INDEX idx_audit_user_id (user_id),
+    INDEX idx_audit_project_id (project_id)
 );
-
--- =====================================================
--- NOTIFICATIONS & ALERTS (api/notifications.php)
--- =====================================================
 
 CREATE TABLE project_alerts (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -579,9 +204,10 @@ CREATE TABLE project_alerts (
     created_by INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     is_active BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES users(id),
-    INDEX idx_project_active (project_id, is_active),
-    INDEX idx_created_at (created_at)
+    INDEX idx_alert_project_active (project_id, is_active),
+    INDEX idx_alert_created_at (created_at)
 );
 
 CREATE TABLE notifications (
@@ -594,6 +220,7 @@ CREATE TABLE notifications (
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_user_unread (user_id, is_read),
-    INDEX idx_created_at (created_at)
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    INDEX idx_notifications_user_unread (user_id, is_read),
+    INDEX idx_notifications_created_at (created_at)
 );
