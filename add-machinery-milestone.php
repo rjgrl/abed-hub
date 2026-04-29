@@ -25,10 +25,11 @@ if ($machinery_id <= 0 || empty($milestone_name) || empty($stage)) {
 }
 
 // Check if machinery exists
-$stmt = $conn->prepare("SELECT id FROM afme_machinery WHERE id = ?");
+$stmt = $conn->prepare("SELECT id, milestones FROM afme WHERE id = ?");
 $stmt->bind_param("i", $machinery_id);
 $stmt->execute();
-if ($stmt->get_result()->num_rows == 0) {
+$existing = $stmt->get_result()->fetch_assoc();
+if (!$existing) {
     echo json_encode(['status' => 'error', 'message' => 'Machinery not found']);
     exit;
 }
@@ -40,20 +41,27 @@ if (!in_array($stage, $valid_stages)) {
     exit;
 }
 
-// Insert milestone
-$stmt = $conn->prepare("
-    INSERT INTO afme_machinery_milestones (
-        machinery_id, stage, milestone_name, target_date, remarks, created_at
-    ) VALUES (?, ?, ?, ?, ?, NOW())
-");
+// Append milestone into afme.milestones JSON
+$milestones = json_decode((string)($existing['milestones'] ?? '[]'), true);
+if (!is_array($milestones)) {
+    $milestones = [];
+}
+$milestone_id = count($milestones) + 1;
+$milestones[] = [
+    'id' => $milestone_id,
+    'stage' => $stage,
+    'milestone_name' => $milestone_name,
+    'target_date' => $target_date,
+    'actual_date' => null,
+    'remarks' => $remarks,
+    'created_at' => date('Y-m-d H:i:s')
+];
+$milestonesJson = json_encode($milestones);
 
-$stmt->bind_param(
-    "issss",
-    $machinery_id, $stage, $milestone_name, $target_date, $remarks
-);
+$stmt = $conn->prepare("UPDATE afme SET milestones = ? WHERE id = ?");
+$stmt->bind_param("si", $milestonesJson, $machinery_id);
 
 if ($stmt->execute()) {
-    $milestone_id = $stmt->insert_id;
     logAudit('ADD_MACHINERY_MILESTONE', 'AFME', $machinery_id, null, [
         'milestone_name' => $milestone_name,
         'stage' => $stage,

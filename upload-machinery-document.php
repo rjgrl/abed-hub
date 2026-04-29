@@ -22,10 +22,11 @@ if ($machinery_id <= 0 || empty($doc_type)) {
 }
 
 // Check if machinery exists
-$stmt = $conn->prepare("SELECT id FROM afme_machinery WHERE id = ?");
+$stmt = $conn->prepare("SELECT id, documents FROM afme WHERE id = ?");
 $stmt->bind_param("i", $machinery_id);
 $stmt->execute();
-if ($stmt->get_result()->num_rows == 0) {
+$existing = $stmt->get_result()->fetch_assoc();
+if (!$existing) {
     echo json_encode(['status' => 'error', 'message' => 'Machinery not found']);
     exit;
 }
@@ -75,20 +76,27 @@ if (!move_uploaded_file($file_tmp, $file_path)) {
     exit;
 }
 
-// Save to database
-$stmt = $conn->prepare("
-    INSERT INTO afme_machinery_documents (
-        machinery_id, doc_type, file_path, file_name, stage, upload_date, uploaded_by
-    ) VALUES (?, ?, ?, ?, ?, NOW(), ?)
-");
+// Save into afme.documents JSON
+$documents = json_decode((string)($existing['documents'] ?? '[]'), true);
+if (!is_array($documents)) {
+    $documents = [];
+}
+$document_id = count($documents) + 1;
+$documents[] = [
+    'id' => $document_id,
+    'doc_type' => $doc_type,
+    'file_path' => $file_path,
+    'file_name' => $file_name,
+    'stage' => $stage,
+    'upload_date' => date('Y-m-d H:i:s'),
+    'uploaded_by' => $user_id
+];
+$documentsJson = json_encode($documents);
 
-$stmt->bind_param(
-    "issssi",
-    $machinery_id, $doc_type, $file_path, $file_name, $stage, $user_id
-);
+$stmt = $conn->prepare("UPDATE afme SET documents = ? WHERE id = ?");
+$stmt->bind_param("si", $documentsJson, $machinery_id);
 
 if ($stmt->execute()) {
-    $document_id = $stmt->insert_id;
     logAudit('UPLOAD_MACHINERY_DOCUMENT', 'AFME', $machinery_id, null, [
         'doc_type' => $doc_type,
         'file_name' => $file_name,

@@ -5,293 +5,249 @@ apiRequireAuth();
 
 $action = $_GET['action'] ?? 'list';
 $method = $_SERVER['REQUEST_METHOD'];
+
 try {
     switch ($action) {
         case 'list':
-            $response = listDocuments();
-            break;
-
+            apiSuccess(listDocuments(), 'Documents retrieved');
         case 'upload':
             if ($method !== 'POST') {
-                http_response_code(405);
-                throw new Exception('Method not allowed');
+                apiError('Method not allowed', 405);
             }
-            $response = uploadDocument();
-            break;
-
+            apiSuccess(uploadDocument(), 'Document uploaded', 201);
         case 'download':
             downloadDocument();
-            break;
-
-        case 'delete':
-            if ($method !== 'DELETE') {
-                http_response_code(405);
-                throw new Exception('Method not allowed');
-            }
-            $response = deleteDocument();
-            break;
-
         case 'preview':
             previewDocument();
-            break;
-
+        case 'delete':
+            if (!in_array($method, ['DELETE', 'POST'], true)) {
+                apiError('Method not allowed', 405);
+            }
+            apiSuccess(deleteDocument(), 'Document deleted');
         default:
-            http_response_code(400);
-            throw new Exception('Invalid action');
+            apiError('Invalid action', 400);
     }
-
-    if ($action !== 'download' && $action !== 'preview') {
-        apiSuccess($response, 'Documents API request completed');
-    }
-
 } catch (Exception $e) {
-    if ($action !== 'download' && $action !== 'preview') {
-        apiError($e->getMessage(), 400);
-    }
+    apiError($e->getMessage(), 400);
 }
 
-function listDocuments() {
-    global $conn;
-
-    $project_id = $_GET['project_id'] ?? null;
-    $project_type = $_GET['project_type'] ?? 'fspf';
-    $document_type = $_GET['document_type'] ?? null;
-    $limit = min((int)($_GET['limit'] ?? 50), 500);
-    $offset = (int)($_GET['offset'] ?? 0);
-
-    $type_map = [
-        'fspf' => 'fspf_project_id',
-        'idp' => 'idp_project_id',
-        'afme' => 'afme_project_id'
-    ];
-
-    $project_col = $type_map[$project_type] ?? 'fspf_project_id';
-
-    $query = "SELECT * FROM project_documents WHERE 1=1";
-    $params = [];
-
-    if ($project_id) {
-        $query .= " AND $project_col = ?";
-        $params[] = $project_id;
+function fetchProjectForDocuments(mysqli $conn, int $projectId, ?string $projectType = null): array {
+    if ($projectId <= 0) {
+        throw new Exception('project_id is required');
     }
 
-    if ($document_type) {
-        $query .= " AND document_type = ?";
-        $params[] = $document_type;
+    if ($projectType !== null && $projectType !== '') {
+        $type = apiValidateType($projectType);
+        $stmt = $conn->prepare('SELECT id, project_type, documents FROM projects WHERE id = ? AND project_type = ?');
+        $stmt->bind_param('is', $projectId, $type);
+    } else {
+        $stmt = $conn->prepare('SELECT id, project_type, documents FROM projects WHERE id = ?');
+        $stmt->bind_param('i', $projectId);
     }
-
-    $query .= " ORDER BY upload_date DESC LIMIT ? OFFSET ?";
-    $params[] = $limit;
-    $params[] = $offset;
-
-    $stmt = $conn->prepare($query);
-    if ($stmt === false) {
-        throw new Exception('prepare failed: ' . $conn->error);
-    }
-
-    if (!empty($params)) {
-        $types = str_repeat('s', count($params) - 2) . 'ii';
-        $stmt->bind_param($types, ...$params);
-    }
-
     $stmt->execute();
-    $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $project = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
 
-    // Add file size and exists check
-    foreach ($results as &$doc) {
-        if (file_exists($doc['file_path'])) {
-            $doc['file_size'] = filesize($doc['file_path']);
-            $doc['file_exist'] = true;
-        } else {
-            $doc['file_exist'] = false;
-        }
+    if (!$project) {
+        throw new Exception('Project not found');
     }
-
-    return $results;
+    return $project;
 }
 
-function uploadDocument() {
+function decodeDocuments(?string $json): array {
+    $docs = json_decode((string) ($json ?? '[]'), true);
+    return is_array($docs) ? $docs : [];
+}
+
+function listDocuments(): array {
     global $conn;
+    $projectId = (int) ($_GET['project_id'] ?? 0);
+    $projectType = $_GET['project_type'] ?? null;
+    $documentType = trim((string) ($_GET['document_type'] ?? ''));
+    $project = fetchProjectForDocuments($conn, $projectId, $projectType);
+    $docs = decodeDocuments($project['documents'] ?? '[]');
 
-    // Validate upload
-    if (empty($_FILES['document']) || $_FILES['document']['error'] !== UPLOAD_ERR_OK) {
-        throw new Exception('No file uploaded or upload error');
+    $out = [];
+    foreach ($docs as $doc) {
+        if (!is_array($doc)) {
+            continue;
+        }
+        if ($documentType !== '' && ($doc['document_type'] ?? '') !== $documentType) {
+            continue;
+        }
+        $out[] = $doc;
     }
 
-    $file = $_FILES['document'];
-    $project_id = $_POST['project_id'] ?? null;
-    $project_type = $_POST['project_type'] ?? 'fspf';
-    $document_type = $_POST['document_type'] ?? 'General';
-    $description = $_POST['description'] ?? null;
+    usort($out, static fn($a, $b) => strcmp((string) ($b['upload_date'] ?? ''), (string) ($a['upload_date'] ?? '')));
+    return $out;
+}
 
-    if (!$project_id) {
-        throw new Exception('Project ID required');
+function uploadDocument(): array {
+    global $conn;
+    if (empty($_FILES['document']) && empty($_FILES['document_file'])) {
+        throw new Exception('No file uploaded');
+    }
+    $file = $_FILES['document'] ?? $_FILES['document_file'];
+    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+        throw new Exception('Upload failed');
     }
 
-    // Get upload directory from config
-    require_once __DIR__ . '/../config/database.php';
+    $projectId = (int) ($_POST['project_id'] ?? 0);
+    $projectType = $_POST['project_type'] ?? null;
+    $project = fetchProjectForDocuments($conn, $projectId, $projectType);
 
-    $allowed_types = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 
-                      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                      'application/vnd.ms-excel', 'application/msword'];
-
-    if (!in_array($file['type'], $allowed_types)) {
-        throw new Exception('File type not allowed');
+    $maxSize = defined('MAX_FILE_SIZE') ? (int) MAX_FILE_SIZE : 10 * 1024 * 1024;
+    if ((int) $file['size'] > $maxSize) {
+        throw new Exception('File is too large');
     }
 
-    if ($file['size'] > MAX_FILE_SIZE) {
-        throw new Exception('File size exceeds maximum allowed');
+    $allowed = [];
+    if (defined('ALLOWED_IMAGE_TYPES') && is_array(ALLOWED_IMAGE_TYPES)) {
+        $allowed = array_merge($allowed, ALLOWED_IMAGE_TYPES);
+    }
+    if (defined('ALLOWED_DOCUMENT_TYPES') && is_array(ALLOWED_DOCUMENT_TYPES)) {
+        $allowed = array_merge($allowed, ALLOWED_DOCUMENT_TYPES);
+    }
+    if (empty($allowed)) {
+        $allowed = ['application/pdf', 'image/jpeg', 'image/png'];
     }
 
-    // Create upload directory if not exists
-    $upload_dir = __DIR__ . '/../uploads/' . strtolower($project_type) . '/documents/';
-    if (!is_dir($upload_dir)) {
-        mkdir($upload_dir, 0755, true);
+    $mime = mime_content_type($file['tmp_name']) ?: ($file['type'] ?? '');
+    if (!in_array($mime, $allowed, true)) {
+        throw new Exception('Invalid file type');
     }
 
-    // Generate unique filename
-    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $filename = uniqid('doc_') . '_' . date('Ymd_His') . '.' . $ext;
-    $filepath = $upload_dir . $filename;
+    $uploadRoot = defined('UPLOAD_DIR') ? UPLOAD_DIR : (__DIR__ . '/../uploads/');
+    $folder = rtrim($uploadRoot, '/\\') . DIRECTORY_SEPARATOR . strtolower($project['project_type']) . DIRECTORY_SEPARATOR . 'documents' . DIRECTORY_SEPARATOR . $projectId . DIRECTORY_SEPARATOR;
+    if (!is_dir($folder) && !mkdir($folder, 0755, true) && !is_dir($folder)) {
+        throw new Exception('Unable to create upload directory');
+    }
 
-    // Move uploaded file
-    if (!move_uploaded_file($file['tmp_name'], $filepath)) {
+    $ext = pathinfo((string) $file['name'], PATHINFO_EXTENSION);
+    $storedName = uniqid('doc_', true) . ($ext ? '.' . $ext : '');
+    $path = $folder . $storedName;
+    if (!move_uploaded_file($file['tmp_name'], $path)) {
         throw new Exception('Failed to save file');
     }
 
-    // Save to database
-    $type_map = [
-        'fspf' => 'fspf_project_id',
-        'idp' => 'idp_project_id',
-        'afme' => 'afme_project_id'
-    ];
-
-    $project_col = $type_map[$project_type] ?? 'fspf_project_id';
-
-    $columns = [$project_col, "original_filename", "file_path", "document_type", "upload_date", "uploaded_by"];
-    $placeholders = ["?", "?", "?", "?", "NOW()", "?"];
-    $bind_params = [$project_id, $file['name'], $filepath, $document_type, $_SESSION['user_id']];
-    $types = 'issssi';
-
-    if ($description) {
-        $columns[] = "description";
-        $placeholders[] = "?";
-        $bind_params[] = $description;
-        $types = 'issssssi';
+    $docs = decodeDocuments($project['documents'] ?? '[]');
+    $nextId = 1;
+    foreach ($docs as $d) {
+        if (is_array($d) && isset($d['id']) && (int) $d['id'] >= $nextId) {
+            $nextId = (int) $d['id'] + 1;
+        }
     }
 
-    $query = "INSERT INTO project_documents (" . implode(", ", $columns) . ") 
-              VALUES (" . implode(", ", $placeholders) . ")";
-
-    $stmt = $conn->prepare($query);
-    if ($stmt === false) {
-        throw new Exception('prepare failed: ' . $conn->error);
-    }
-
-    $stmt->bind_param($types, ...$bind_params);
-    $stmt->execute();
-
-    $doc_id = $conn->insert_id;
-
-    logActivity($_SESSION['user_id'], "Uploaded document $filename for project $project_id", 'documents', 'UPLOAD');
-
-    return [
-        'success' => true,
-        'document_id' => $doc_id,
-        'filename' => $filename,
-        'message' => 'Document uploaded successfully'
+    $doc = [
+        'id' => $nextId,
+        'project_id' => $projectId,
+        'project_type' => $project['project_type'],
+        'document_type' => trim((string) ($_POST['document_type'] ?? $_POST['doc_type'] ?? 'General')),
+        'stage' => trim((string) ($_POST['stage'] ?? '')),
+        'description' => trim((string) ($_POST['description'] ?? '')),
+        'original_filename' => (string) $file['name'],
+        'file_path' => $path,
+        'mime_type' => $mime,
+        'upload_date' => date('Y-m-d H:i:s'),
+        'uploaded_by' => (int) ($_SESSION['user_id'] ?? 0),
     ];
+    $docs[] = $doc;
+
+    $json = json_encode($docs);
+    $stmt = $conn->prepare('UPDATE projects SET documents = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?');
+    $stmt->bind_param('si', $json, $projectId);
+    if (!$stmt->execute()) {
+        @unlink($path);
+        throw new Exception('Failed to update project documents');
+    }
+    $stmt->close();
+
+    return ['document' => $doc];
 }
 
-function downloadDocument() {
-    global $conn;
+function findDocumentOrFail(array $docs, int $id): array {
+    foreach ($docs as $idx => $doc) {
+        if (is_array($doc) && (int) ($doc['id'] ?? 0) === $id) {
+            return [$idx, $doc];
+        }
+    }
+    throw new Exception('Document not found');
+}
 
-    $doc_id = $_GET['id'] ?? null;
-    if (!$doc_id) {
+function downloadDocument(): never {
+    global $conn;
+    $projectId = (int) ($_GET['project_id'] ?? 0);
+    $projectType = $_GET['project_type'] ?? null;
+    $id = (int) ($_GET['id'] ?? 0);
+    if ($id <= 0) {
         http_response_code(400);
         die('Document ID required');
     }
-
-    $stmt = $conn->prepare("SELECT * FROM project_documents WHERE id = ?");
-    $stmt->bind_param('i', $doc_id);
-    $stmt->execute();
-    $result = $stmt->get_result()->fetch_assoc();
-
-    if (!$result || !file_exists($result['file_path'])) {
+    $project = fetchProjectForDocuments($conn, $projectId, $projectType);
+    $docs = decodeDocuments($project['documents'] ?? '[]');
+    [, $doc] = findDocumentOrFail($docs, $id);
+    $path = (string) ($doc['file_path'] ?? '');
+    if ($path === '' || !file_exists($path)) {
         http_response_code(404);
-        die('Document not found');
+        die('Document file not found');
     }
 
-    // Log download
-    logActivity($_SESSION['user_id'], "Downloaded document ID $doc_id", 'documents', 'DOWNLOAD');
-
-    // Send file
-    header('Content-Type: ' . mime_content_type($result['file_path']));
-    header('Content-Disposition: attachment; filename="' . $result['original_filename'] . '"');
-    header('Content-Length: ' . filesize($result['file_path']));
-    readfile($result['file_path']);
+    header('Content-Type: ' . ($doc['mime_type'] ?? mime_content_type($path)));
+    header('Content-Disposition: attachment; filename="' . basename((string) ($doc['original_filename'] ?? basename($path))) . '"');
+    header('Content-Length: ' . (string) filesize($path));
+    readfile($path);
     exit;
 }
 
-function previewDocument() {
+function previewDocument(): never {
     global $conn;
-
-    $doc_id = $_GET['id'] ?? null;
-    if (!$doc_id) {
+    $projectId = (int) ($_GET['project_id'] ?? 0);
+    $projectType = $_GET['project_type'] ?? null;
+    $id = (int) ($_GET['id'] ?? 0);
+    if ($id <= 0) {
         http_response_code(400);
         die('Document ID required');
     }
-
-    $stmt = $conn->prepare("SELECT * FROM project_documents WHERE id = ?");
-    $stmt->bind_param('i', $doc_id);
-    $stmt->execute();
-    $result = $stmt->get_result()->fetch_assoc();
-
-    if (!$result || !file_exists($result['file_path'])) {
+    $project = fetchProjectForDocuments($conn, $projectId, $projectType);
+    $docs = decodeDocuments($project['documents'] ?? '[]');
+    [, $doc] = findDocumentOrFail($docs, $id);
+    $path = (string) ($doc['file_path'] ?? '');
+    if ($path === '' || !file_exists($path)) {
         http_response_code(404);
-        die('Document not found');
+        die('Document file not found');
     }
 
-    $mime = mime_content_type($result['file_path']);
-
-    // Log preview
-    logActivity($_SESSION['user_id'], "Previewed document ID $doc_id", 'documents', 'PREVIEW');
-
-    // Send file for preview
-    header('Content-Type: ' . $mime);
-    readfile($result['file_path']);
+    header('Content-Type: ' . ($doc['mime_type'] ?? mime_content_type($path)));
+    readfile($path);
     exit;
 }
 
-function deleteDocument() {
+function deleteDocument(): array {
     global $conn;
-
-    $doc_id = $_GET['id'] ?? null;
-    if (!$doc_id) {
+    $payload = apiInputJson();
+    $projectId = (int) ($_GET['project_id'] ?? $payload['project_id'] ?? 0);
+    $projectType = $_GET['project_type'] ?? $payload['project_type'] ?? null;
+    $id = (int) ($_GET['id'] ?? $payload['id'] ?? 0);
+    if ($id <= 0) {
         throw new Exception('Document ID required');
     }
+    $project = fetchProjectForDocuments($conn, $projectId, $projectType);
+    $docs = decodeDocuments($project['documents'] ?? '[]');
+    [$idx, $doc] = findDocumentOrFail($docs, $id);
 
-    $stmt = $conn->prepare("SELECT file_path FROM project_documents WHERE id = ?");
-    $stmt->bind_param('i', $doc_id);
-    $stmt->execute();
-    $result = $stmt->get_result()->fetch_assoc();
-
-    if (!$result) {
-        throw new Exception('Document not found');
+    $path = (string) ($doc['file_path'] ?? '');
+    if ($path !== '' && file_exists($path)) {
+        @unlink($path);
     }
 
-    // Delete file if exists
-    if (file_exists($result['file_path'])) {
-        unlink($result['file_path']);
+    array_splice($docs, $idx, 1);
+    $json = json_encode($docs);
+    $stmt = $conn->prepare('UPDATE projects SET documents = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?');
+    $stmt->bind_param('si', $json, $projectId);
+    if (!$stmt->execute()) {
+        throw new Exception('Failed to update documents');
     }
+    $stmt->close();
 
-    // Delete from database
-    $del_stmt = $conn->prepare("DELETE FROM project_documents WHERE id = ?");
-    $del_stmt->bind_param('i', $doc_id);
-    $del_stmt->execute();
-
-    logActivity($_SESSION['user_id'], "Deleted document ID $doc_id", 'documents', 'DELETE');
-
-    return ['success' => true, 'message' => 'Document deleted successfully'];
+    return ['deleted_id' => $id];
 }

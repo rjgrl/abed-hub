@@ -14,22 +14,18 @@ if (!isset($_SESSION['user_id'])) {
 $project_type = $_POST['type'] ?? 'fspf';
 $selected_ids = isset($_POST['selected_ids']) ? json_decode($_POST['selected_ids'], true) : null;
 
-$table = match($project_type) {
-    'fspf' => 'fspf_projects',
-    'idp' => 'idp_projects',
-    'afme' => 'afme_projects',
-    default => 'fspf_projects'
-};
+$table = 'projects';
 
 // Build query
 if ($selected_ids && is_array($selected_ids)) {
     $placeholders = str_repeat('?,', count($selected_ids) - 1) . '?';
-    $query = "SELECT * FROM $table WHERE id IN ($placeholders) ORDER BY project_code";
+    $query = "SELECT * FROM $table WHERE project_type = ? AND id IN ($placeholders) ORDER BY project_code";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param(str_repeat('i', count($selected_ids)), ...$selected_ids);
+    $stmt->bind_param('s' . str_repeat('i', count($selected_ids)), $project_type, ...$selected_ids);
 } else {
-    $query = "SELECT * FROM $table ORDER BY project_code";
+    $query = "SELECT * FROM $table WHERE project_type = ? ORDER BY project_code";
     $stmt = $conn->prepare($query);
+    $stmt->bind_param('s', $project_type);
 }
 
 $stmt->execute();
@@ -62,15 +58,15 @@ fputcsv($output, [
 foreach ($projects as $project) {
     fputcsv($output, [
         $project['project_code'],
-        $project['project_title'],
+        $project['title'],
         $project['current_stage'],
         $project['physical_progress'],
         $project['financial_progress'],
         $project['allocated_amount'],
         $project['contract_amount'] ?? '',
         $project['disbursed_amount'] ?? '',
-        $project['location'] ?? '',
-        $project['implementing_agency'] ?? '',
+        trim(($project['municipality'] ?? '') . ', ' . ($project['province'] ?? ''), ', '),
+        $project['implementing_office'] ?? '',
         $project['created_at'],
         $project['updated_at']
     ]);

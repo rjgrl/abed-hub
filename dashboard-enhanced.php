@@ -241,13 +241,7 @@ $performers = $repo->topPerformers($module, 5);
                                     <div class="d-flex justify-content-between mb-1">
                                         <small>0-25%</small>
                                         <small class="badge bg-danger">
-                                            <?php echo $conn->query("
-                                                SELECT COUNT(*) as cnt FROM (
-                                                    SELECT physical_progress FROM fspf_projects WHERE physical_progress < 25
-                                                    UNION ALL
-                                                    SELECT physical_progress FROM idp_projects WHERE physical_progress < 25
-                                                ) as combined
-                                            ")->fetch_assoc()['cnt']; ?>
+                                            <?php echo $conn->query("SELECT COUNT(*) AS cnt FROM projects WHERE physical_progress < 25")->fetch_assoc()['cnt']; ?>
                                         </small>
                                     </div>
                                     <div class="progress" style="height: 8px;">
@@ -258,13 +252,7 @@ $performers = $repo->topPerformers($module, 5);
                                     <div class="d-flex justify-content-between mb-1">
                                         <small>25-50%</small>
                                         <small class="badge bg-warning">
-                                            <?php echo $conn->query("
-                                                SELECT COUNT(*) as cnt FROM (
-                                                    SELECT physical_progress FROM fspf_projects WHERE physical_progress >= 25 AND physical_progress < 50
-                                                    UNION ALL
-                                                    SELECT physical_progress FROM idp_projects WHERE physical_progress >= 25 AND physical_progress < 50
-                                                ) as combined
-                                            ")->fetch_assoc()['cnt']; ?>
+                                            <?php echo $conn->query("SELECT COUNT(*) AS cnt FROM projects WHERE physical_progress >= 25 AND physical_progress < 50")->fetch_assoc()['cnt']; ?>
                                         </small>
                                     </div>
                                     <div class="progress" style="height: 8px;">
@@ -275,13 +263,7 @@ $performers = $repo->topPerformers($module, 5);
                                     <div class="d-flex justify-content-between mb-1">
                                         <small>50-75%</small>
                                         <small class="badge bg-info">
-                                            <?php echo $conn->query("
-                                                SELECT COUNT(*) as cnt FROM (
-                                                    SELECT physical_progress FROM fspf_projects WHERE physical_progress >= 50 AND physical_progress < 75
-                                                    UNION ALL
-                                                    SELECT physical_progress FROM idp_projects WHERE physical_progress >= 50 AND physical_progress < 75
-                                                ) as combined
-                                            ")->fetch_assoc()['cnt']; ?>
+                                            <?php echo $conn->query("SELECT COUNT(*) AS cnt FROM projects WHERE physical_progress >= 50 AND physical_progress < 75")->fetch_assoc()['cnt']; ?>
                                         </small>
                                     </div>
                                     <div class="progress" style="height: 8px;">
@@ -292,13 +274,7 @@ $performers = $repo->topPerformers($module, 5);
                                     <div class="d-flex justify-content-between mb-1">
                                         <small>75-100%</small>
                                         <small class="badge bg-success">
-                                            <?php echo $conn->query("
-                                                SELECT COUNT(*) as cnt FROM (
-                                                    SELECT physical_progress FROM fspf_projects WHERE physical_progress >= 75
-                                                    UNION ALL
-                                                    SELECT physical_progress FROM idp_projects WHERE physical_progress >= 75
-                                                ) as combined
-                                            ")->fetch_assoc()['cnt']; ?>
+                                            <?php echo $conn->query("SELECT COUNT(*) AS cnt FROM projects WHERE physical_progress >= 75")->fetch_assoc()['cnt']; ?>
                                         </small>
                                     </div>
                                     <div class="progress" style="height: 8px;">

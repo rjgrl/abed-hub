@@ -206,9 +206,7 @@ function batchBulkUpdate(): array {
     $table = batchTable($data['project_type'] ?? '');
 
     $allowed = [
-        'fspf_projects' => ['project_code','project_title','allocated_amount','physical_progress','financial_progress','current_stage','proposal_status'],
-        'idp_projects'  => ['project_code','project_title','allocated_amount','physical_progress','financial_progress','current_stage','proposal_status'],
-        'afme_projects' => ['project_code','project_title','allocated_amount','current_stage','proposal_status'],
+        'projects' => ['project_code','title','allocated_amount','physical_progress','financial_progress','current_stage','status'],
     ];
 
     $filtered = [];
@@ -269,7 +267,7 @@ function batchDeleteProjects(): array {
 
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
     $stmt = $conn->prepare(
-        "UPDATE $table SET proposal_status = 'Archived', updated_at = CURRENT_TIMESTAMP WHERE id IN ($placeholders)"
+        "UPDATE $table SET status = 'Archived', updated_at = CURRENT_TIMESTAMP WHERE id IN ($placeholders)"
     );
     if (!$stmt) {
         throw new Exception('Prepare failed: ' . $conn->error);

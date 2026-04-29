@@ -98,9 +98,9 @@ function apiInputJson(): array {
 
 /** Canonical project types accepted by all API endpoints. */
 const PROJECT_TYPE_TABLE_MAP = [
-    'fspf' => 'fspf_projects',
-    'idp'  => 'idp_projects',
-    'afme' => 'afme_projects',
+    'fspf' => 'projects',
+    'idp'  => 'projects',
+    'afme' => 'projects',
 ];
 
 /**

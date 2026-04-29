@@ -16,8 +16,10 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
                     'analytics-reports.php', 'analytics.php' => 'Analytics',
                     'projects-advanced.php', 'project-details.php' => 'Projects',
                     'geomap.php' => 'GeoMap',
-                    'my-account.php' => 'My Account',
-                    'afme-machinery-details.php' => 'AFME Machinery',
+                    'user-guide.php' => 'Help & Guide',
+                    'admin-dashboard.php' => 'Manage Users',
+                    'admin-settings.php' => 'Admin Settings',
+                    'admin-audit.php' => 'Logs',
                     default => 'Main Menu'
                 }; ?>
             </small>

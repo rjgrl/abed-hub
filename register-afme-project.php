@@ -27,7 +27,7 @@ if (empty($project_code) || empty($project_title) || empty($fund_source)) {
     exit;
 }
 
-$stmt = $conn->prepare("SELECT id FROM afme_projects WHERE project_code = ?");
+$stmt = $conn->prepare("SELECT id FROM projects WHERE project_code = ?");
 $stmt->bind_param("s", $project_code);
 $stmt->execute();
 if ($stmt->get_result()->num_rows > 0) {
@@ -36,10 +36,10 @@ if ($stmt->get_result()->num_rows > 0) {
 }
 
 $stmt = $conn->prepare("
-    INSERT INTO afme_projects (
-        project_code, project_title, fund_source, funding_year,
-        beneficiary, description, proposed_amount, allocated_amount, created_by
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO projects (
+        project_type, project_code, title, fund_source, funding_year,
+        beneficiary, description, proposed_amount, allocated_amount, user_id
+    ) VALUES ('afme', ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ");
 
 $stmt->bind_param(

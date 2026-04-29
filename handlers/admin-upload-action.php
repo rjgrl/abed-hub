@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../functions/helpers.php';
 
 requireLogin();
 requireRoles(['admin']);
@@ -15,9 +16,5 @@ if ($documentId <= 0) {
     exit;
 }
 
-$stmt = $conn->prepare("DELETE FROM project_documents WHERE id = ?");
-$stmt->bind_param('i', $documentId);
-$stmt->execute();
-
-header('Location: ../admin-dashboard.php?ok=upload_archived');
+header('Location: ../admin-dashboard.php?info=upload_archive_not_supported');
 exit;

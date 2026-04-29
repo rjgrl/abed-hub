@@ -18,7 +18,7 @@ $delivery_location = sanitize($_POST['delivery_location'] ?? '');
 $delivery_remarks = sanitize($_POST['delivery_remarks'] ?? '');
 
 // Verify machinery
-$stmt = $conn->prepare("SELECT id, current_status FROM afme_machinery WHERE id = ?");
+$stmt = $conn->prepare("SELECT id, current_status FROM afme WHERE id = ?");
 $stmt->bind_param("i", $machinery_id);
 $stmt->execute();
 $machinery = $stmt->get_result()->fetch_assoc();
@@ -28,32 +28,20 @@ if (!$machinery) {
     exit;
 }
 
-// Update delivery
+// Update delivery fields in consolidated afme table
 $stmt = $conn->prepare("
-    INSERT INTO afme_machinery_delivery (
-        machinery_id, notice_to_proceed_date, delivery_date, delivery_location, 
-        delivery_status, delivery_remarks
-    ) VALUES (?, ?, ?, ?, 'Delivered', ?)
-    ON DUPLICATE KEY UPDATE
-    notice_to_proceed_date = VALUES(notice_to_proceed_date),
-    delivery_date = VALUES(delivery_date),
-    delivery_location = VALUES(delivery_location),
-    delivery_status = 'Delivered',
-    delivery_remarks = VALUES(delivery_remarks)
+    UPDATE afme
+    SET notice_to_proceed_date = ?,
+        delivery_date = ?,
+        delivery_location = ?,
+        delivery_status = 'Delivered',
+        delivery_remarks = ?,
+        current_status = 'Delivered'
+    WHERE id = ?
 ");
-
-$stmt->bind_param(
-    "issss",
-    $machinery_id, $notice_to_proceed_date, $delivery_date, $delivery_location, $delivery_remarks
-);
+$stmt->bind_param("ssssi", $notice_to_proceed_date, $delivery_date, $delivery_location, $delivery_remarks, $machinery_id);
 
 if ($stmt->execute()) {
-    // Update status
-    $new_status = 'Delivered';
-    $update_stmt = $conn->prepare("UPDATE afme_machinery SET current_status = ? WHERE id = ?");
-    $update_stmt->bind_param("si", $new_status, $machinery_id);
-    $update_stmt->execute();
-
     logAudit('UPDATE_AFME_DELIVERY', 'AFME', $machinery_id, null, $_POST);
 
     echo json_encode([

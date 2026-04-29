@@ -122,14 +122,8 @@ try {
             }
 
             // Get project code for email
-            $project_query = $conn->prepare("
-                SELECT project_code FROM (
-                    SELECT id, project_code FROM fspf_projects WHERE id = ?
-                    UNION SELECT id, project_code FROM idp_projects WHERE id = ?
-                    UNION SELECT id, project_code FROM afme_projects WHERE id = ?
-                ) projects LIMIT 1
-            ");
-            $project_query->bind_param('iii', $project_id, $project_id, $project_id);
+            $project_query = $conn->prepare("SELECT project_code FROM projects WHERE id = ? LIMIT 1");
+            $project_query->bind_param('i', $project_id);
             $project_query->execute();
             $project_result = $project_query->get_result()->fetch_assoc();
             $project_code = $project_result ? $project_result['project_code'] : 'Unknown Project';
@@ -218,76 +212,7 @@ try {
             break;
 
         case 'send_milestone_reminder':
-            // Send milestone reminder emails
-            $milestone_id = $_POST['milestone_id'] ?? null;
-            $target_users = $_POST['target_users'] ?? [];
-
-            if (!$milestone_id) {
-                throw new Exception('Milestone ID required');
-            }
-
-            // Resolve project code/title via milestone.project_type + project_id (IDs are not unique across tables).
-            $milestone_query = $conn->prepare("
-                SELECT m.*,
-                    COALESCE(fp.project_code, idp.project_code, af.project_code) AS project_code,
-                    COALESCE(fp.project_title, idp.project_title, af.project_title) AS project_title
-                FROM project_milestones m
-                LEFT JOIN fspf_projects fp ON m.project_type = 'FSPF' AND m.project_id = fp.id
-                LEFT JOIN idp_projects idp ON m.project_type = 'IDP' AND m.project_id = idp.id
-                LEFT JOIN afme_projects af ON m.project_type = 'AFME' AND m.project_id = af.id
-                WHERE m.id = ?
-            ");
-            $milestone_query->bind_param('i', $milestone_id);
-            $milestone_query->execute();
-            $milestone = $milestone_query->get_result()->fetch_assoc();
-
-            if (!$milestone) {
-                throw new Exception('Milestone not found');
-            }
-
-            $emails_sent = 0;
-            if (is_array($target_users) && count($target_users) > 0) {
-                foreach ($target_users as $target_user) {
-                    // Get user email
-                    $user_query = $conn->prepare("SELECT email FROM users WHERE id = ?");
-                    $user_query->bind_param('i', $target_user);
-                    $user_query->execute();
-                    $user_result = $user_query->get_result()->fetch_assoc();
-
-                    if ($user_result && $user_result['email']) {
-                        $due = $milestone['target_date'] ?? null;
-                        $dueStr = $due ? date('M d, Y', strtotime($due)) : 'TBD';
-                        $success = sendMilestoneEmail(
-                            $user_result['email'],
-                            $milestone['project_code'],
-                            $milestone['milestone_name'],
-                            $dueStr
-                        );
-
-                        if ($success) {
-                            $emails_sent++;
-
-                            // Create notification record
-                            $notif_stmt = $conn->prepare("
-                                INSERT INTO notifications
-                                (user_id, project_id, alert_type, title, message, is_read, created_at)
-                                VALUES (?, ?, 'milestone', ?, ?, 0, NOW())
-                            ");
-
-                            $title = "Milestone Reminder: " . $milestone['milestone_name'];
-                            $message = "Milestone '{$milestone['milestone_name']}' for project {$milestone['project_code']} is due on " . $dueStr;
-                            $notif_stmt->bind_param('iiss', $target_user, $milestone['project_id'], $title, $message);
-                            $notif_stmt->execute();
-                        }
-                    }
-                }
-            }
-
-            $response = [
-                'success' => true,
-                'message' => "Milestone reminders sent to {$emails_sent} users",
-                'emails_sent' => $emails_sent
-            ];
+            throw new Exception('Milestone reminders are unavailable in the refactored schema.');
             break;
 
         default:

@@ -4,61 +4,46 @@ session_start();
 require_once 'config/database.php';
 
 // Get overview statistics
-$fspf_count = $conn->query("SELECT COUNT(*) as total FROM fspf_projects")->fetch_assoc()['total'];
-$idp_count = $conn->query("SELECT COUNT(*) as total FROM idp_projects")->fetch_assoc()['total'];
-$afme_count = $conn->query("SELECT COUNT(*) as total FROM afme_machinery")->fetch_assoc()['total'];
+$fspf_count = $conn->query("SELECT COUNT(*) as total FROM projects WHERE project_type = 'fspf'")->fetch_assoc()['total'];
+$idp_count = $conn->query("SELECT COUNT(*) as total FROM projects WHERE project_type = 'idp'")->fetch_assoc()['total'];
+$afme_count = $conn->query("SELECT COUNT(*) as total FROM afme")->fetch_assoc()['total'];
 
 // Get funded amounts
-$fspf_funded = $conn->query("SELECT SUM(allocated_amount) as total FROM fspf_projects")->fetch_assoc()['total'] ?? 0;
-$idp_funded = $conn->query("SELECT SUM(allocated_amount) as total FROM idp_projects")->fetch_assoc()['total'] ?? 0;
-$afme_funded = $conn->query("SELECT SUM(allocated_amount) as total FROM afme_machinery")->fetch_assoc()['total'] ?? 0;
+$fspf_funded = $conn->query("SELECT SUM(allocated_amount) as total FROM projects WHERE project_type = 'fspf'")->fetch_assoc()['total'] ?? 0;
+$idp_funded = $conn->query("SELECT SUM(allocated_amount) as total FROM projects WHERE project_type = 'idp'")->fetch_assoc()['total'] ?? 0;
+$afme_funded = $conn->query("SELECT SUM(amount_allocated) as total FROM afme")->fetch_assoc()['total'] ?? 0;
 
 // Get recent projects (FSPF)
 $fspf_recent = $conn->query("
-    SELECT id, project_code, project_title, allocated_amount, current_stage, physical_progress
-    FROM fspf_projects 
-    ORDER BY created_at DESC 
+    SELECT id, project_code, title AS project_title, allocated_amount, current_stage, physical_progress
+    FROM projects
+    WHERE project_type = 'fspf'
+    ORDER BY created_at DESC
     LIMIT 5
 ")->fetch_all(MYSQLI_ASSOC);
 
 // Get recent projects (IDP)
 $idp_recent = $conn->query("
-    SELECT id, project_code, project_title, allocated_amount, current_stage, physical_progress
-    FROM idp_projects 
-    ORDER BY created_at DESC 
+    SELECT id, project_code, title AS project_title, allocated_amount, current_stage, physical_progress
+    FROM projects
+    WHERE project_type = 'idp'
+    ORDER BY created_at DESC
     LIMIT 5
 ")->fetch_all(MYSQLI_ASSOC);
 
 // Get recent machinery (AFME)
 $afme_recent = $conn->query("
-    SELECT id, machine_name, beneficiary_name, allocated_amount, current_status
-    FROM afme_machinery 
-    ORDER BY created_at DESC 
+    SELECT id, machine_name, beneficiary_name, amount_allocated AS allocated_amount, current_status
+    FROM afme
+    ORDER BY created_at DESC
     LIMIT 5
 ")->fetch_all(MYSQLI_ASSOC);
 
 // Get stage breakdown
 $stage_breakdown = $conn->query("
-    SELECT 
-        'FSPF' as project_type,
-        current_stage,
-        COUNT(*) as count
-    FROM fspf_projects
-    GROUP BY current_stage
-    UNION ALL
-    SELECT 
-        'IDP',
-        current_stage,
-        COUNT(*)
-    FROM idp_projects
-    GROUP BY current_stage
-    UNION ALL
-    SELECT 
-        'AFME',
-        current_status,
-        COUNT(*)
-    FROM afme_machinery
-    GROUP BY current_status
+    SELECT UPPER(project_type) AS project_type, current_stage, COUNT(*) as count
+    FROM projects
+    GROUP BY project_type, current_stage
 ")->fetch_all(MYSQLI_ASSOC);
 
 $conn->close();

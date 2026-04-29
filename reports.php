@@ -28,7 +28,12 @@ if ($status !== 'all') {
     $types .= 's';
 }
 
-$whereClause = !empty($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
+$whereClause = 'WHERE 1=1';
+if (!empty($conditions)) {
+    $whereClause .= ' AND ' . implode(' AND ', $conditions);
+}
+$selectedType = strtolower((string) $type);
+$typeFilter = in_array($selectedType, ['fspf', 'idp', 'afme'], true) ? $selectedType : null;
 
 // Get project statistics
 $stats = [];
@@ -39,7 +44,7 @@ $query = "SELECT
     SUM(CASE WHEN current_stage = 'Completed' THEN 1 ELSE 0 END) as completed,
     SUM(allocated_amount) as total_budget,
     AVG(physical_progress) as avg_progress
-    FROM fspf_projects $whereClause";
+    FROM projects $whereClause AND project_type = 'fspf'";
 
 if (!empty($params)) {
     $stmt = $conn->prepare($query);
@@ -57,7 +62,7 @@ $query = "SELECT
     SUM(CASE WHEN current_stage = 'Completed' THEN 1 ELSE 0 END) as completed,
     SUM(allocated_amount) as total_budget,
     AVG(physical_progress) as avg_progress
-    FROM idp_projects $whereClause";
+    FROM projects $whereClause AND project_type = 'idp'";
 
 if (!empty($params)) {
     $stmt = $conn->prepare($query);
@@ -72,9 +77,10 @@ if (!empty($params)) {
 // AFME Statistics
 $query = "SELECT
     COUNT(*) as total,
-    SUM(CASE WHEN current_status = 'Turned-Over' THEN 1 ELSE 0 END) as completed,
-    SUM(allocated_amount) as total_budget
-    FROM afme_machinery $whereClause";
+    SUM(CASE WHEN current_stage = 'Turned-Over' THEN 1 ELSE 0 END) as completed,
+    SUM(allocated_amount) as total_budget,
+    AVG(physical_progress) as avg_progress
+    FROM projects $whereClause AND project_type = 'afme'";
 
 if (!empty($params)) {
     $stmt = $conn->prepare($query);
@@ -90,9 +96,13 @@ if (!empty($params)) {
 $projects = [];
 
 // FSPF Projects
-$query = "SELECT 'FSPF' as type, project_code, project_title, fund_source, funding_year,
+$fspfWhere = $whereClause . " AND project_type = 'fspf'";
+if ($typeFilter !== null && $typeFilter !== 'fspf') {
+    $fspfWhere .= " AND 1=0";
+}
+$query = "SELECT 'FSPF' as type, project_code, title AS project_title, fund_source, funding_year,
           current_stage, allocated_amount, municipality, province, physical_progress
-          FROM fspf_projects $whereClause ORDER BY project_code";
+          FROM projects $fspfWhere ORDER BY project_code";
 
 if (!empty($params)) {
     $stmt = $conn->prepare($query);
@@ -105,9 +115,13 @@ if (!empty($params)) {
 }
 
 // IDP Projects
-$query = "SELECT 'IDP' as type, project_code, project_title, fund_source, funding_year,
+$idpWhere = $whereClause . " AND project_type = 'idp'";
+if ($typeFilter !== null && $typeFilter !== 'idp') {
+    $idpWhere .= " AND 1=0";
+}
+$query = "SELECT 'IDP' as type, project_code, title AS project_title, fund_source, funding_year,
           current_stage, allocated_amount, municipality, province, physical_progress
-          FROM idp_projects $whereClause ORDER BY project_code";
+          FROM projects $idpWhere ORDER BY project_code";
 
 if (!empty($params)) {
     $stmt = $conn->prepare($query);
@@ -119,11 +133,14 @@ if (!empty($params)) {
     $idp_projects = $result->fetch_all(MYSQLI_ASSOC);
 }
 
-// AFME Machinery
-$query = "SELECT 'AFME' as type, machine_name as project_title, fund_source, funding_year,
-          current_status as current_stage, allocated_amount, farm_location as municipality,
-          beneficiary_name as province
-          FROM afme_machinery $whereClause ORDER BY machine_name";
+// AFME Projects
+$afmeWhere = $whereClause . " AND project_type = 'afme'";
+if ($typeFilter !== null && $typeFilter !== 'afme') {
+    $afmeWhere .= " AND 1=0";
+}
+$query = "SELECT 'AFME' as type, project_code, title AS project_title, fund_source, funding_year,
+          current_stage, allocated_amount, municipality, province, physical_progress
+          FROM projects $afmeWhere ORDER BY project_code";
 
 if (!empty($params)) {
     $stmt = $conn->prepare($query);

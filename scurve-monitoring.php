@@ -18,26 +18,26 @@ if (!isset($_SESSION['user_id'])) {
 $project_type = $_GET['type'] ?? 'fspf';
 $project_id = $_GET['id'] ?? null;
 $year = $_GET['year'] ?? date('Y');
+$project = null;
 
 // Get S-Curve data points (timeline progress)
 $scurve_data = [];
 
 if ($project_id) {
     // Single project S-Curve
-    $type_map = ['fspf' => 'fspf_projects', 'idp' => 'idp_projects', 'afme' => 'afme_projects'];
-    $table_name = $type_map[$project_type] ?? 'fspf_projects';
+    $table_name = 'projects';
 
     $stmt = $conn->prepare("
         SELECT 
-            id, project_code, project_title, 
+            id, project_code, title AS project_title,
             proposed_amount, allocated_amount,
             physical_progress, financial_progress,
             current_stage, created_at, updated_at
         FROM $table_name
-        WHERE id = ?
+        WHERE id = ? AND project_type = ?
     ");
-    
-    $stmt->bind_param('i', $project_id);
+
+    $stmt->bind_param('is', $project_id, $project_type);
     $stmt->execute();
     $project = $stmt->get_result()->fetch_assoc();
 
@@ -78,23 +78,21 @@ if ($project_id) {
     }
 } else {
     // Aggregate S-Curve for all projects
-    $tables = ['fspf_projects', 'idp_projects', 'afme_projects'];
-    
-    foreach ($tables as $table) {
-        $query = "SELECT 
+    foreach (['fspf', 'idp', 'afme'] as $typeKey) {
+        $query = "SELECT
                     AVG(physical_progress) as avg_physical,
                     AVG(financial_progress) as avg_financial,
                     COUNT(*) as count
-                  FROM $table
-                  WHERE YEAR(created_at) = ?";
-        
+                  FROM projects
+                  WHERE YEAR(created_at) = ? AND project_type = ?";
+
         $stmt = $conn->prepare($query);
-        $stmt->bind_param('i', $year);
+        $stmt->bind_param('is', $year, $typeKey);
         $stmt->execute();
         $result = $stmt->get_result()->fetch_assoc();
-        
+
         $scurve_data[] = [
-            'type' => strtoupper(str_replace('_projects', '', $table)),
+            'type' => strtoupper($typeKey),
             'physical' => round($result['avg_physical'] ?? 0, 1),
             'financial' => round($result['avg_financial'] ?? 0, 1),
             'count' => $result['count']
@@ -106,25 +104,15 @@ if ($project_id) {
 $projects_list_result = null;
 if (!$project_id) {
     $query = "SELECT 
-                'FSPF' as type, id, project_code, project_title, 
+                UPPER(project_type) as type, id, project_code, title AS project_title,
                 physical_progress, financial_progress, current_stage
-              FROM fspf_projects
-              WHERE YEAR(created_at) = ?
-              UNION
-              SELECT 'IDP' as type, id, project_code, project_title, 
-                physical_progress, financial_progress, current_stage
-              FROM idp_projects
-              WHERE YEAR(created_at) = ?
-              UNION
-              SELECT 'AFME' as type, id, project_code, project_title, 
-                0 as physical_progress, 0 as financial_progress, current_stage
-              FROM afme_projects
+              FROM projects
               WHERE YEAR(created_at) = ?
               ORDER BY physical_progress DESC
               LIMIT 20";
     
     $stmt = $conn->prepare($query);
-    $stmt->bind_param('iii', $year, $year, $year);
+    $stmt->bind_param('i', $year);
     $stmt->execute();
     $projects_list_result = $stmt->get_result();
 }

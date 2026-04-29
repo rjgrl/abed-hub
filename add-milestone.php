@@ -32,36 +32,10 @@ if (!in_array($stage, $valid_stages)) {
     exit;
 }
 
-// Insert milestone
-$stmt = $conn->prepare("
-    INSERT INTO project_milestones (
-        project_type, project_id, stage, milestone_name, target_date, remarks, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, NOW())
-");
-
-$stmt->bind_param(
-    "sissss",
-    $project_type, $project_id, $stage, $milestone_name, $target_date, $remarks
-);
-
-if ($stmt->execute()) {
-    $milestone_id = $stmt->insert_id;
-    logAudit('ADD_MILESTONE', $project_type, $project_id, null, [
-        'milestone_name' => $milestone_name,
-        'stage' => $stage,
-        'target_date' => $target_date
-    ]);
-
-    echo json_encode([
-        'status' => 'success',
-        'message' => 'Milestone added successfully',
-        'milestone_id' => $milestone_id
-    ]);
-} else {
-    echo json_encode(['status' => 'error', 'message' => 'Failed to add milestone']);
-}
-
-$stmt->close();
+echo json_encode([
+    'status' => 'error',
+    'message' => 'Milestones are not available in the refactored schema.'
+]);
 $conn->close();
 ?>
 

@@ -16,13 +16,50 @@ $pendingUsers = $conn->query("
     LIMIT 50
 ")->fetch_all(MYSQLI_ASSOC);
 
-$recentUploads = $conn->query("
-    SELECT pd.id, pd.project_type, pd.project_id, pd.doc_type, pd.file_name, pd.upload_date, u.full_name AS uploaded_by_name
-    FROM project_documents pd
-    LEFT JOIN users u ON u.id = pd.uploaded_by
-    ORDER BY pd.upload_date DESC
+$recentUploads = [];
+$uploadsResult = $conn->query("
+    SELECT a.id AS afme_id,
+           a.project_id,
+           p.project_type,
+           p.user_id,
+           u.full_name AS uploaded_by_name,
+           a.documents,
+           a.updated_at
+    FROM afme a
+    LEFT JOIN projects p ON p.id = a.project_id
+    LEFT JOIN users u ON u.id = p.user_id
+    WHERE a.documents IS NOT NULL
+    ORDER BY a.updated_at DESC
     LIMIT 50
-")->fetch_all(MYSQLI_ASSOC);
+");
+
+if ($uploadsResult) {
+    foreach ($uploadsResult->fetch_all(MYSQLI_ASSOC) as $row) {
+        $docs = json_decode((string) ($row['documents'] ?? ''), true);
+        if (!is_array($docs)) {
+            continue;
+        }
+        foreach ($docs as $idx => $doc) {
+            if (!is_array($doc)) {
+                continue;
+            }
+            $recentUploads[] = [
+                'id' => $row['afme_id'] . ':' . $idx,
+                'project_type' => strtoupper((string) ($row['project_type'] ?? 'afme')),
+                'project_id' => (int) $row['project_id'],
+                'doc_type' => $doc['doc_type'] ?? 'Document',
+                'file_name' => $doc['file_name'] ?? ($doc['name'] ?? 'Unnamed file'),
+                'upload_date' => $doc['upload_date'] ?? $row['updated_at'],
+                'uploaded_by_name' => $row['uploaded_by_name'] ?? 'Unknown',
+                'can_archive' => false
+            ];
+        }
+    }
+    usort($recentUploads, static function ($a, $b) {
+        return strcmp((string) ($b['upload_date'] ?? ''), (string) ($a['upload_date'] ?? ''));
+    });
+    $recentUploads = array_slice($recentUploads, 0, 50);
+}
 
 renderAppLayout($page_title);
 ?>
@@ -128,12 +165,7 @@ renderAppLayout($page_title);
                                         </td>
                                         <td><?php echo htmlspecialchars(($upload['project_type'] ?? 'N/A') . ' #' . ($upload['project_id'] ?? '')); ?></td>
                                         <td><?php echo htmlspecialchars($upload['uploaded_by_name'] ?? 'Unknown'); ?></td>
-                                        <td>
-                                            <form method="POST" action="handlers/admin-upload-action.php" onsubmit="return confirm('Archive this upload record?');">
-                                                <input type="hidden" name="document_id" value="<?php echo (int) $upload['id']; ?>">
-                                                <button class="btn btn-sm btn-outline-warning" type="submit">Archive</button>
-                                            </form>
-                                        </td>
+                                        <td><span class="text-muted small">N/A</span></td>
                                     </tr>
                                 <?php endforeach; ?>
                                 <?php if (empty($recentUploads)): ?>
