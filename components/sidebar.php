@@ -29,32 +29,6 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
       </a>
     </li>
 
-    <!-- Module Dashboards -->
-    <hr class="my-3">
-    <li class="nav-item mb-2">
-      <span class="nav-link text-muted small fw-bold px-0">
-        <i class="fas fa-th-large me-2"></i>MODULE DASHBOARDS
-      </span>
-    </li>
-
-    <li class="nav-item mb-2">
-      <a href="dashboard.php?module=fspf" class="nav-link text-white <?php echo (isset($_GET['module']) && $_GET['module'] === 'fspf') ? 'active' : ''; ?>">
-        <i class="fas fa-project-diagram me-2"></i>FSPF Dashboard
-      </a>
-    </li>
-
-    <li class="nav-item mb-2">
-      <a href="dashboard.php?module=idp" class="nav-link text-white <?php echo (isset($_GET['module']) && $_GET['module'] === 'idp') ? 'active' : ''; ?>">
-        <i class="fas fa-home me-2"></i>IDP Dashboard
-      </a>
-    </li>
-
-    <li class="nav-item mb-2">
-      <a href="dashboard.php?module=afme" class="nav-link text-white <?php echo (isset($_GET['module']) && $_GET['module'] === 'afme') ? 'active' : ''; ?>">
-        <i class="fas fa-cogs me-2"></i>AFME Dashboard
-      </a>
-    </li>
-
     <li class="nav-item mb-2">
       <a href="geomap.php" class="nav-link text-white <?php echo ($current_page === 'geomap.php') ? 'active' : ''; ?>">
         <i class="fas fa-map me-2"></i>GeoMap

@@ -15,20 +15,17 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id   = $_SESSION['user_id'];
 $user_role = $_SESSION['role'] ?? 'user';
-$module    = strtolower($_GET['module'] ?? 'all');
-if (!in_array($module, ['all', 'fspf', 'idp', 'afme'], true)) {
-    $module = 'all';
+$module = 'all';
+if (isset($_GET['module']) && in_array(strtolower((string) $_GET['module']), ['fspf', 'idp', 'afme'], true)) {
+    // Legacy module dashboards are deprecated; route everyone to main dashboard.
+    header('Location: dashboard.php');
+    exit;
 }
 
 $moduleLabels = [
-    'all'  => 'Dashboard',
-    'fspf' => 'FSPF Dashboard',
-    'idp'  => 'IDP Dashboard',
-    'afme' => 'AFME Dashboard',
+    'all' => 'Dashboard',
 ];
-$moduleSubtitle = $module === 'all'
-    ? 'Overview of all projects and activities'
-    : 'Centralized view for ' . strtoupper($module) . ' projects';
+$moduleSubtitle = 'Overview of all projects and activities';
 
 $repo = new ProjectRepository($conn);
 
