@@ -101,9 +101,6 @@ $conn->close();
     </style>
   </head>
   <body>
-    <!-- Navigation -->
-    <?php include 'components/navbar.php'; ?>
-
     <!-- Hero Section -->
     <section class="hero">
       <div class="container">
