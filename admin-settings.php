@@ -31,7 +31,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $stmt->bind_param('si', $new_role, $target_id);
             $stmt->execute() ? $success_msg = 'User role updated.' : $error_msg = 'Update failed.';
         }
-        logAudit('ADMIN_UPDATE_USER_ROLE', null, $target_id);
+        logAudit('ADMIN_UPDATE_USER_ROLE', null, null, null, [
+            'target_user_id' => $target_id,
+            'new_role' => $new_role
+        ]);
     }
 
     if ($_POST['action'] === 'toggle_user_active') {
@@ -47,7 +50,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $stmt->bind_param('ii', $active, $target_id);
             $stmt->execute() ? $success_msg = 'User status updated.' : $error_msg = 'Update failed.';
         }
-        logAudit('ADMIN_TOGGLE_USER_ACTIVE', null, $target_id);
+        logAudit('ADMIN_TOGGLE_USER_ACTIVE', null, null, null, [
+            'target_user_id' => $target_id,
+            'new_is_active' => $active
+        ]);
     }
 }
 

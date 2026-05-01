@@ -92,6 +92,25 @@ function logAudit($action, $projectType = null, $projectId = null, $oldValues = 
     $oldValuesJson = $oldValues ? json_encode($oldValues) : null;
     $newValuesJson = $newValues ? json_encode($newValues) : null;
     
+    // Guard against invalid FK values (e.g., user IDs passed as project_id).
+    if (!is_null($projectId)) {
+        $projectId = (int) $projectId;
+        if ($projectId <= 0) {
+            $projectId = null;
+        } else {
+            $projectCheck = $conn->prepare("SELECT id FROM projects WHERE id = ? LIMIT 1");
+            if ($projectCheck) {
+                $projectCheck->bind_param('i', $projectId);
+                $projectCheck->execute();
+                $exists = $projectCheck->get_result()->fetch_assoc();
+                $projectCheck->close();
+                if (!$exists) {
+                    $projectId = null;
+                }
+            }
+        }
+    }
+
     $stmt = $conn->prepare("
         INSERT INTO audit_log (
             user_id, action, project_type, project_id, old_values, new_values, ip_address, user_agent

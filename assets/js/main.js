@@ -154,15 +154,11 @@ function validatePassword(password) {
 }
 
 function adjustAppMainMargins() {
-  const rootStyles = getComputedStyle(document.documentElement);
-  const sidebarWidth =
-    parseInt(rootStyles.getPropertyValue("--sidebar-width")) || 250;
-  const gutterTop = 16;
   const appMain = document.querySelector(".app-main");
 
   if (!appMain) return;
 
-  // Measure actual header heights (accounts for padding and dynamic content)
+  // Measure actual fixed header position and use that as the one source of truth.
   const topbarEl =
     document.querySelector(".topbar-fixed") ||
     document.querySelector(".topbar");
@@ -170,37 +166,31 @@ function adjustAppMainMargins() {
     document.querySelector(".navbar-fixed") ||
     document.querySelector(".navbar");
 
-  let navbarHeight = 0;
-  let topbarHeight = 0;
-
-  if (navbarEl) {
-    navbarHeight = Math.ceil(navbarEl.getBoundingClientRect().height);
-  } else {
-    navbarHeight =
-      parseInt(rootStyles.getPropertyValue("--navbar-height")) || 56;
-  }
+  let topbarBottom = 0;
+  let navbarBottom = 0;
 
   if (topbarEl) {
-    topbarHeight = Math.ceil(topbarEl.getBoundingClientRect().height);
-  } else {
-    topbarHeight =
-      parseInt(rootStyles.getPropertyValue("--topbar-height")) || 70;
+    topbarBottom = Math.ceil(topbarEl.getBoundingClientRect().bottom);
   }
 
-  if (window.innerWidth <= 768) {
-    appMain.style.marginLeft = "0";
-    appMain.style.width = "100%";
-    appMain.style.marginTop = `${navbarHeight + topbarHeight + 8}px`;
-    appMain.style.minHeight = `calc(100vh - ${navbarHeight + topbarHeight + 8}px)`;
-  } else {
-    appMain.style.marginLeft = `${sidebarWidth}px`;
-    appMain.style.width = `calc(100% - ${sidebarWidth}px)`;
-    appMain.style.marginTop = `${navbarHeight + topbarHeight + gutterTop}px`;
-    appMain.style.minHeight = `calc(100vh - ${navbarHeight + topbarHeight + gutterTop}px)`;
+  if (navbarEl) {
+    navbarBottom = Math.ceil(navbarEl.getBoundingClientRect().bottom);
   }
 
-  appMain.style.position = "relative";
-  appMain.style.zIndex = "10";
+  const measuredOffset = Math.max(topbarBottom, navbarBottom);
+  if (measuredOffset > 0) {
+    document.documentElement.style.setProperty(
+      "--app-header-offset",
+      `${measuredOffset}px`
+    );
+  }
+
+  // Prevent accidental double spacing from legacy inline styles.
+  appMain.style.marginTop = "0";
+  appMain.style.paddingTop =
+    "calc(var(--app-header-offset) + var(--app-content-gap, 1.5rem))";
+  appMain.style.minHeight =
+    "calc(100vh - var(--app-header-offset) - var(--app-content-gap, 1.5rem))";
 }
 
 window.addEventListener("load", adjustAppMainMargins);

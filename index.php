@@ -39,6 +39,66 @@ $afme_recent = $conn->query("
     LIMIT 5
 ")->fetch_all(MYSQLI_ASSOC);
 
+// Collect only admin-approved uploads for public display.
+$approved_uploads = [];
+$approvedProjectDocs = $conn->query("
+    SELECT id, project_code, title AS project_title, project_type, documents
+    FROM projects
+    WHERE documents IS NOT NULL AND documents <> '' AND documents <> '[]'
+");
+if ($approvedProjectDocs) {
+    foreach ($approvedProjectDocs->fetch_all(MYSQLI_ASSOC) as $row) {
+        $docs = json_decode((string) ($row['documents'] ?? '[]'), true);
+        if (!is_array($docs)) {
+            continue;
+        }
+        foreach ($docs as $doc) {
+            if (!is_array($doc) || (string) ($doc['review_status'] ?? 'Pending') !== 'Approved') {
+                continue;
+            }
+            $approved_uploads[] = [
+                'module' => strtoupper((string) ($row['project_type'] ?? '')),
+                'project_ref' => (string) ($row['project_code'] ?? ('#' . (int) $row['id'])),
+                'project_title' => (string) ($row['project_title'] ?? ''),
+                'doc_type' => (string) ($doc['document_type'] ?? ($doc['doc_type'] ?? 'Document')),
+                'file_name' => (string) ($doc['original_filename'] ?? ($doc['file_name'] ?? 'Unnamed file')),
+                'upload_date' => (string) ($doc['upload_date'] ?? ''),
+            ];
+        }
+    }
+}
+$approvedAfmeDocs = $conn->query("
+    SELECT a.id, a.machine_name, a.documents, p.project_code
+    FROM afme a
+    LEFT JOIN projects p ON p.id = a.project_id
+    WHERE a.documents IS NOT NULL AND a.documents <> '' AND a.documents <> '[]'
+");
+if ($approvedAfmeDocs) {
+    foreach ($approvedAfmeDocs->fetch_all(MYSQLI_ASSOC) as $row) {
+        $docs = json_decode((string) ($row['documents'] ?? '[]'), true);
+        if (!is_array($docs)) {
+            continue;
+        }
+        foreach ($docs as $doc) {
+            if (!is_array($doc) || (string) ($doc['review_status'] ?? 'Pending') !== 'Approved') {
+                continue;
+            }
+            $approved_uploads[] = [
+                'module' => 'AFME',
+                'project_ref' => (string) ($row['project_code'] ?? ('AFME #' . (int) $row['id'])),
+                'project_title' => (string) ($row['machine_name'] ?? 'AFME Machinery'),
+                'doc_type' => (string) ($doc['doc_type'] ?? 'Document'),
+                'file_name' => (string) ($doc['file_name'] ?? 'Unnamed file'),
+                'upload_date' => (string) ($doc['upload_date'] ?? ''),
+            ];
+        }
+    }
+}
+usort($approved_uploads, static function (array $a, array $b): int {
+    return strcmp((string) ($b['upload_date'] ?? ''), (string) ($a['upload_date'] ?? ''));
+});
+$approved_uploads = array_slice($approved_uploads, 0, 12);
+
 // Get stage breakdown
 $stage_breakdown = $conn->query("
     SELECT UPPER(project_type) AS project_type, current_stage, COUNT(*) as count
@@ -345,6 +405,46 @@ $conn->close();
               </table>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="py-5">
+      <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2 class="mb-0">Verified Uploads</h2>
+          <small class="text-muted">Only admin-approved documents are shown</small>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead class="table-light">
+              <tr>
+                <th>Module</th>
+                <th>Project Reference</th>
+                <th>Title</th>
+                <th>Document Type</th>
+                <th>File</th>
+                <th>Uploaded</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($approved_uploads as $upload): ?>
+              <tr>
+                <td><span class="badge bg-secondary"><?php echo htmlspecialchars($upload['module']); ?></span></td>
+                <td><?php echo htmlspecialchars($upload['project_ref']); ?></td>
+                <td><?php echo htmlspecialchars($upload['project_title']); ?></td>
+                <td><?php echo htmlspecialchars($upload['doc_type']); ?></td>
+                <td><?php echo htmlspecialchars($upload['file_name']); ?></td>
+                <td><?php echo htmlspecialchars($upload['upload_date'] !== '' ? date('M j, Y', strtotime($upload['upload_date'])) : '—'); ?></td>
+              </tr>
+              <?php endforeach; ?>
+              <?php if (empty($approved_uploads)): ?>
+              <tr>
+                <td colspan="6" class="text-center text-muted py-4">No verified uploads available yet.</td>
+              </tr>
+              <?php endif; ?>
+            </tbody>
+          </table>
         </div>
       </div>
     </section>

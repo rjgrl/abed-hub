@@ -89,7 +89,10 @@ $documents[] = [
     'file_name' => $file_name,
     'stage' => $stage,
     'upload_date' => date('Y-m-d H:i:s'),
-    'uploaded_by' => $user_id
+    'uploaded_by' => $user_id,
+    'review_status' => 'Pending',
+    'reviewed_by' => null,
+    'reviewed_at' => null
 ];
 $documentsJson = json_encode($documents);
 
