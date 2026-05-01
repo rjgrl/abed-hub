@@ -41,12 +41,16 @@ $recent_projects = $repo->recent($module, 10);
 
 $pending_count    = 0;
 $pending_projects = [];
+$pending_title = 'Pending Approvals';
 if ($user_role === 'admin' || $user_role === 'coordinator') {
     $pending_projects = $repo->pendingApprovals($module, 5);
-    $pending_count    = count($pending_projects);
+} else {
+    $pending_projects = $repo->pendingByUser((int) $user_id, $module, 5);
+    $pending_title = 'My Pending Approvals';
 }
-
-$performers = $repo->topPerformers($module, 5);
+if (!empty($pending_projects)) {
+    $pending_count = count($pending_projects);
+}
 
 ?>
 <!DOCTYPE html>
@@ -132,7 +136,7 @@ $performers = $repo->topPerformers($module, 5);
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
-                                        <p class="text-muted small mb-1">Pending Approvals</p>
+                                        <p class="text-muted small mb-1"><?php echo htmlspecialchars($pending_title); ?></p>
                                         <h2 class="mb-0 text-warning"><?php echo $pending_count; ?></h2>
                                     </div>
                                     <div class="rounded-circle p-3" style="background-color: rgba(255, 193, 7, 0.1);">
@@ -241,7 +245,7 @@ $performers = $repo->topPerformers($module, 5);
                                     <div class="d-flex justify-content-between mb-1">
                                         <small>0-25%</small>
                                         <small class="badge bg-danger">
-                                            <?php echo $conn->query("SELECT COUNT(*) AS cnt FROM projects WHERE physical_progress < 25")->fetch_assoc()['cnt']; ?>
+                                            <?php echo $conn->query("SELECT COUNT(*) AS cnt FROM projects WHERE approval_status = 'Approved' AND physical_progress < 25")->fetch_assoc()['cnt']; ?>
                                         </small>
                                     </div>
                                     <div class="progress" style="height: 8px;">
@@ -252,7 +256,7 @@ $performers = $repo->topPerformers($module, 5);
                                     <div class="d-flex justify-content-between mb-1">
                                         <small>25-50%</small>
                                         <small class="badge bg-warning">
-                                            <?php echo $conn->query("SELECT COUNT(*) AS cnt FROM projects WHERE physical_progress >= 25 AND physical_progress < 50")->fetch_assoc()['cnt']; ?>
+                                            <?php echo $conn->query("SELECT COUNT(*) AS cnt FROM projects WHERE approval_status = 'Approved' AND physical_progress >= 25 AND physical_progress < 50")->fetch_assoc()['cnt']; ?>
                                         </small>
                                     </div>
                                     <div class="progress" style="height: 8px;">
@@ -263,7 +267,7 @@ $performers = $repo->topPerformers($module, 5);
                                     <div class="d-flex justify-content-between mb-1">
                                         <small>50-75%</small>
                                         <small class="badge bg-info">
-                                            <?php echo $conn->query("SELECT COUNT(*) AS cnt FROM projects WHERE physical_progress >= 50 AND physical_progress < 75")->fetch_assoc()['cnt']; ?>
+                                            <?php echo $conn->query("SELECT COUNT(*) AS cnt FROM projects WHERE approval_status = 'Approved' AND physical_progress >= 50 AND physical_progress < 75")->fetch_assoc()['cnt']; ?>
                                         </small>
                                     </div>
                                     <div class="progress" style="height: 8px;">
@@ -274,7 +278,7 @@ $performers = $repo->topPerformers($module, 5);
                                     <div class="d-flex justify-content-between mb-1">
                                         <small>75-100%</small>
                                         <small class="badge bg-success">
-                                            <?php echo $conn->query("SELECT COUNT(*) AS cnt FROM projects WHERE physical_progress >= 75")->fetch_assoc()['cnt']; ?>
+                                            <?php echo $conn->query("SELECT COUNT(*) AS cnt FROM projects WHERE approval_status = 'Approved' AND physical_progress >= 75")->fetch_assoc()['cnt']; ?>
                                         </small>
                                     </div>
                                     <div class="progress" style="height: 8px;">
@@ -304,6 +308,7 @@ $performers = $repo->topPerformers($module, 5);
                                             <th>Title</th>
                                             <th>Type</th>
                                             <th>Stage</th>
+                                            <th>Status</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -334,6 +339,12 @@ $performers = $repo->topPerformers($module, 5);
                                                     </span>
                                                 </td>
                                                 <td>
+                                                    <?php $approvalStatus = (string) ($project['approval_status'] ?? 'Pending'); ?>
+                                                    <span class="badge <?php echo $approvalStatus === 'Approved' ? 'bg-success' : 'bg-warning text-dark'; ?>">
+                                                        <?php echo htmlspecialchars($approvalStatus); ?>
+                                                    </span>
+                                                </td>
+                                                <td>
                                                     <a href="project-detail-enhanced.php?type=<?php echo $project['type']; ?>&id=<?php echo $project['id']; ?>" 
                                                        class="btn btn-xs btn-outline-primary">
                                                         <i class="fas fa-eye"></i>
@@ -351,12 +362,12 @@ $performers = $repo->topPerformers($module, 5);
                     </div>
                 </div>
 
-                <!-- Pending Approvals / Top Performers -->
+                <!-- Pending Approvals -->
                 <div class="col-lg-4">
                     <?php if ($pending_count > 0): ?>
                         <div class="card border-0 shadow-sm mb-3">
                             <div class="card-header bg-warning-subtle">
-                                <h6 class="mb-0 text-warning"><i class="fas fa-exclamation-circle"></i> Pending Approvals</h6>
+                                <h6 class="mb-0 text-warning"><i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($pending_title); ?></h6>
                             </div>
                             <div class="card-body p-2">
                                 <?php foreach ($pending_projects as $proj): ?>
@@ -373,27 +384,6 @@ $performers = $repo->topPerformers($module, 5);
                             </div>
                         </div>
                     <?php endif; ?>
-
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header">
-                            <h6 class="mb-0">Top Performers</h6>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="list-group list-group-flush">
-                                <?php foreach (array_slice($performers, 0, 5) as $perf): ?>
-                                    <div class="list-group-item p-3">
-                                        <div class="d-flex justify-content-between mb-2">
-                                            <small class="fw-bold"><?php echo htmlspecialchars($perf['project_code']); ?></small>
-                                            <small class="badge bg-success"><?php echo round($perf['physical_progress'], 0); ?>%</small>
-                                        </div>
-                                        <div class="progress" style="height: 6px;">
-                                            <div class="progress-bar bg-success" style="width: <?php echo $perf['physical_progress']; ?>%;"></div>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

@@ -1,0 +1,45 @@
+[     120ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost/api/notifications.php?action=count:0
+[     121ms] [ERROR] Error getting unread count: Error: Failed to fetch count
+    at NotificationManager.getUnreadCount (http://localhost/abed-hub/assets/js/notifications.js:56:31)
+    at async NotificationManager.pollNotifications (http://localhost/abed-hub/assets/js/notifications.js:243:20) @ http://localhost/abed-hub/assets/js/notifications.js:62
+[   30132ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost/api/notifications.php?action=count:0
+[   30132ms] [ERROR] Error getting unread count: Error: Failed to fetch count
+    at NotificationManager.getUnreadCount (http://localhost/abed-hub/assets/js/notifications.js:56:31)
+    at async NotificationManager.pollNotifications (http://localhost/abed-hub/assets/js/notifications.js:243:20) @ http://localhost/abed-hub/assets/js/notifications.js:62
+[   60144ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost/api/notifications.php?action=count:0
+[   60144ms] [ERROR] Error getting unread count: Error: Failed to fetch count
+    at NotificationManager.getUnreadCount (http://localhost/abed-hub/assets/js/notifications.js:56:31)
+    at async NotificationManager.pollNotifications (http://localhost/abed-hub/assets/js/notifications.js:243:20) @ http://localhost/abed-hub/assets/js/notifications.js:62
+[   90166ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost/api/notifications.php?action=count:0
+[   90166ms] [ERROR] Error getting unread count: Error: Failed to fetch count
+    at NotificationManager.getUnreadCount (http://localhost/abed-hub/assets/js/notifications.js:56:31)
+    at async NotificationManager.pollNotifications (http://localhost/abed-hub/assets/js/notifications.js:243:20) @ http://localhost/abed-hub/assets/js/notifications.js:62
+[  120180ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost/api/notifications.php?action=count:0
+[  120180ms] [ERROR] Error getting unread count: Error: Failed to fetch count
+    at NotificationManager.getUnreadCount (http://localhost/abed-hub/assets/js/notifications.js:56:31)
+    at async NotificationManager.pollNotifications (http://localhost/abed-hub/assets/js/notifications.js:243:20) @ http://localhost/abed-hub/assets/js/notifications.js:62
+[  150192ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost/api/notifications.php?action=count:0
+[  150192ms] [ERROR] Error getting unread count: Error: Failed to fetch count
+    at NotificationManager.getUnreadCount (http://localhost/abed-hub/assets/js/notifications.js:56:31)
+    at async NotificationManager.pollNotifications (http://localhost/abed-hub/assets/js/notifications.js:243:20) @ http://localhost/abed-hub/assets/js/notifications.js:62
+[  180198ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost/api/notifications.php?action=count:0
+[  180199ms] [ERROR] Error getting unread count: Error: Failed to fetch count
+    at NotificationManager.getUnreadCount (http://localhost/abed-hub/assets/js/notifications.js:56:31)
+    at async NotificationManager.pollNotifications (http://localhost/abed-hub/assets/js/notifications.js:243:20) @ http://localhost/abed-hub/assets/js/notifications.js:62
+[  210217ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost/api/notifications.php?action=count:0
+[  210217ms] [ERROR] Error getting unread count: Error: Failed to fetch count
+    at NotificationManager.getUnreadCount (http://localhost/abed-hub/assets/js/notifications.js:56:31)
+    at async NotificationManager.pollNotifications (http://localhost/abed-hub/assets/js/notifications.js:243:20) @ http://localhost/abed-hub/assets/js/notifications.js:62
+[  240237ms] [ERROR] Failed to load resource: net::ERR_NO_BUFFER_SPACE @ http://localhost/api/notifications.php?action=count:0
+[  240238ms] [ERROR] Error getting unread count: TypeError: Failed to fetch
+    at NotificationManager.getUnreadCount (http://localhost/abed-hub/assets/js/notifications.js:55:30)
+    at NotificationManager.pollNotifications (http://localhost/abed-hub/assets/js/notifications.js:243:31)
+    at http://localhost/abed-hub/assets/js/notifications.js:246:29 @ http://localhost/abed-hub/assets/js/notifications.js:62
+[  270250ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost/api/notifications.php?action=count:0
+[  270250ms] [ERROR] Error getting unread count: Error: Failed to fetch count
+    at NotificationManager.getUnreadCount (http://localhost/abed-hub/assets/js/notifications.js:56:31)
+    at async NotificationManager.pollNotifications (http://localhost/abed-hub/assets/js/notifications.js:243:20) @ http://localhost/abed-hub/assets/js/notifications.js:62
+[  300270ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost/api/notifications.php?action=count:0
+[  300270ms] [ERROR] Error getting unread count: Error: Failed to fetch count
+    at NotificationManager.getUnreadCount (http://localhost/abed-hub/assets/js/notifications.js:56:31)
+    at async NotificationManager.pollNotifications (http://localhost/abed-hub/assets/js/notifications.js:243:20) @ http://localhost/abed-hub/assets/js/notifications.js:62

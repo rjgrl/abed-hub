@@ -31,8 +31,59 @@ if (!$project) {
     die('Project not found');
 }
 
-// Legacy documents/financial tables were removed in the refactored schema.
+$approval = (string) ($project['approval_status'] ?? 'Approved');
+if ($approval !== 'Approved') {
+    $uid = (int) ($_SESSION['user_id'] ?? 0);
+    $owner = (int) ($project['user_id'] ?? 0);
+    if (!isSuperAdmin() && $owner !== $uid) {
+        die('Project not found');
+    }
+}
+
 $documents = [];
+$rawDocs = json_decode((string) ($project['documents'] ?? '[]'), true);
+if (is_array($rawDocs)) {
+    $uploadUserIds = [];
+    foreach ($rawDocs as $d) {
+        if (is_array($d)) {
+            $uid = (int) ($d['uploaded_by'] ?? 0);
+            if ($uid > 0) {
+                $uploadUserIds[$uid] = true;
+            }
+        }
+    }
+    $uploadUserNames = [];
+    if (!empty($uploadUserIds)) {
+        $ids = array_values(array_unique(array_map('intval', array_keys($uploadUserIds))));
+        $ids = array_filter($ids, static fn ($id) => $id > 0);
+        if (!empty($ids)) {
+            $inList = implode(',', $ids);
+            $uq = $conn->query("SELECT id, full_name FROM users WHERE id IN ($inList)");
+            if ($uq) {
+                foreach ($uq->fetch_all(MYSQLI_ASSOC) as $ur) {
+                    $uploadUserNames[(int) $ur['id']] = (string) $ur['full_name'];
+                }
+            }
+        }
+    }
+    foreach ($rawDocs as $doc) {
+        if (!is_array($doc)) {
+            continue;
+        }
+        $uid = (int) ($doc['uploaded_by'] ?? 0);
+        $documents[] = [
+            'id' => (int) ($doc['id'] ?? 0),
+            'original_filename' => (string) ($doc['original_filename'] ?? $doc['file_name'] ?? 'Document'),
+            'document_type' => (string) ($doc['document_type'] ?? $doc['doc_type'] ?? 'General'),
+            'upload_date' => (string) ($doc['upload_date'] ?? ''),
+            'uploaded_by' => $uid > 0 ? ($uploadUserNames[$uid] ?? ('User #' . $uid)) : 'Unknown',
+        ];
+    }
+    usort($documents, static function ($a, $b) {
+        return strcmp((string) ($b['upload_date'] ?? ''), (string) ($a['upload_date'] ?? ''));
+    });
+}
+
 $financial_records = [];
 
 // Fetch machinery if AFME project
@@ -70,6 +121,11 @@ $audit_log = $audit_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
     <main class="app-main">
         <div class="container-fluid py-4">
+            <?php if ($approval !== 'Approved'): ?>
+                <div class="alert alert-warning border-0 shadow-sm mb-3" role="alert">
+                    <strong>Awaiting approval.</strong> This registration is not visible in the project catalog or maps until a Super Admin approves it.
+                </div>
+            <?php endif; ?>
             <!-- Project Header -->
             <div class="row align-items-center mb-4">
                 <div class="col">
@@ -333,9 +389,9 @@ $audit_log = $audit_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                                                     <td><?php echo htmlspecialchars($doc['original_filename']); ?></td>
                                                     <td><?php echo htmlspecialchars($doc['document_type']); ?></td>
                                                     <td><?php echo htmlspecialchars($doc['uploaded_by']); ?></td>
-                                                    <td><?php echo date('M d, Y', strtotime($doc['upload_date'])); ?></td>
+                                                    <td><?php echo $doc['upload_date'] !== '' ? date('M d, Y', strtotime($doc['upload_date'])) : '—'; ?></td>
                                                     <td>
-                                                        <a href="/api/documents.php?action=download&id=<?php echo $doc['id']; ?>" class="btn btn-xs btn-outline-primary">
+                                                        <a href="api/documents.php?action=download&amp;project_id=<?php echo (int) $project_id; ?>&amp;project_type=<?php echo htmlspecialchars($project_type, ENT_QUOTES, 'UTF-8'); ?>&amp;id=<?php echo (int) $doc['id']; ?>" class="btn btn-xs btn-outline-primary">
                                                             <i class="fas fa-download"></i>
                                                         </a>
                                                     </td>
@@ -436,6 +492,42 @@ $audit_log = $audit_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     </main>
 
     <!-- Modals -->
+    <div class="modal fade" id="uploadDocumentModal" tabindex="-1" aria-labelledby="uploadDocumentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="uploadDocumentModalLabel">Upload document</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="uploadDocumentForm">
+                    <div class="modal-body">
+                        <input type="hidden" name="project_id" value="<?php echo (int) $project_id; ?>">
+                        <input type="hidden" name="project_type" value="<?php echo htmlspecialchars($project_type, ENT_QUOTES, 'UTF-8'); ?>">
+                        <div class="mb-3">
+                            <label class="form-label">Document type</label>
+                            <select class="form-select" name="document_type" required>
+                                <option value="">— Select —</option>
+                                <option value="Program of Work">Program of Work</option>
+                                <option value="Progress photo">Progress photo</option>
+                                <option value="Inspection report">Inspection report</option>
+                                <option value="Billing / SOA">Billing / SOA</option>
+                                <option value="General">General</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">File</label>
+                            <input type="file" class="form-control" name="document_file" required accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Upload</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Project Modal -->
     <div class="modal fade" id="editModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
@@ -528,18 +620,61 @@ $audit_log = $audit_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             }
         });
 
+        const uploadDocumentForm = document.getElementById('uploadDocumentForm');
+        if (uploadDocumentForm) {
+            uploadDocumentForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const prev = submitBtn ? submitBtn.innerHTML : '';
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                }
+                try {
+                    const response = await fetch('api/documents.php?action=upload', {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'same-origin',
+                    });
+                    const data = await response.json().catch(function () { return {}; });
+                    if (response.ok && data.status === 'success') {
+                        alert(data.message || 'Document uploaded successfully');
+                        location.reload();
+                    } else {
+                        alert(data.message || 'Upload failed');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Upload failed');
+                } finally {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = prev;
+                    }
+                }
+            });
+        }
+
         // Save edit
         document.getElementById('saveEditBtn').addEventListener('click', async function() {
             const formData = new FormData(document.getElementById('editForm'));
-            const response = await fetch(`/api/projects.php?action=update&type=${projectType}&id=${projectId}`, {
-                method: 'PUT',
-                body: formData
-            });
-
-            if (response.ok) {
-                alert('Project updated successfully');
-                location.reload();
-            } else {
+            const payload = Object.fromEntries(formData.entries());
+            try {
+                const response = await fetch('api/projects.php?action=update&type=' + encodeURIComponent(projectType) + '&id=' + encodeURIComponent(projectId), {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json().catch(function () { return {}; });
+                if (response.ok && result.status === 'success') {
+                    alert(result.message || 'Project updated successfully');
+                    location.reload();
+                } else {
+                    alert(result.message || 'Failed to update project');
+                }
+            } catch (err) {
+                console.error(err);
                 alert('Failed to update project');
             }
         });

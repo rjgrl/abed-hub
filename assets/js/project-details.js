@@ -6,17 +6,18 @@ document.addEventListener("DOMContentLoaded", function () {
       e.preventDefault();
       const formData = new FormData(this);
 
-      fetch("upload-document.php", {
+      fetch("api/documents.php?action=upload", {
         method: "POST",
         body: formData,
+        credentials: "same-origin",
       })
         .then((response) => response.json())
         .then((data) => {
           if (data.status === "success") {
-            alert("Document uploaded successfully!");
+            alert(data.message || "Document uploaded successfully!");
             location.reload();
           } else {
-            alert("Error: " + data.message);
+            alert("Error: " + (data.message || "Upload failed"));
           }
         })
         .catch((error) => console.error("Error:", error));

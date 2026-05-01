@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once 'config/database.php';
 require_once 'functions/helpers.php';
 
@@ -12,6 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $user_id = $_SESSION['user_id'];
+$approval_status = isSuperAdmin() ? 'Approved' : 'Pending';
 
 $project_code = sanitize($_POST['project_code'] ?? '');
 $project_title = sanitize($_POST['project_title'] ?? '');
@@ -21,6 +21,12 @@ $beneficiary = sanitize($_POST['beneficiary'] ?? '');
 $description = sanitize($_POST['description'] ?? '');
 $proposed_amount = floatval($_POST['proposed_amount'] ?? 0);
 $allocated_amount = floatval($_POST['allocated_amount'] ?? 0);
+$province = sanitize($_POST['province'] ?? '');
+$municipality = sanitize($_POST['municipality'] ?? '');
+$barangay = sanitize($_POST['barangay'] ?? '');
+$district = sanitize($_POST['district'] ?? '');
+$latitude = floatval($_POST['latitude'] ?? 0);
+$longitude = floatval($_POST['longitude'] ?? 0);
 
 if (empty($project_code) || empty($project_title) || empty($fund_source)) {
     echo json_encode(['status' => 'error', 'message' => 'Required fields missing']);
@@ -38,24 +44,35 @@ if ($stmt->get_result()->num_rows > 0) {
 $stmt = $conn->prepare("
     INSERT INTO projects (
         project_type, project_code, title, fund_source, funding_year,
-        beneficiary, description, proposed_amount, allocated_amount, user_id
-    ) VALUES ('afme', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        beneficiary, description, province, municipality, barangay, district,
+        proposed_amount, allocated_amount, latitude, longitude, user_id, approval_status
+    ) VALUES ('afme', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ");
 
+if (!$stmt) {
+    echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $conn->error]);
+    exit;
+}
+
 $stmt->bind_param(
-    "sssissddi",
+    'sssissssssddddis',
     $project_code, $project_title, $fund_source, $funding_year,
-    $beneficiary, $description, $proposed_amount, $allocated_amount, $user_id
+    $beneficiary, $description, $province, $municipality, $barangay, $district,
+    $proposed_amount, $allocated_amount, $latitude, $longitude, $user_id, $approval_status
 );
 
 if ($stmt->execute()) {
     $project_id = $stmt->insert_id;
     logAudit('CREATE_AFME_PROJECT', 'AFME', $project_id, null, $_POST);
     
+    $msg = $approval_status === 'Pending'
+        ? 'AFME project submitted for Super Admin approval. It will appear in the catalog once approved.'
+        : 'AFME Project registered successfully';
     echo json_encode([
         'status' => 'success',
-        'message' => 'AFME Project registered successfully',
-        'project_id' => $project_id
+        'message' => $msg,
+        'project_id' => $project_id,
+        'approval_status' => $approval_status,
     ]);
 } else {
     echo json_encode(['status' => 'error', 'message' => 'Error registering project']);

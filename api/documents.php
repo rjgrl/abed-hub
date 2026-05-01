@@ -38,10 +38,10 @@ function fetchProjectForDocuments(mysqli $conn, int $projectId, ?string $project
 
     if ($projectType !== null && $projectType !== '') {
         $type = apiValidateType($projectType);
-        $stmt = $conn->prepare('SELECT id, project_type, documents FROM projects WHERE id = ? AND project_type = ?');
+        $stmt = $conn->prepare('SELECT id, project_type, documents, approval_status, user_id FROM projects WHERE id = ? AND project_type = ?');
         $stmt->bind_param('is', $projectId, $type);
     } else {
-        $stmt = $conn->prepare('SELECT id, project_type, documents FROM projects WHERE id = ?');
+        $stmt = $conn->prepare('SELECT id, project_type, documents, approval_status, user_id FROM projects WHERE id = ?');
         $stmt->bind_param('i', $projectId);
     }
     $stmt->execute();
@@ -52,6 +52,25 @@ function fetchProjectForDocuments(mysqli $conn, int $projectId, ?string $project
         throw new Exception('Project not found');
     }
     return $project;
+}
+
+/**
+ * Pending projects are readable by submitter and Super Admin; document changes require approval first.
+ */
+function assertProjectDocumentsAccess(array $project, bool $mutating): void {
+    $ap = (string) ($project['approval_status'] ?? 'Approved');
+    if ($ap === 'Approved') {
+        return;
+    }
+    if ($mutating) {
+        throw new Exception('This project is pending Super Admin approval; documents cannot be changed yet.');
+    }
+    $uid = (int) ($_SESSION['user_id'] ?? 0);
+    $owner = (int) ($project['user_id'] ?? 0);
+    if (isSuperAdmin() || $owner === $uid) {
+        return;
+    }
+    throw new Exception('Project not found');
 }
 
 function decodeDocuments(?string $json): array {
@@ -65,6 +84,7 @@ function listDocuments(): array {
     $projectType = $_GET['project_type'] ?? null;
     $documentType = trim((string) ($_GET['document_type'] ?? ''));
     $project = fetchProjectForDocuments($conn, $projectId, $projectType);
+    assertProjectDocumentsAccess($project, false);
     $docs = decodeDocuments($project['documents'] ?? '[]');
 
     $out = [];
@@ -95,6 +115,7 @@ function uploadDocument(): array {
     $projectId = (int) ($_POST['project_id'] ?? 0);
     $projectType = $_POST['project_type'] ?? null;
     $project = fetchProjectForDocuments($conn, $projectId, $projectType);
+    assertProjectDocumentsAccess($project, true);
 
     $maxSize = defined('MAX_FILE_SIZE') ? (int) MAX_FILE_SIZE : 10 * 1024 * 1024;
     if ((int) $file['size'] > $maxSize) {
@@ -187,6 +208,7 @@ function downloadDocument(): never {
         die('Document ID required');
     }
     $project = fetchProjectForDocuments($conn, $projectId, $projectType);
+    assertProjectDocumentsAccess($project, false);
     $docs = decodeDocuments($project['documents'] ?? '[]');
     [, $doc] = findDocumentOrFail($docs, $id);
     $path = (string) ($doc['file_path'] ?? '');
@@ -212,6 +234,7 @@ function previewDocument(): never {
         die('Document ID required');
     }
     $project = fetchProjectForDocuments($conn, $projectId, $projectType);
+    assertProjectDocumentsAccess($project, false);
     $docs = decodeDocuments($project['documents'] ?? '[]');
     [, $doc] = findDocumentOrFail($docs, $id);
     $path = (string) ($doc['file_path'] ?? '');
@@ -235,6 +258,7 @@ function deleteDocument(): array {
         throw new Exception('Document ID required');
     }
     $project = fetchProjectForDocuments($conn, $projectId, $projectType);
+    assertProjectDocumentsAccess($project, true);
     $docs = decodeDocuments($project['documents'] ?? '[]');
     [$idx, $doc] = findDocumentOrFail($docs, $id);
 

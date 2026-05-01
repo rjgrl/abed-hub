@@ -258,12 +258,17 @@ function batchDeleteProjects(): array {
     $data     = apiInputJson();
     $ids      = $data['ids'] ?? $data['projects'] ?? [];
     $typeRaw  = $data['project_type'] ?? $data['type'] ?? '';
+    $password = (string) ($data['password'] ?? '');
 
     if (empty($ids) || !is_array($ids)) {
         throw new Exception('ids (or projects) array required');
     }
+    if ($password === '') {
+        throw new Exception('Password is required to delete projects');
+    }
 
     $table = batchTable($typeRaw);
+    batchAssertDeletePassword($password);
 
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
     $stmt = $conn->prepare(
@@ -284,6 +289,31 @@ function batchDeleteProjects(): array {
     logAudit('BATCH_ARCHIVE', $typeRaw);
 
     return ['success' => true, 'deleted_count' => $deleted];
+}
+
+/**
+ * Verify the current logged-in user's password before delete operations.
+ */
+function batchAssertDeletePassword(string $password): void {
+    global $conn;
+
+    $userId = (int) ($_SESSION['user_id'] ?? 0);
+    if ($userId <= 0) {
+        throw new Exception('Unauthorized');
+    }
+
+    $stmt = $conn->prepare("SELECT password FROM users WHERE id = ? LIMIT 1");
+    if (!$stmt) {
+        throw new Exception('Failed to validate credentials');
+    }
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    if (!$row || !isset($row['password']) || !password_verify($password, $row['password'])) {
+        throw new Exception('Invalid password');
+    }
 }
 
 function batchExport(): array {

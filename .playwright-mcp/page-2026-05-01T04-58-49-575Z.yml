@@ -1,0 +1,186 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - img "AgriTrack Logo" [ref=e4]
+    - list [ref=e5]:
+      - listitem [ref=e6]:
+        - link " Dashboard" [ref=e7] [cursor=pointer]:
+          - /url: dashboard.php
+          - generic [ref=e8]: 
+          - text: Dashboard
+      - listitem [ref=e9]:
+        - link " Projects" [ref=e10] [cursor=pointer]:
+          - /url: projects-advanced.php
+          - generic [ref=e11]: 
+          - text: Projects
+      - listitem [ref=e12]:
+        - link " Analytics & Reports" [ref=e13] [cursor=pointer]:
+          - /url: analytics-reports.php
+          - generic [ref=e14]: 
+          - text: Analytics & Reports
+      - listitem [ref=e15]:
+        - link " GeoMap" [ref=e16] [cursor=pointer]:
+          - /url: geomap.php
+          - generic [ref=e17]: 
+          - text: GeoMap
+      - listitem [ref=e18]:
+        - link " Help & Guide" [ref=e19] [cursor=pointer]:
+          - /url: user-guide.php
+          - generic [ref=e20]: 
+          - text: Help & Guide
+      - separator [ref=e21]
+      - listitem [ref=e22]:
+        - generic [ref=e23]:
+          - generic [ref=e24]: 
+          - text: ADMIN TOOLS
+      - listitem [ref=e25]:
+        - link " User Management" [ref=e26] [cursor=pointer]:
+          - /url: admin-dashboard.php
+          - generic [ref=e27]: 
+          - text: User Management
+      - listitem [ref=e28]:
+        - link " System Settings" [ref=e29] [cursor=pointer]:
+          - /url: admin-settings.php
+          - generic [ref=e30]: 
+          - text: System Settings
+      - listitem [ref=e31]:
+        - link " Audit Log" [ref=e32] [cursor=pointer]:
+          - /url: admin-audit.php
+          - generic [ref=e33]: 
+          - text: Audit Log
+    - separator [ref=e34]
+    - list [ref=e35]:
+      - listitem [ref=e36]:
+        - link " Logout" [ref=e37] [cursor=pointer]:
+          - /url: logout.php
+          - generic [ref=e38]: 
+          - text: Logout
+  - generic [ref=e39]:
+    - link "ABED Logo ABED Integrated Data Management Hub Agricultural and Biosystems Engineering Division - LGU Malaybalay City" [ref=e40] [cursor=pointer]:
+      - /url: dashboard.php
+      - img "ABED Logo" [ref=e41]
+      - generic [ref=e42]:
+        - generic [ref=e43]: ABED Integrated Data Management Hub
+        - generic [ref=e44]: Agricultural and Biosystems Engineering Division - LGU Malaybalay City
+    - generic [ref=e46]:
+      - generic [ref=e47]:
+        - generic [ref=e48]: Glyn
+        - generic [ref=e49]: admin
+      - link "GL" [ref=e50] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=e51]: GL
+      - text:  
+  - navigation [ref=e52]:
+    - generic [ref=e53]:
+      - heading "System Management" [level=6] [ref=e54]
+      - generic [ref=e55]: Analytics
+  - main [ref=e56]:
+    - generic [ref=e57]:
+      - generic [ref=e58]:
+        - generic [ref=e59]:
+          - heading " Analytics & Reports" [level=1] [ref=e60]:
+            - generic [ref=e61]: 
+            - text: Analytics & Reports
+          - paragraph [ref=e62]: Comprehensive project performance analysis
+        - button " Print" [ref=e64] [cursor=pointer]:
+          - generic [ref=e65]: 
+          - text: Print
+      - generic [ref=e68]:
+        - generic [ref=e69]:
+          - generic [ref=e70]: Year
+          - combobox [ref=e71]:
+            - option "2026" [selected]
+            - option "2025"
+            - option "2024"
+            - option "2023"
+            - option "2022"
+            - option "2021"
+            - option "2020"
+        - generic [ref=e72]:
+          - generic [ref=e73]: Report Type
+          - combobox [ref=e74]:
+            - option "Summary" [selected]
+            - option "Detailed"
+            - option "Performance"
+      - generic [ref=e75]:
+        - generic [ref=e78]:
+          - heading "3" [level=3] [ref=e79]
+          - text: Total Projects
+        - generic [ref=e82]:
+          - heading "₱50,011" [level=3] [ref=e83]
+          - text: Total Allocated
+        - generic [ref=e86]:
+          - heading "10%" [level=3] [ref=e87]
+          - text: Avg Physical Progress
+        - generic [ref=e90]:
+          - heading "0" [level=3] [ref=e91]
+          - text: Completed Projects
+      - generic [ref=e92]:
+        - heading "Distribution by Type" [level=6] [ref=e96]
+        - heading "Distribution by Stage" [level=6] [ref=e102]
+        - heading "Monthly Trend 2026" [level=6] [ref=e108]
+      - generic [ref=e111]:
+        - generic [ref=e113]:
+          - heading "Top Performers" [level=6] [ref=e115]
+          - table [ref=e118]:
+            - rowgroup [ref=e119]:
+              - row "Project Progress Status" [ref=e120]:
+                - columnheader "Project" [ref=e121]
+                - columnheader "Progress" [ref=e122]
+                - columnheader "Status" [ref=e123]
+            - rowgroup
+        - generic [ref=e125]:
+          - heading "Projects with Significant Variance" [level=6] [ref=e127]
+          - table [ref=e130]:
+            - rowgroup [ref=e131]:
+              - row "Project Variance Alert" [ref=e132]:
+                - columnheader "Project" [ref=e133]
+                - columnheader "Variance" [ref=e134]
+                - columnheader "Alert" [ref=e135]
+            - rowgroup [ref=e136]:
+              - row "FSPF-2026-MCP-001 Playwright MCP smoke test -40% Must Act" [ref=e137]:
+                - cell "FSPF-2026-MCP-001 Playwright MCP smoke test" [ref=e138]:
+                  - generic [ref=e139]:
+                    - strong [ref=e140]: FSPF-2026-MCP-001
+                    - text: Playwright MCP smoke test
+                - cell "-40%" [ref=e141]:
+                  - generic [ref=e142]: "-40%"
+                - cell "Must Act" [ref=e143]:
+                  - generic [ref=e144]: Must Act
+      - generic [ref=e145]:
+        - generic [ref=e147]:
+          - heading "Projects by Stage (2026)" [level=6] [ref=e149]
+          - table [ref=e152]:
+            - rowgroup [ref=e153]:
+              - row "Proposal 3" [ref=e154]:
+                - cell "Proposal" [ref=e155]:
+                  - generic [ref=e156]: Proposal
+                - cell "3" [ref=e157]:
+                  - strong [ref=e158]: "3"
+        - generic [ref=e160]:
+          - heading "Summary by Project Type" [level=6] [ref=e162]
+          - table [ref=e165]:
+            - rowgroup [ref=e166]:
+              - row "FSPF 2 projects" [ref=e167]:
+                - cell "FSPF" [ref=e168]:
+                  - generic [ref=e169]: FSPF
+                - cell "2 projects" [ref=e170]:
+                  - strong [ref=e171]: "2"
+                  - text: projects
+              - row "IDP 0 projects" [ref=e172]:
+                - cell "IDP" [ref=e173]:
+                  - generic [ref=e174]: IDP
+                - cell "0 projects" [ref=e175]:
+                  - strong [ref=e176]: "0"
+                  - text: projects
+              - row "AFME 1 projects" [ref=e177]:
+                - cell "AFME" [ref=e178]:
+                  - generic [ref=e179]: AFME
+                - cell "1 projects" [ref=e180]:
+                  - strong [ref=e181]: "1"
+                  - text: projects
+              - row "Total 3 projects" [ref=e182]:
+                - cell "Total" [ref=e183]:
+                  - strong [ref=e184]: Total
+                - cell "3 projects" [ref=e185]:
+                  - strong [ref=e186]: "3"
+                  - text: projects

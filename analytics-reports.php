@@ -3,7 +3,6 @@ require_once __DIR__ . '/components/layout.php';
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/functions/helpers.php';
 require_once __DIR__ . '/services/ProjectRepository.php';
-require_once __DIR__ . '/vendor/autoload.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();

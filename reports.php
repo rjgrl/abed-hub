@@ -28,7 +28,7 @@ if ($status !== 'all') {
     $types .= 's';
 }
 
-$whereClause = 'WHERE 1=1';
+$whereClause = 'WHERE 1=1 AND approval_status = \'Approved\'';
 if (!empty($conditions)) {
     $whereClause .= ' AND ' . implode(' AND ', $conditions);
 }

@@ -1,0 +1,172 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - img "AgriTrack Logo" [ref=e4]
+    - list [ref=e5]:
+      - listitem [ref=e6]:
+        - link " Dashboard" [ref=e7] [cursor=pointer]:
+          - /url: dashboard.php
+          - generic [ref=e8]: 
+          - text: Dashboard
+      - listitem [ref=e9]:
+        - link " Projects" [ref=e10] [cursor=pointer]:
+          - /url: projects-advanced.php
+          - generic [ref=e11]: 
+          - text: Projects
+      - listitem [ref=e12]:
+        - link " Analytics & Reports" [ref=e13] [cursor=pointer]:
+          - /url: analytics-reports.php
+          - generic [ref=e14]: 
+          - text: Analytics & Reports
+      - listitem [ref=e15]:
+        - link " GeoMap" [ref=e16] [cursor=pointer]:
+          - /url: geomap.php
+          - generic [ref=e17]: 
+          - text: GeoMap
+      - listitem [ref=e18]:
+        - link " Help & Guide" [ref=e19] [cursor=pointer]:
+          - /url: user-guide.php
+          - generic [ref=e20]: 
+          - text: Help & Guide
+      - separator [ref=e21]
+      - listitem [ref=e22]:
+        - generic [ref=e23]:
+          - generic [ref=e24]: 
+          - text: ADMIN TOOLS
+      - listitem [ref=e25]:
+        - link " User Management" [ref=e26] [cursor=pointer]:
+          - /url: admin-dashboard.php
+          - generic [ref=e27]: 
+          - text: User Management
+      - listitem [ref=e28]:
+        - link " System Settings" [ref=e29] [cursor=pointer]:
+          - /url: admin-settings.php
+          - generic [ref=e30]: 
+          - text: System Settings
+      - listitem [ref=e31]:
+        - link " Audit Log" [ref=e32] [cursor=pointer]:
+          - /url: admin-audit.php
+          - generic [ref=e33]: 
+          - text: Audit Log
+    - separator [ref=e34]
+    - list [ref=e35]:
+      - listitem [ref=e36]:
+        - link " Logout" [ref=e37] [cursor=pointer]:
+          - /url: logout.php
+          - generic [ref=e38]: 
+          - text: Logout
+  - generic [ref=e39]:
+    - link "ABED Logo ABED Integrated Data Management Hub Agricultural and Biosystems Engineering Division - LGU Malaybalay City" [ref=e40] [cursor=pointer]:
+      - /url: dashboard.php
+      - img "ABED Logo" [ref=e41]
+      - generic [ref=e42]:
+        - generic [ref=e43]: ABED Integrated Data Management Hub
+        - generic [ref=e44]: Agricultural and Biosystems Engineering Division - LGU Malaybalay City
+    - generic [ref=e46]:
+      - generic [ref=e47]:
+        - generic [ref=e48]: Glyn
+        - generic [ref=e49]: admin
+      - link "GL" [ref=e50] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=e51]: GL
+      - text:  
+  - navigation [ref=e52]:
+    - generic [ref=e53]:
+      - heading "System Management" [level=6] [ref=e54]
+      - generic [ref=e55]: Projects
+  - main [ref=e56]:
+    - generic [ref=e57]:
+      - generic [ref=e58]:
+        - generic [ref=e59]:
+          - heading "Projects" [level=1] [ref=e60]
+          - paragraph [ref=e61]: Browse and manage all projects
+        - generic [ref=e62]:
+          - button "+ New Project" [ref=e63] [cursor=pointer]:
+            - generic [ref=e64]: +
+            - text: New Project
+          - group [ref=e65]:
+            - button " Export" [ref=e66] [cursor=pointer]:
+              - generic [ref=e67]: 
+              - text: Export
+            - button " Select All" [ref=e68] [cursor=pointer]:
+              - generic [ref=e69]: 
+              - text: Select All
+            - group [ref=e70]:
+              - button " Batch Actions" [disabled]:
+                - generic: 
+                - text: Batch Actions
+              - text:   
+      - generic [ref=e73]:
+        - group [ref=e75]:
+          - radio "FSPF" [checked]
+          - generic [ref=e76] [cursor=pointer]: FSPF
+          - radio "IDP"
+          - generic [ref=e77] [cursor=pointer]: IDP
+          - radio "AFME"
+          - generic [ref=e78] [cursor=pointer]: AFME
+        - generic [ref=e80]:
+          - combobox [ref=e81]:
+            - option "Load Saved View..." [selected]
+          - button " Save View" [ref=e82] [cursor=pointer]:
+            - generic [ref=e83]: 
+            - text: Save View
+          - text: 
+        - textbox "Search by code or title" [ref=e85]
+        - combobox [ref=e87]:
+          - option "All Stages" [selected]
+          - option "Proposal"
+        - combobox [ref=e89]:
+          - option "2026" [selected]
+          - option "2025"
+          - option "2024"
+          - option "2023"
+          - option "2022"
+          - option "2021"
+          - option "2020"
+        - button " Filter" [ref=e91] [cursor=pointer]:
+          - generic [ref=e92]: 
+          - text: Filter
+      - generic [ref=e93]:
+        - text: Showing
+        - strong [ref=e94]: "1"
+        - text: of
+        - strong [ref=e95]: "1"
+        - text: FSPF projects
+      - table [ref=e98]:
+        - rowgroup [ref=e99]:
+          - row "Code Title Stage Physical Progress Financial Progress Allocated Amount Modified Action" [ref=e100]:
+            - columnheader [ref=e101]:
+              - checkbox [ref=e102]
+            - columnheader "Code" [ref=e103]
+            - columnheader "Title" [ref=e104]
+            - columnheader "Stage" [ref=e105]
+            - columnheader "Physical Progress" [ref=e106]
+            - columnheader "Financial Progress" [ref=e107]
+            - columnheader "Allocated Amount" [ref=e108]
+            - columnheader "Modified" [ref=e109]
+            - columnheader "Action" [ref=e110]
+        - rowgroup [ref=e111]:
+          - row "FSPF-2026-MCP-001 Playwright MCP smoke test Proposal 30% 70% ₱50,000 May 01, 2026   " [ref=e112]:
+            - cell [ref=e113]:
+              - checkbox [ref=e114]
+            - cell "FSPF-2026-MCP-001" [ref=e115]:
+              - strong [ref=e116]: FSPF-2026-MCP-001
+            - cell "Playwright MCP smoke test" [ref=e117]
+            - cell "Proposal" [ref=e118]:
+              - generic [ref=e119]: Proposal
+            - cell "30%" [ref=e120]:
+              - generic [ref=e123]: 30%
+            - cell "70%" [ref=e124]:
+              - generic [ref=e127]: 70%
+            - cell "₱50,000" [ref=e128]
+            - cell "May 01, 2026" [ref=e129]
+            - cell "  " [ref=e130]:
+              - generic [ref=e131]:
+                - link "" [ref=e132] [cursor=pointer]:
+                  - /url: project-detail-enhanced.php?type=fspf&id=2
+                  - generic [ref=e133]: 
+                - link "" [ref=e134] [cursor=pointer]:
+                  - /url: scurve-monitoring.php?type=fspf&id=2
+                  - generic [ref=e135]: 
+                - button "" [ref=e136] [cursor=pointer]:
+                  - generic [ref=e137]: 
+  - text:  

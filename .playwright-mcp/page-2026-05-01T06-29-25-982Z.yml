@@ -1,0 +1,240 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - img "AgriTrack Logo" [ref=e4]
+    - list [ref=e5]:
+      - listitem [ref=e6]:
+        - link " Dashboard" [ref=e7] [cursor=pointer]:
+          - /url: dashboard.php
+          - generic [ref=e8]: 
+          - text: Dashboard
+      - listitem [ref=e9]:
+        - link " Projects" [ref=e10] [cursor=pointer]:
+          - /url: projects-advanced.php
+          - generic [ref=e11]: 
+          - text: Projects
+      - listitem [ref=e12]:
+        - link " Analytics & Reports" [ref=e13] [cursor=pointer]:
+          - /url: analytics-reports.php
+          - generic [ref=e14]: 
+          - text: Analytics & Reports
+      - listitem [ref=e15]:
+        - link " GeoMap" [ref=e16] [cursor=pointer]:
+          - /url: geomap.php
+          - generic [ref=e17]: 
+          - text: GeoMap
+      - listitem [ref=e18]:
+        - link " Help & Guide" [ref=e19] [cursor=pointer]:
+          - /url: user-guide.php
+          - generic [ref=e20]: 
+          - text: Help & Guide
+      - separator [ref=e21]
+      - listitem [ref=e22]:
+        - generic [ref=e23]:
+          - generic [ref=e24]: 
+          - text: ADMIN TOOLS
+      - listitem [ref=e25]:
+        - link " User Management" [ref=e26] [cursor=pointer]:
+          - /url: admin-dashboard.php
+          - generic [ref=e27]: 
+          - text: User Management
+      - listitem [ref=e28]:
+        - link " System Settings" [ref=e29] [cursor=pointer]:
+          - /url: admin-settings.php
+          - generic [ref=e30]: 
+          - text: System Settings
+      - listitem [ref=e31]:
+        - link " Audit Log" [ref=e32] [cursor=pointer]:
+          - /url: admin-audit.php
+          - generic [ref=e33]: 
+          - text: Audit Log
+    - separator [ref=e34]
+    - list [ref=e35]:
+      - listitem [ref=e36]:
+        - link " Logout" [ref=e37] [cursor=pointer]:
+          - /url: logout.php
+          - generic [ref=e38]: 
+          - text: Logout
+  - generic [ref=e39]:
+    - link "ABED Logo ABED Integrated Data Management Hub Agricultural and Biosystems Engineering Division - LGU Malaybalay City" [ref=e40] [cursor=pointer]:
+      - /url: dashboard.php
+      - img "ABED Logo" [ref=e41]
+      - generic [ref=e42]:
+        - generic [ref=e43]: ABED Integrated Data Management Hub
+        - generic [ref=e44]: Agricultural and Biosystems Engineering Division - LGU Malaybalay City
+    - generic [ref=e46]:
+      - generic [ref=e47]:
+        - generic [ref=e48]: Glyn
+        - generic [ref=e49]: admin
+      - link "GL" [ref=e50] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=e51]: GL
+      - text:  
+  - navigation [ref=e52]:
+    - generic [ref=e53]:
+      - heading "System Management" [level=6] [ref=e54]
+      - generic [ref=e55]: Dashboard
+  - main [ref=e56]:
+    - generic [ref=e57]:
+      - generic [ref=e59]:
+        - heading "Dashboard" [level=1] [ref=e60]
+        - paragraph [ref=e61]: Overview of all projects and activities
+      - generic [ref=e62]:
+        - generic [ref=e66]:
+          - generic [ref=e67]:
+            - paragraph [ref=e68]: Total Projects
+            - heading "7" [level=2] [ref=e69]
+          - generic [ref=e71]: 
+        - generic [ref=e75]:
+          - generic [ref=e76]:
+            - paragraph [ref=e77]: Total Allocated
+            - heading "₱10,062,011" [level=2] [ref=e78]
+          - generic [ref=e80]: 
+        - generic [ref=e84]:
+          - generic [ref=e85]:
+            - paragraph [ref=e86]: Avg. Physical Progress
+            - heading "4.3%" [level=2] [ref=e87]
+          - generic [ref=e89]: 
+      - generic [ref=e90]:
+        - generic [ref=e92]:
+          - heading " Recent Notifications" [level=5] [ref=e94]:
+            - generic [ref=e95]: 
+            - text: Recent Notifications
+          - generic [ref=e98]:
+            - generic [ref=e99]: 
+            - paragraph [ref=e100]: Loading notifications...
+          - link " View All Notifications" [ref=e102] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e103]: 
+            - text: View All Notifications
+        - generic [ref=e105]:
+          - heading " Active Alerts" [level=5] [ref=e107]:
+            - generic [ref=e108]: 
+            - text: Active Alerts
+          - generic [ref=e111]:
+            - generic [ref=e112]: 
+            - paragraph [ref=e113]: Loading alerts...
+          - link " View All Alerts" [ref=e115] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e116]: 
+            - text: View All Alerts
+      - generic [ref=e117]:
+        - generic [ref=e119]:
+          - heading "Projects by Type" [level=6] [ref=e121]
+          - generic [ref=e125]:
+            - generic [ref=e126]:
+              - strong [ref=e127]: "4"
+              - text: FSPF
+            - generic [ref=e128]:
+              - strong [ref=e129]: "2"
+              - text: IDP
+            - generic [ref=e130]:
+              - strong [ref=e131]: "1"
+              - text: AFME
+        - heading "Projects by Stage" [level=6] [ref=e135]
+        - generic [ref=e139]:
+          - heading "Progress Distribution" [level=6] [ref=e141]
+          - generic [ref=e143]:
+            - generic [ref=e145]:
+              - generic [ref=e146]: 0-25%
+              - generic [ref=e147]: "6"
+            - generic [ref=e151]:
+              - generic [ref=e152]: 25-50%
+              - generic [ref=e153]: "1"
+            - generic [ref=e157]:
+              - generic [ref=e158]: 50-75%
+              - generic [ref=e159]: "0"
+            - generic [ref=e163]:
+              - generic [ref=e164]: 75-100%
+              - generic [ref=e165]: "0"
+      - generic [ref=e168]:
+        - generic [ref=e170]:
+          - heading "Recent Projects" [level=6] [ref=e172]
+          - table [ref=e175]:
+            - rowgroup [ref=e176]:
+              - row "Code Title Type Stage Action" [ref=e177]:
+                - columnheader "Code" [ref=e178]
+                - columnheader "Title" [ref=e179]
+                - columnheader "Type" [ref=e180]
+                - columnheader "Stage" [ref=e181]
+                - columnheader "Action" [ref=e182]
+            - rowgroup [ref=e183]:
+              - row "10 Fritz IDP Proposal " [ref=e184]:
+                - cell "10" [ref=e185]
+                - cell "Fritz" [ref=e186]
+                - cell "IDP" [ref=e187]:
+                  - generic [ref=e188]: IDP
+                - cell "Proposal" [ref=e189]:
+                  - generic [ref=e190]: Proposal
+                - cell "" [ref=e191]:
+                  - link "" [ref=e192] [cursor=pointer]:
+                    - /url: project-detail-enhanced.php?type=idp&id=7
+                    - generic [ref=e193]: 
+              - row "3333 Kamote FSPF Proposal " [ref=e194]:
+                - cell "3333" [ref=e195]
+                - cell "Kamote" [ref=e196]
+                - cell "FSPF" [ref=e197]:
+                  - generic [ref=e198]: FSPF
+                - cell "Proposal" [ref=e199]:
+                  - generic [ref=e200]: Proposal
+                - cell "" [ref=e201]:
+                  - link "" [ref=e202] [cursor=pointer]:
+                    - /url: project-detail-enhanced.php?type=fspf&id=6
+                    - generic [ref=e203]: 
+              - row "123 DC IDP Proposal " [ref=e204]:
+                - cell "123" [ref=e205]
+                - cell "DC" [ref=e206]
+                - cell "IDP" [ref=e207]:
+                  - generic [ref=e208]: IDP
+                - cell "Proposal" [ref=e209]:
+                  - generic [ref=e210]: Proposal
+                - cell "" [ref=e211]:
+                  - link "" [ref=e212] [cursor=pointer]:
+                    - /url: project-detail-enhanced.php?type=idp&id=5
+                    - generic [ref=e213]: 
+              - row "12 Vince FSPF Proposal " [ref=e214]:
+                - cell "12" [ref=e215]
+                - cell "Vince" [ref=e216]
+                - cell "FSPF" [ref=e217]:
+                  - generic [ref=e218]: FSPF
+                - cell "Proposal" [ref=e219]:
+                  - generic [ref=e220]: Proposal
+                - cell "" [ref=e221]:
+                  - link "" [ref=e222] [cursor=pointer]:
+                    - /url: project-detail-enhanced.php?type=fspf&id=4
+                    - generic [ref=e223]: 
+              - row "11 fritz FSPF Proposal " [ref=e224]:
+                - cell "11" [ref=e225]
+                - cell "fritz" [ref=e226]
+                - cell "FSPF" [ref=e227]:
+                  - generic [ref=e228]: FSPF
+                - cell "Proposal" [ref=e229]:
+                  - generic [ref=e230]: Proposal
+                - cell "" [ref=e231]:
+                  - link "" [ref=e232] [cursor=pointer]:
+                    - /url: project-detail-enhanced.php?type=fspf&id=3
+                    - generic [ref=e233]: 
+              - row "FSPF-2026-MCP-0 Playwright MCP smoke test FSPF Proposal " [ref=e234]:
+                - cell "FSPF-2026-MCP-0" [ref=e235]
+                - cell "Playwright MCP smoke test" [ref=e236]
+                - cell "FSPF" [ref=e237]:
+                  - generic [ref=e238]: FSPF
+                - cell "Proposal" [ref=e239]:
+                  - generic [ref=e240]: Proposal
+                - cell "" [ref=e241]:
+                  - link "" [ref=e242] [cursor=pointer]:
+                    - /url: project-detail-enhanced.php?type=fspf&id=2
+                    - generic [ref=e243]: 
+              - row "AFME-2026-PW-00 Playwright MCP Test Tractor AFME Proposal " [ref=e244]:
+                - cell "AFME-2026-PW-00" [ref=e245]
+                - cell "Playwright MCP Test Tractor" [ref=e246]
+                - cell "AFME" [ref=e247]:
+                  - generic [ref=e248]: AFME
+                - cell "Proposal" [ref=e249]:
+                  - generic [ref=e250]: Proposal
+                - cell "" [ref=e251]:
+                  - link "" [ref=e252] [cursor=pointer]:
+                    - /url: project-detail-enhanced.php?type=afme&id=1
+                    - generic [ref=e253]: 
+          - link "View All Projects" [ref=e255] [cursor=pointer]:
+            - /url: projects-advanced.php
+        - heading "Top Performers" [level=6] [ref=e259]
