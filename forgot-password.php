@@ -2,7 +2,7 @@
 session_name('ABED_IDM_HUB');
 session_start();
 if (isset($_SESSION['user_id'])) {
-    header('Location: dashboard-enhanced.php');
+    header('Location: dashboard.php');
     exit;
 }
 ?>

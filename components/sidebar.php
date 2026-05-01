@@ -11,7 +11,7 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
 
   <ul class="nav nav-pills flex-column mb-auto">
     <li class="nav-item mb-2">
-      <a href="dashboard.php" class="nav-link text-white <?php echo (in_array($current_page, ['dashboard-enhanced.php', 'dashboard.php'])) ? 'active' : ''; ?>">
+      <a href="dashboard.php" class="nav-link text-white <?php echo ($current_page === 'dashboard.php') ? 'active' : ''; ?>">
         <i class="fas fa-tachometer-alt me-2"></i>Dashboard
         <span class="badge bg-danger ms-auto d-none" id="notificationBadge" data-notification-badge>0</span>
       </a>
@@ -24,7 +24,7 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
     </li>
 
     <li class="nav-item mb-2">
-      <a href="analytics-reports.php" class="nav-link text-white <?php echo (in_array($current_page, ['analytics-reports.php', 'analytics.php', 'reports.php'])) ? 'active' : ''; ?>">
+      <a href="analytics-reports.php" class="nav-link text-white <?php echo (in_array($current_page, ['analytics-reports.php', 'reports.php'])) ? 'active' : ''; ?>">
         <i class="fas fa-chart-bar me-2"></i>Analytics & Reports
       </a>
     </li>

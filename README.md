@@ -5,6 +5,7 @@ This is a DBMS project for the collaboration of IPT and IM subjects. All content
 # Purpose of the System
 
 To:
+
 - Centralize all project data
 - Allow real-time encoding and updating
 - Provide automated reporting and dashboard visualization
@@ -16,4 +17,4 @@ To:
 - Search and filter
 - Dashboard (charts/graphs)
 - Automated reports
-- Data export (PDF/Excel)
+- Data export (PDF)
