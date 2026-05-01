@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once 'config/database.php';
 require_once 'functions/helpers.php';
 
@@ -12,6 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $user_id = $_SESSION['user_id'];
+$approval_status = isSuperAdmin() ? 'Approved' : 'Pending';
 
 // Get and sanitize inputs
 $project_code = sanitize($_POST['project_code'] ?? '');
@@ -27,6 +27,7 @@ $unit = sanitize($_POST['unit'] ?? '');
 $province = sanitize($_POST['province'] ?? '');
 $municipality = sanitize($_POST['municipality'] ?? '');
 $barangay = sanitize($_POST['barangay'] ?? '');
+$district = sanitize($_POST['district'] ?? '');
 $latitude = floatval($_POST['latitude'] ?? 0);
 $longitude = floatval($_POST['longitude'] ?? 0);
 $proposed_amount = floatval($_POST['proposed_amount'] ?? 0);
@@ -54,27 +55,36 @@ $stmt = $conn->prepare("
     INSERT INTO projects (
         project_type, project_code, title, fund_source, funding_year, scope_of_work,
         beneficiary, description, implementation_schedule_days, quantity, unit,
-        province, municipality, barangay, latitude, longitude, proposed_amount,
-        allocated_amount, households_benefited, user_id
-    ) VALUES ('idp', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        province, municipality, barangay, district, latitude, longitude, proposed_amount,
+        allocated_amount, households_benefited, user_id, approval_status
+    ) VALUES ('idp', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ");
 
+if (!$stmt) {
+    echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $conn->error]);
+    exit;
+}
+
 $stmt->bind_param(
-    "sssisssidssssddddii",
+    "sssisssidsssssddddiis",
     $project_code, $project_title, $fund_source, $funding_year, $scope_of_work,
     $beneficiary, $description, $implementation_schedule_days, $quantity, $unit,
-    $province, $municipality, $barangay, $latitude, $longitude, $proposed_amount,
-    $allocated_amount, $households_benefited, $user_id
+    $province, $municipality, $barangay, $district, $latitude, $longitude, $proposed_amount,
+    $allocated_amount, $households_benefited, $user_id, $approval_status
 );
 
 if ($stmt->execute()) {
     $project_id = $stmt->insert_id;
     logAudit('CREATE_IDP_PROJECT', 'IDP', $project_id, null, $_POST);
     
+    $msg = $approval_status === 'Pending'
+        ? 'IDP project submitted for Super Admin approval. It will appear in the catalog once approved.'
+        : 'IDP Project registered successfully';
     echo json_encode([
         'status' => 'success',
-        'message' => 'IDP Project registered successfully',
-        'project_id' => $project_id
+        'message' => $msg,
+        'project_id' => $project_id,
+        'approval_status' => $approval_status,
     ]);
 } else {
     echo json_encode(['status' => 'error', 'message' => 'Error registering project']);
@@ -82,5 +92,4 @@ if ($stmt->execute()) {
 
 $stmt->close();
 $conn->close();
-?>
 

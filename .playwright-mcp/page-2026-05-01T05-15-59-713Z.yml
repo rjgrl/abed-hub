@@ -1,0 +1,369 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - img "AgriTrack Logo" [ref=e4]
+    - list [ref=e5]:
+      - listitem [ref=e6]:
+        - link " Dashboard" [ref=e7] [cursor=pointer]:
+          - /url: dashboard.php
+          - generic [ref=e8]: 
+          - text: Dashboard
+      - listitem [ref=e9]:
+        - link " Projects" [ref=e10] [cursor=pointer]:
+          - /url: projects-advanced.php
+          - generic [ref=e11]: 
+          - text: Projects
+      - listitem [ref=e12]:
+        - link " Analytics & Reports" [ref=e13] [cursor=pointer]:
+          - /url: analytics-reports.php
+          - generic [ref=e14]: 
+          - text: Analytics & Reports
+      - listitem [ref=e15]:
+        - link " GeoMap" [ref=e16] [cursor=pointer]:
+          - /url: geomap.php
+          - generic [ref=e17]: 
+          - text: GeoMap
+      - listitem [ref=e18]:
+        - link " Help & Guide" [ref=e19] [cursor=pointer]:
+          - /url: user-guide.php
+          - generic [ref=e20]: 
+          - text: Help & Guide
+      - separator [ref=e21]
+      - listitem [ref=e22]:
+        - generic [ref=e23]:
+          - generic [ref=e24]: 
+          - text: ADMIN TOOLS
+      - listitem [ref=e25]:
+        - link " User Management" [ref=e26] [cursor=pointer]:
+          - /url: admin-dashboard.php
+          - generic [ref=e27]: 
+          - text: User Management
+      - listitem [ref=e28]:
+        - link " System Settings" [ref=e29] [cursor=pointer]:
+          - /url: admin-settings.php
+          - generic [ref=e30]: 
+          - text: System Settings
+      - listitem [ref=e31]:
+        - link " Audit Log" [ref=e32] [cursor=pointer]:
+          - /url: admin-audit.php
+          - generic [ref=e33]: 
+          - text: Audit Log
+    - separator [ref=e34]
+    - list [ref=e35]:
+      - listitem [ref=e36]:
+        - link " Logout" [ref=e37] [cursor=pointer]:
+          - /url: logout.php
+          - generic [ref=e38]: 
+          - text: Logout
+  - generic [ref=e39]:
+    - link "ABED Logo ABED Integrated Data Management Hub Agricultural and Biosystems Engineering Division - LGU Malaybalay City" [ref=e40] [cursor=pointer]:
+      - /url: dashboard.php
+      - img "ABED Logo" [ref=e41]
+      - generic [ref=e42]:
+        - generic [ref=e43]: ABED Integrated Data Management Hub
+        - generic [ref=e44]: Agricultural and Biosystems Engineering Division - LGU Malaybalay City
+    - generic [ref=e46]:
+      - generic [ref=e47]:
+        - generic [ref=e48]: Glyn
+        - generic [ref=e49]: admin
+      - link "GL" [ref=e50] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=e51]: GL
+      - text:  
+  - navigation [ref=e52]:
+    - generic [ref=e53]:
+      - heading "System Management" [level=6] [ref=e54]
+      - generic [ref=e55]: Projects
+  - main [ref=e56]:
+    - generic [ref=e57]:
+      - generic [ref=e58]:
+        - generic [ref=e59]:
+          - heading "Projects" [level=1] [ref=e60]
+          - paragraph [ref=e61]: Browse and manage all projects
+        - generic [ref=e62]:
+          - button "+ New Project" [ref=e63] [cursor=pointer]:
+            - generic [ref=e64]: +
+            - text: New Project
+          - group [ref=e65]:
+            - button " Export" [ref=e66] [cursor=pointer]:
+              - generic [ref=e67]: 
+              - text: Export
+            - button " Select All" [ref=e68] [cursor=pointer]:
+              - generic [ref=e69]: 
+              - text: Select All
+            - group [ref=e70]:
+              - button " Batch Actions" [disabled]:
+                - generic: 
+                - text: Batch Actions
+              - text:   
+      - generic [ref=e73]:
+        - group [ref=e75]:
+          - radio "FSPF" [checked]
+          - generic [ref=e76] [cursor=pointer]: FSPF
+          - radio "IDP"
+          - generic [ref=e77] [cursor=pointer]: IDP
+          - radio "AFME"
+          - generic [ref=e78] [cursor=pointer]: AFME
+        - generic [ref=e80]:
+          - combobox [ref=e81]:
+            - option "Load Saved View..." [selected]
+          - button " Save View" [ref=e82] [cursor=pointer]:
+            - generic [ref=e83]: 
+            - text: Save View
+          - text: 
+        - textbox "Search by code or title" [ref=e85]
+        - combobox [ref=e87]:
+          - option "All Stages" [selected]
+          - option "Proposal"
+        - combobox [ref=e89]:
+          - option "2026" [selected]
+          - option "2025"
+          - option "2024"
+          - option "2023"
+          - option "2022"
+          - option "2021"
+          - option "2020"
+        - button " Filter" [ref=e91] [cursor=pointer]:
+          - generic [ref=e92]: 
+          - text: Filter
+      - generic [ref=e93]:
+        - text: Showing
+        - strong [ref=e94]: "2"
+        - text: of
+        - strong [ref=e95]: "2"
+        - text: FSPF projects
+      - table [ref=e98]:
+        - rowgroup [ref=e99]:
+          - row "Code Title Stage Physical Progress Financial Progress Allocated Amount Modified Action" [ref=e100]:
+            - columnheader [ref=e101]:
+              - checkbox [ref=e102]
+            - columnheader "Code" [ref=e103]
+            - columnheader "Title" [ref=e104]
+            - columnheader "Stage" [ref=e105]
+            - columnheader "Physical Progress" [ref=e106]
+            - columnheader "Financial Progress" [ref=e107]
+            - columnheader "Allocated Amount" [ref=e108]
+            - columnheader "Modified" [ref=e109]
+            - columnheader "Action" [ref=e110]
+        - rowgroup [ref=e111]:
+          - row "11 fritz Proposal 0% 0% ₱11 May 01, 2026  " [ref=e112]:
+            - cell [ref=e113]:
+              - checkbox [ref=e114]
+            - cell "11" [ref=e115]:
+              - strong [ref=e116]: "11"
+            - cell "fritz" [ref=e117]
+            - cell "Proposal" [ref=e118]:
+              - generic [ref=e119]: Proposal
+            - cell "0%" [ref=e120]:
+              - generic [ref=e121]:
+                - generic:
+                  - generic: 0%
+            - cell "0%" [ref=e122]:
+              - generic [ref=e123]:
+                - generic:
+                  - generic: 0%
+            - cell "₱11" [ref=e124]
+            - cell "May 01, 2026" [ref=e125]
+            - cell " " [ref=e126]:
+              - generic [ref=e127]:
+                - link "" [ref=e128] [cursor=pointer]:
+                  - /url: project-detail-enhanced.php?type=fspf&id=3
+                  - generic [ref=e129]: 
+                - link "" [ref=e130] [cursor=pointer]:
+                  - /url: scurve-monitoring.php?type=fspf&id=3
+                  - generic [ref=e131]: 
+          - row "FSPF-2026-MCP-001 Playwright MCP smoke test Proposal 30% 70% ₱50,000 May 01, 2026  " [ref=e132]:
+            - cell [ref=e133]:
+              - checkbox [ref=e134]
+            - cell "FSPF-2026-MCP-001" [ref=e135]:
+              - strong [ref=e136]: FSPF-2026-MCP-001
+            - cell "Playwright MCP smoke test" [ref=e137]
+            - cell "Proposal" [ref=e138]:
+              - generic [ref=e139]: Proposal
+            - cell "30%" [ref=e140]:
+              - generic [ref=e143]: 30%
+            - cell "70%" [ref=e144]:
+              - generic [ref=e147]: 70%
+            - cell "₱50,000" [ref=e148]
+            - cell "May 01, 2026" [ref=e149]
+            - cell " " [ref=e150]:
+              - generic [ref=e151]:
+                - link "" [ref=e152] [cursor=pointer]:
+                  - /url: project-detail-enhanced.php?type=fspf&id=2
+                  - generic [ref=e153]: 
+                - link "" [ref=e154] [cursor=pointer]:
+                  - /url: scurve-monitoring.php?type=fspf&id=2
+                  - generic [ref=e155]: 
+  - dialog [ref=e156]:
+    - generic [ref=e157]:
+      - generic [ref=e158]:
+        - heading "Register New Project" [level=5] [ref=e159]
+        - button [ref=e160] [cursor=pointer]
+      - generic [ref=e162]:
+        - generic [ref=e163]:
+          - generic [ref=e164]:
+            - text: Project Type
+            - generic [ref=e165]: "*"
+          - group [ref=e166]:
+            - radio "FSPF" [checked]
+            - generic [ref=e167] [cursor=pointer]: FSPF
+            - radio "IDP"
+            - generic [ref=e168] [cursor=pointer]: IDP
+            - radio "AFME"
+            - generic [ref=e169] [cursor=pointer]: AFME
+        - generic [ref=e170]:
+          - generic [ref=e171]:
+            - generic [ref=e172]:
+              - text: Project Code
+              - generic [ref=e173]: "*"
+            - textbox "e.g., FSPF-2026-001" [ref=e174]
+          - generic [ref=e175]:
+            - generic [ref=e176]:
+              - text: Funding Year
+              - generic [ref=e177]: "*"
+            - spinbutton [ref=e178]: "2026"
+          - generic [ref=e179]:
+            - generic [ref=e180]:
+              - text: Project Title
+              - generic [ref=e181]: "*"
+            - textbox "Enter project title" [ref=e182]
+          - generic [ref=e183]:
+            - generic [ref=e184]:
+              - text: Location
+              - generic [ref=e185]: (Philippines)
+            - generic [ref=e186]:
+              - button "Location (Philippines)" [expanded] [active] [ref=e187] [cursor=pointer]:
+                - generic [ref=e188]: Click to choose province, city/municipality, barangay…
+              - generic [ref=e213]:
+                - paragraph [ref=e214]: "Select in order: province → city or municipality → barangay; then optional purok, zone, or sitio."
+                - generic [ref=e215]:
+                  - generic [ref=e216]: Province
+                  - combobox "Province" [ref=e217]:
+                    - option "— Select province —"
+                    - option "Abra"
+                    - option "Agusan Del Norte"
+                    - option "Agusan Del Sur"
+                    - option "Aklan"
+                    - option "Albay"
+                    - option "Antique"
+                    - option "Apayao"
+                    - option "Aurora"
+                    - option "Basilan"
+                    - option "Bataan"
+                    - option "Batanes"
+                    - option "Batangas"
+                    - option "Benguet"
+                    - option "Biliran"
+                    - option "Bohol"
+                    - option "Bukidnon"
+                    - option "Bulacan"
+                    - option "Cagayan"
+                    - option "Camarines Norte"
+                    - option "Camarines Sur"
+                    - option "Camiguin"
+                    - option "Capiz"
+                    - option "Catanduanes"
+                    - option "Cavite"
+                    - option "Cebu" [selected]
+                    - option "Cotabato"
+                    - option "Davao De Oro"
+                    - option "Davao Del Norte"
+                    - option "Davao Del Sur"
+                    - option "Davao Occidental"
+                    - option "Davao Oriental"
+                    - option "Dinagat Islands"
+                    - option "Eastern Samar"
+                    - option "Guimaras"
+                    - option "Ifugao"
+                    - option "Ilocos Norte"
+                    - option "Ilocos Sur"
+                    - option "Iloilo"
+                    - option "Isabela"
+                    - option "Kalinga"
+                    - option "La Union"
+                    - option "Laguna"
+                    - option "Lanao Del Norte"
+                    - option "Lanao Del Sur"
+                    - option "Leyte"
+                    - option "Maguindanao"
+                    - option "Marinduque"
+                    - option "Masbate"
+                    - option "Misamis Occidental"
+                    - option "Misamis Oriental"
+                    - option "Mountain Province"
+                    - option "Negros Occidental"
+                    - option "Negros Oriental"
+                    - option "Northern Samar"
+                    - option "Nueva Ecija"
+                    - option "Nueva Vizcaya"
+                    - option "Occidental Mindoro"
+                    - option "Oriental Mindoro"
+                    - option "Palawan"
+                    - option "Pampanga"
+                    - option "Pangasinan"
+                    - option "Quezon"
+                    - option "Quirino"
+                    - option "Rizal"
+                    - option "Romblon"
+                    - option "Samar"
+                    - option "Sarangani"
+                    - option "Siquijor"
+                    - option "Sorsogon"
+                    - option "South Cotabato"
+                    - option "Southern Leyte"
+                    - option "Sultan Kudarat"
+                    - option "Sulu"
+                    - option "Surigao Del Norte"
+                    - option "Surigao Del Sur"
+                    - option "Tarlac"
+                    - option "Tawi-Tawi"
+                    - option "Zambales"
+                    - option "Zamboanga Del Norte"
+                    - option "Zamboanga Del Sur"
+                    - option "Zamboanga Sibugay"
+                - generic [ref=e218]:
+                  - generic [ref=e219]: City / Municipality
+                  - combobox "City / Municipality" [ref=e220]:
+                    - option "Loading…" [selected]
+                - generic [ref=e221]:
+                  - generic [ref=e222]: Barangay
+                  - combobox "Barangay" [disabled] [ref=e223]:
+                    - option "— Select barangay —" [selected]
+                - generic [ref=e224]:
+                  - generic [ref=e225]: Purok / Zone / Sitio
+                  - textbox "Purok / Zone / Sitio" [ref=e226]:
+                    - /placeholder: Optional (e.g. Purok 4, Zone II, Sitio Malinao)
+          - generic [ref=e189]:
+            - generic [ref=e190]:
+              - text: Fund Source
+              - generic [ref=e191]: "*"
+            - combobox [ref=e192]:
+              - option "Select fund source" [selected]
+              - option "National Government"
+              - option "Local Government Unit"
+              - option "Private"
+              - option "Donors"
+          - generic [ref=e193]:
+            - generic [ref=e194]: Beneficiary
+            - textbox "Enter beneficiary name" [ref=e195]
+          - generic [ref=e196]:
+            - generic [ref=e197]: Scope of Work
+            - combobox [ref=e198]:
+              - option "Select scope" [selected]
+              - option "Construction"
+              - option "Rehabilitation"
+              - option "Upgrading"
+              - option "Additional Work"
+          - generic [ref=e199]:
+            - generic [ref=e200]: Proposed Amount (₱)
+            - spinbutton [ref=e201]: "0"
+          - generic [ref=e202]:
+            - generic [ref=e203]: Allocated Amount (₱)
+            - spinbutton [ref=e204]: "0"
+          - generic [ref=e205]:
+            - generic [ref=e206]: Project Description
+            - textbox "Enter project description" [ref=e207]
+      - generic [ref=e208]:
+        - button "Cancel" [ref=e209] [cursor=pointer]
+        - button " Register Project" [ref=e210] [cursor=pointer]:
+          - generic [ref=e211]: 
+          - text: Register Project

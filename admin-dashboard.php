@@ -9,7 +9,7 @@ requireRoles(['admin']);
 $page_title = 'Super Admin Dashboard';
 $success_msg = '';
 $error_msg = '';
-$uploadStatusFilter = (string) ($_GET['upload_status'] ?? 'Pending');
+$uploadStatusFilter = (string) ($_GET['upload_status'] ?? 'all');
 $uploadSourceFilter = (string) ($_GET['upload_source'] ?? 'all');
 $allowedUploadStatus = ['all', 'Pending', 'Approved', 'Rejected'];
 $allowedUploadSource = ['all', 'project', 'afme'];
@@ -18,6 +18,39 @@ if (!in_array($uploadStatusFilter, $allowedUploadStatus, true)) {
 }
 if (!in_array($uploadSourceFilter, $allowedUploadSource, true)) {
     $uploadSourceFilter = 'all';
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'review_pending_project') {
+    $recordId = (int) ($_POST['record_id'] ?? 0);
+    $decision = (string) ($_POST['decision'] ?? '');
+    $allowedDecisions = ['Approved', 'Rejected'];
+    if ($recordId <= 0 || !in_array($decision, $allowedDecisions, true)) {
+        $error_msg = 'Invalid project review request.';
+    } else {
+        $chk = $conn->prepare('SELECT id, approval_status FROM projects WHERE id = ? LIMIT 1');
+        $chk->bind_param('i', $recordId);
+        $chk->execute();
+        $prow = $chk->get_result()->fetch_assoc();
+        $chk->close();
+        if (!$prow || (string) ($prow['approval_status'] ?? '') !== 'Pending') {
+            $error_msg = 'Project not found or not pending approval.';
+        } else {
+            $up = $conn->prepare('UPDATE projects SET approval_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND approval_status = ?');
+            $pending = 'Pending';
+            $up->bind_param('sis', $decision, $recordId, $pending);
+            if ($up->execute() && $up->affected_rows > 0) {
+                $success_msg = $decision === 'Approved'
+                    ? 'Project approved and is now visible in the catalog.'
+                    : 'Project registration rejected.';
+                logAudit('ADMIN_REVIEW_PROJECT_REGISTRATION', null, $recordId, null, [
+                    'decision' => $decision,
+                ]);
+            } else {
+                $error_msg = 'Failed to update project approval status.';
+            }
+            $up->close();
+        }
+    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'review_upload') {
@@ -108,12 +141,39 @@ if ($colCheck && $colCheck->num_rows > 0) {
     $hasProjectDocumentsColumn = true;
 }
 
+$projectRegs = $conn->query("
+    SELECT id, project_type, project_code, title, created_at, updated_at, user_id, approval_status
+    FROM projects
+    WHERE approval_status IN ('Pending', 'Approved', 'Rejected')
+    ORDER BY created_at DESC
+    LIMIT 50
+");
+if ($projectRegs) {
+    foreach ($projectRegs->fetch_all(MYSQLI_ASSOC) as $row) {
+        $uploaderId = (int) ($row['user_id'] ?? 0);
+        $allUploads[] = [
+            'source' => 'project_registration',
+            'record_id' => (int) $row['id'],
+            'doc_id' => 0,
+            'project_type' => strtoupper((string) ($row['project_type'] ?? '')),
+            'project_id' => (int) $row['id'],
+            'doc_type' => 'New project registration',
+            'file_name' => (string) ($row['title'] ?? 'Untitled'),
+            'upload_date' => $row['created_at'] ?? $row['updated_at'],
+            'uploaded_by_name' => $userNames[$uploaderId] ?? 'Unknown',
+            'review_status' => (string) ($row['approval_status'] ?? 'Pending'),
+            'project_code' => (string) ($row['project_code'] ?? ''),
+        ];
+    }
+}
+
 $projectUploads = false;
 if ($hasProjectDocumentsColumn) {
     $projectUploads = $conn->query("
         SELECT id, project_type, documents, updated_at
         FROM projects
-        WHERE documents IS NOT NULL AND documents <> '' AND documents <> '[]'
+        WHERE approval_status = 'Approved'
+          AND documents IS NOT NULL AND documents <> '' AND documents <> '[]'
         ORDER BY updated_at DESC
         LIMIT 100
     ");
@@ -194,8 +254,14 @@ foreach ($allUploads as $upload) {
     if ($uploadStatusFilter !== 'all' && $status !== $uploadStatusFilter) {
         continue;
     }
-    if ($uploadSourceFilter !== 'all' && $source !== $uploadSourceFilter) {
-        continue;
+    if ($uploadSourceFilter !== 'all') {
+        if ($uploadSourceFilter === 'project') {
+            if (!in_array($source, ['project', 'project_registration'], true)) {
+                continue;
+            }
+        } elseif ($source !== $uploadSourceFilter) {
+            continue;
+        }
     }
     $recentUploads[] = $upload;
 }
@@ -330,12 +396,18 @@ renderAppLayout($page_title);
                             </thead>
                             <tbody>
                                 <?php foreach ($recentUploads as $upload): ?>
+                                    <?php
+                                    $isRegistration = (($upload['source'] ?? '') === 'project_registration');
+                                    $projLabel = ($upload['project_type'] ?? 'N/A')
+                                        . ' '
+                                        . ($upload['project_code'] ?? ('#' . (int) ($upload['project_id'] ?? 0)));
+                                    ?>
                                     <tr>
                                         <td>
                                             <strong><?php echo htmlspecialchars($upload['file_name'] ?? 'Unnamed file'); ?></strong><br>
                                             <small class="text-muted"><?php echo htmlspecialchars($upload['doc_type'] ?? 'Document'); ?></small>
                                         </td>
-                                        <td><?php echo htmlspecialchars(($upload['project_type'] ?? 'N/A') . ' #' . ($upload['project_id'] ?? '')); ?></td>
+                                        <td><?php echo htmlspecialchars($projLabel); ?></td>
                                         <td><?php echo htmlspecialchars($upload['uploaded_by_name'] ?? 'Unknown'); ?></td>
                                         <td>
                                             <?php $reviewStatus = (string) ($upload['review_status'] ?? 'Pending'); ?>
@@ -343,22 +415,37 @@ renderAppLayout($page_title);
                                                 <?php echo htmlspecialchars($reviewStatus); ?>
                                             </span>
                                             <div class="btn-group btn-group-sm ms-2">
-                                                <form method="POST" class="d-inline">
-                                                    <input type="hidden" name="action" value="review_upload">
-                                                    <input type="hidden" name="source" value="<?php echo htmlspecialchars((string) $upload['source']); ?>">
-                                                    <input type="hidden" name="record_id" value="<?php echo (int) $upload['record_id']; ?>">
-                                                    <input type="hidden" name="doc_id" value="<?php echo (int) $upload['doc_id']; ?>">
-                                                    <input type="hidden" name="decision" value="Approved">
-                                                    <button type="submit" class="btn btn-outline-success" title="Approve"><i class="fas fa-check"></i></button>
-                                                </form>
-                                                <form method="POST" class="d-inline">
-                                                    <input type="hidden" name="action" value="review_upload">
-                                                    <input type="hidden" name="source" value="<?php echo htmlspecialchars((string) $upload['source']); ?>">
-                                                    <input type="hidden" name="record_id" value="<?php echo (int) $upload['record_id']; ?>">
-                                                    <input type="hidden" name="doc_id" value="<?php echo (int) $upload['doc_id']; ?>">
-                                                    <input type="hidden" name="decision" value="Rejected">
-                                                    <button type="submit" class="btn btn-outline-danger" title="Reject"><i class="fas fa-times"></i></button>
-                                                </form>
+                                                <?php if ($isRegistration && $reviewStatus === 'Pending'): ?>
+                                                    <form method="POST" class="d-inline">
+                                                        <input type="hidden" name="action" value="review_pending_project">
+                                                        <input type="hidden" name="record_id" value="<?php echo (int) $upload['record_id']; ?>">
+                                                        <input type="hidden" name="decision" value="Approved">
+                                                        <button type="submit" class="btn btn-outline-success" title="Approve project"><i class="fas fa-check"></i></button>
+                                                    </form>
+                                                    <form method="POST" class="d-inline">
+                                                        <input type="hidden" name="action" value="review_pending_project">
+                                                        <input type="hidden" name="record_id" value="<?php echo (int) $upload['record_id']; ?>">
+                                                        <input type="hidden" name="decision" value="Rejected">
+                                                        <button type="submit" class="btn btn-outline-danger" title="Reject registration"><i class="fas fa-times"></i></button>
+                                                    </form>
+                                                <?php elseif (!$isRegistration): ?>
+                                                    <form method="POST" class="d-inline">
+                                                        <input type="hidden" name="action" value="review_upload">
+                                                        <input type="hidden" name="source" value="<?php echo htmlspecialchars((string) $upload['source']); ?>">
+                                                        <input type="hidden" name="record_id" value="<?php echo (int) $upload['record_id']; ?>">
+                                                        <input type="hidden" name="doc_id" value="<?php echo (int) $upload['doc_id']; ?>">
+                                                        <input type="hidden" name="decision" value="Approved">
+                                                        <button type="submit" class="btn btn-outline-success" title="Approve"><i class="fas fa-check"></i></button>
+                                                    </form>
+                                                    <form method="POST" class="d-inline">
+                                                        <input type="hidden" name="action" value="review_upload">
+                                                        <input type="hidden" name="source" value="<?php echo htmlspecialchars((string) $upload['source']); ?>">
+                                                        <input type="hidden" name="record_id" value="<?php echo (int) $upload['record_id']; ?>">
+                                                        <input type="hidden" name="doc_id" value="<?php echo (int) $upload['doc_id']; ?>">
+                                                        <input type="hidden" name="decision" value="Rejected">
+                                                        <button type="submit" class="btn btn-outline-danger" title="Reject"><i class="fas fa-times"></i></button>
+                                                    </form>
+                                                <?php endif; ?>
                                             </div>
                                         </td>
                                     </tr>

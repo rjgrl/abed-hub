@@ -21,7 +21,7 @@ $html .= '<p><strong>Year:</strong> ' . htmlspecialchars((string) $year) . ' &nb
 
 $summary = $conn->query("
     SELECT
-        (SELECT COUNT(*) FROM projects) AS total_projects
+        (SELECT COUNT(*) FROM projects WHERE approval_status = 'Approved') AS total_projects
 ")->fetch_assoc();
 
 $html .= '<table width="100%" cellpadding="8" cellspacing="0" border="1" style="border-collapse: collapse; font-size: 12px;">';

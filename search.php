@@ -42,6 +42,7 @@ foreach ($type_filter as $type) {
                 SELECT project_type, id, project_code, title AS project_title, municipality,
                        proposed_amount, allocated_amount, current_stage, physical_progress, financial_progress, created_at
                 FROM projects
+                WHERE approval_status = 'Approved'
            ) p
            WHERE 1=1";
     $q .= " AND p.project_type = '" . $conn->real_escape_string($type) . "'";
@@ -94,7 +95,7 @@ if (!empty($queries)) {
 // Get facet data for sidebar
 $types_facet = [];
 foreach (['fspf', 'idp', 'afme'] as $t) {
-    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM projects WHERE project_type = ?");
+    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM projects WHERE project_type = ? AND approval_status = 'Approved'");
     $stmt->bind_param('s', $t);
     $stmt->execute();
     $result = $stmt->get_result()->fetch_assoc();
@@ -102,18 +103,18 @@ foreach (['fspf', 'idp', 'afme'] as $t) {
 }
 
 // Get stages facet
-$stages_facet_query = "SELECT DISTINCT current_stage as stage FROM projects ORDER BY stage ASC";
+$stages_facet_query = "SELECT DISTINCT current_stage as stage FROM projects WHERE approval_status = 'Approved' ORDER BY stage ASC";
 $stages_facet = $conn->query($stages_facet_query)->fetch_all(MYSQLI_ASSOC);
 
 // Get years facet
-$years_facet_query = "SELECT DISTINCT YEAR(created_at) as year FROM projects ORDER BY year DESC";
+$years_facet_query = "SELECT DISTINCT YEAR(created_at) as year FROM projects WHERE approval_status = 'Approved' ORDER BY year DESC";
 $years_facet = $conn->query($years_facet_query)->fetch_all(MYSQLI_ASSOC);
 
 // Get locations facet
 $locations_facet_query = "
     SELECT DISTINCT municipality
     FROM projects
-    WHERE municipality IS NOT NULL AND municipality <> ''
+    WHERE approval_status = 'Approved' AND municipality IS NOT NULL AND municipality <> ''
     ORDER BY municipality ASC
 ";
 $locations_facet = $conn->query($locations_facet_query)->fetch_all(MYSQLI_ASSOC);

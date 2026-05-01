@@ -57,6 +57,15 @@ function isSuperAdmin() {
 }
 
 /**
+ * SQL fragment: projects that appear in the live catalog (maps, search, reports).
+ * Non-admin registrations are stored with approval_status = 'Pending' until a Super Admin approves.
+ */
+function sqlProjectsCatalogApproved(string $tableAlias = ''): string {
+    $prefix = $tableAlias !== '' ? $tableAlias . '.' : '';
+    return "{$prefix}approval_status = 'Approved'";
+}
+
+/**
  * Route all users through one dashboard entry point.
  */
 function getDashboardRoute() {
@@ -120,7 +129,7 @@ function logAudit($action, $projectType = null, $projectId = null, $oldValues = 
     if (!$stmt) return false;
     
     $stmt->bind_param(
-        "issiisss",
+        "ississss",
         $userId, $action, $projectType, $projectId, $oldValuesJson, $newValuesJson, $ipAddress, $userAgent
     );
     

@@ -14,14 +14,17 @@ $stmt = $conn->prepare("
     SELECT UPPER(project_type) as type, id, project_code, title AS project_title, current_stage, latitude, longitude,
            allocated_amount, municipality, province
     FROM projects
-    WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+    WHERE approval_status = 'Approved'
+      AND latitude IS NOT NULL AND longitude IS NOT NULL
+      AND NOT (latitude = 0 AND longitude = 0)
+      AND latitude BETWEEN 4.2 AND 21.7 AND longitude BETWEEN 116.0 AND 127.6
 ");
 $stmt->execute();
 $projects = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 ?>
 <?php
 require_once __DIR__ . '/components/layout.php';
-$extra_head = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />\n'
+$extra_head = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />'
     . '<style>#map{height:600px;width:100%;}.project-marker{border-radius:50%;width:20px;height:20px;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.3);} .fspf-marker{background-color:#007bff;} .idp-marker{background-color:#28a745;} .afme-marker{background-color:#ffc107;}</style>';
 renderAppLayout($page_title, $extra_head);
 ?>
@@ -34,7 +37,7 @@ renderAppLayout($page_title, $extra_head);
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <h4 class="mb-0"><i class="fas fa-map-marked-alt me-2"></i><?php echo htmlspecialchars($page_title ?? 'GeoMap'); ?></h4>
-                                <small>View all projects with coordinates on an interactive map</small>
+                                <small>Philippines only — markers use coordinates saved when registering FSPF, IDP, or AFME projects</small>
                             </div>
                             <div>
                                 <span class="badge bg-light text-dark"><?php echo count($projects); ?> Projects Mapped</span>
@@ -65,8 +68,8 @@ renderAppLayout($page_title, $extra_head);
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Legend</label>
-                                <div class="d-flex gap-3">
+                                <label class="form-label">Legend <span class="text-muted fw-normal">(project type)</span></label>
+                                <div class="d-flex flex-wrap gap-3">
                                     <div class="d-flex align-items-center">
                                         <div class="project-marker fspf-marker me-2"></div>
                                         <small>FSPF Projects</small>
@@ -176,8 +179,15 @@ renderAppLayout($page_title, $extra_head);
     <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            // Initialize map centered on Bukidnon, Philippines
-            const map = L.map('map').setView([8.1542, 125.1207], 9);
+            const PH_BOUNDS = L.latLngBounds([4.2, 116.0], [21.7, 127.6]);
+            const PH_CENTER = [12.5, 122.5];
+
+            const map = L.map('map', {
+                maxBounds: PH_BOUNDS.pad(0.12),
+                minZoom: 5,
+                maxZoom: 18,
+                maxBoundsViscosity: 0.85
+            }).setView(PH_CENTER, 6);
 
             // Add OpenStreetMap tiles
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -257,10 +267,31 @@ renderAppLayout($page_title, $extra_head);
             document.getElementById('typeFilter').addEventListener('change', filterMarkers);
             document.getElementById('statusFilter').addEventListener('change', filterMarkers);
 
-            // Fit map to show all markers
+            function clampBoundsToPhilippines(bounds) {
+                const sw = bounds.getSouthWest();
+                const ne = bounds.getNorthEast();
+                const swClamped = L.latLng(
+                    Math.max(sw.lat, PH_BOUNDS.getSouth()),
+                    Math.max(sw.lng, PH_BOUNDS.getWest())
+                );
+                const neClamped = L.latLng(
+                    Math.min(ne.lat, PH_BOUNDS.getNorth()),
+                    Math.min(ne.lng, PH_BOUNDS.getEast())
+                );
+                return L.latLngBounds(swClamped, neClamped);
+            }
+
+            // Fit map to markers, always staying within the Philippines
             if (markers.length > 0) {
                 const group = new L.featureGroup(markers.map(item => item.marker));
-                map.fitBounds(group.getBounds().pad(0.1));
+                let b = clampBoundsToPhilippines(group.getBounds().pad(0.12));
+                if (b.isValid()) {
+                    map.fitBounds(b, { maxZoom: 14, padding: [28, 28] });
+                } else {
+                    map.fitBounds(PH_BOUNDS, { padding: [20, 20] });
+                }
+            } else {
+                map.fitBounds(PH_BOUNDS, { padding: [12, 12] });
             }
         });
     </script>

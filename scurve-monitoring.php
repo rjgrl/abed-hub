@@ -32,7 +32,8 @@ if ($project_id) {
             id, project_code, title AS project_title,
             proposed_amount, allocated_amount,
             physical_progress, financial_progress,
-            current_stage, created_at, updated_at
+            current_stage, created_at, updated_at,
+            approval_status, user_id
         FROM $table_name
         WHERE id = ? AND project_type = ?
     ");
@@ -43,6 +44,14 @@ if ($project_id) {
 
     if (!$project) {
         die('Project not found');
+    }
+    $approval = (string) ($project['approval_status'] ?? 'Approved');
+    if ($approval !== 'Approved') {
+        $uid = (int) ($_SESSION['user_id'] ?? 0);
+        $owner = (int) ($project['user_id'] ?? 0);
+        if (!isSuperAdmin() && $owner !== $uid) {
+            die('Project not found');
+        }
     }
 
     // Generate S-Curve timeline data
@@ -84,7 +93,7 @@ if ($project_id) {
                     AVG(financial_progress) as avg_financial,
                     COUNT(*) as count
                   FROM projects
-                  WHERE YEAR(created_at) = ? AND project_type = ?";
+                  WHERE YEAR(created_at) = ? AND project_type = ? AND approval_status = 'Approved'";
 
         $stmt = $conn->prepare($query);
         $stmt->bind_param('is', $year, $typeKey);
@@ -107,7 +116,7 @@ if (!$project_id) {
                 UPPER(project_type) as type, id, project_code, title AS project_title,
                 physical_progress, financial_progress, current_stage
               FROM projects
-              WHERE YEAR(created_at) = ?
+              WHERE YEAR(created_at) = ? AND approval_status = 'Approved'
               ORDER BY physical_progress DESC
               LIMIT 20";
     

@@ -4,20 +4,20 @@ session_start();
 require_once 'config/database.php';
 
 // Get overview statistics
-$fspf_count = $conn->query("SELECT COUNT(*) as total FROM projects WHERE project_type = 'fspf'")->fetch_assoc()['total'];
-$idp_count = $conn->query("SELECT COUNT(*) as total FROM projects WHERE project_type = 'idp'")->fetch_assoc()['total'];
+$fspf_count = $conn->query("SELECT COUNT(*) as total FROM projects WHERE project_type = 'fspf' AND approval_status = 'Approved'")->fetch_assoc()['total'];
+$idp_count = $conn->query("SELECT COUNT(*) as total FROM projects WHERE project_type = 'idp' AND approval_status = 'Approved'")->fetch_assoc()['total'];
 $afme_count = $conn->query("SELECT COUNT(*) as total FROM afme")->fetch_assoc()['total'];
 
 // Get funded amounts
-$fspf_funded = $conn->query("SELECT SUM(allocated_amount) as total FROM projects WHERE project_type = 'fspf'")->fetch_assoc()['total'] ?? 0;
-$idp_funded = $conn->query("SELECT SUM(allocated_amount) as total FROM projects WHERE project_type = 'idp'")->fetch_assoc()['total'] ?? 0;
+$fspf_funded = $conn->query("SELECT SUM(allocated_amount) as total FROM projects WHERE project_type = 'fspf' AND approval_status = 'Approved'")->fetch_assoc()['total'] ?? 0;
+$idp_funded = $conn->query("SELECT SUM(allocated_amount) as total FROM projects WHERE project_type = 'idp' AND approval_status = 'Approved'")->fetch_assoc()['total'] ?? 0;
 $afme_funded = $conn->query("SELECT SUM(amount_allocated) as total FROM afme")->fetch_assoc()['total'] ?? 0;
 
 // Get recent projects (FSPF)
 $fspf_recent = $conn->query("
     SELECT id, project_code, title AS project_title, allocated_amount, current_stage, physical_progress
     FROM projects
-    WHERE project_type = 'fspf'
+    WHERE project_type = 'fspf' AND approval_status = 'Approved'
     ORDER BY created_at DESC
     LIMIT 5
 ")->fetch_all(MYSQLI_ASSOC);
@@ -26,7 +26,7 @@ $fspf_recent = $conn->query("
 $idp_recent = $conn->query("
     SELECT id, project_code, title AS project_title, allocated_amount, current_stage, physical_progress
     FROM projects
-    WHERE project_type = 'idp'
+    WHERE project_type = 'idp' AND approval_status = 'Approved'
     ORDER BY created_at DESC
     LIMIT 5
 ")->fetch_all(MYSQLI_ASSOC);
@@ -44,7 +44,8 @@ $approved_uploads = [];
 $approvedProjectDocs = $conn->query("
     SELECT id, project_code, title AS project_title, project_type, documents
     FROM projects
-    WHERE documents IS NOT NULL AND documents <> '' AND documents <> '[]'
+    WHERE approval_status = 'Approved'
+      AND documents IS NOT NULL AND documents <> '' AND documents <> '[]'
 ");
 if ($approvedProjectDocs) {
     foreach ($approvedProjectDocs->fetch_all(MYSQLI_ASSOC) as $row) {
@@ -70,7 +71,7 @@ if ($approvedProjectDocs) {
 $approvedAfmeDocs = $conn->query("
     SELECT a.id, a.machine_name, a.documents, p.project_code
     FROM afme a
-    LEFT JOIN projects p ON p.id = a.project_id
+    INNER JOIN projects p ON p.id = a.project_id AND p.approval_status = 'Approved'
     WHERE a.documents IS NOT NULL AND a.documents <> '' AND a.documents <> '[]'
 ");
 if ($approvedAfmeDocs) {
@@ -103,6 +104,7 @@ $approved_uploads = array_slice($approved_uploads, 0, 12);
 $stage_breakdown = $conn->query("
     SELECT UPPER(project_type) AS project_type, current_stage, COUNT(*) as count
     FROM projects
+    WHERE approval_status = 'Approved'
     GROUP BY project_type, current_stage
 ")->fetch_all(MYSQLI_ASSOC);
 

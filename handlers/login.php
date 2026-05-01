@@ -35,9 +35,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $user = $result->fetch_assoc();
 
-    // Check if user is active
-    if (!$user['is_active']) {
-        echo json_encode(['status' => 'error', 'message' => 'Account is inactive']);
+    // Pending approval (is_active = 0) or deactivated account
+    if (!(int) $user['is_active']) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Your account is pending Super Admin approval or has been deactivated. You cannot log in yet.',
+        ]);
         exit;
     }
 
