@@ -279,10 +279,10 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                                                     <span class="badge" style="background-color: 
                                                         <?php echo match($stage['current_stage']) {
                                                             'Proposal' => '#6c757d',
-                                                            'Pre-Implementation' => '#17a2b8',
+                                                            'Pre-Implementation' => '#7eb8d9',
                                                             'Procurement' => '#ffc107',
-                                                            'Implementation' => '#0d6efd',
-                                                            'Completed', 'Turned-Over' => '#28a745',
+                                                            'Implementation' => '#5b8def',
+                                                            'Completed', 'Turned-Over' => '#5fd4a8',
                                                             default => '#e3e3e3'
                                                         }; ?>;  color: <?php echo match($stage['current_stage']) {
                                                             'Procurement' => 'black',
@@ -353,7 +353,7 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                 labels: ['FSPF', 'IDP', 'AFME'],
                 datasets: [{
                     data: [<?php echo $fspf_count; ?>, <?php echo $idp_count; ?>, <?php echo $afme_count; ?>],
-                    backgroundColor: ['#0d6efd', '#17a2b8', '#28a745']
+                    backgroundColor: ['#5b8def', '#c694f9', '#5fd4a8']
                 }]
             },
             options: {
@@ -374,7 +374,7 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                 datasets: [{
                     label: 'Count',
                     data: stageCounts,
-                    backgroundColor: ['#6c757d', '#17a2b8', '#ffc107', '#0d6efd', '#28a745']
+                    backgroundColor: ['#9ca3af', '#c694f9', '#f5c57a', '#5b8def', '#5fd4a8']
                 }]
             },
             options: {
@@ -403,8 +403,8 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                 datasets: [{
                     label: 'Projects Created',
                     data: monthlyCount,
-                    borderColor: '#0d6efd',
-                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    borderColor: '#5b8def',
+                    backgroundColor: 'rgba(91, 141, 239, 0.12)',
                     tension: 0.4
                 }]
             },

@@ -85,6 +85,24 @@ if (is_array($rawDocs)) {
 }
 
 $financial_records = [];
+$rawFinancial = json_decode((string) ($project['financial_entries'] ?? '[]'), true);
+if (is_array($rawFinancial)) {
+    foreach ($rawFinancial as $entry) {
+        if (!is_array($entry)) {
+            continue;
+        }
+        $financial_records[] = [
+            'record_type' => (string) ($entry['record_type'] ?? 'Other'),
+            'amount' => (float) ($entry['amount'] ?? 0),
+            'reference_number' => (string) ($entry['reference_number'] ?? ''),
+            'record_date' => (string) ($entry['record_date'] ?? ''),
+            'record_status' => (string) ($entry['record_status'] ?? 'Active'),
+        ];
+    }
+    usort($financial_records, static function ($a, $b) {
+        return strcmp((string) ($b['record_date'] ?? ''), (string) ($a['record_date'] ?? ''));
+    });
+}
 
 // Fetch machinery if AFME project
 $machinery = [];
@@ -101,6 +119,13 @@ $auditProjectType = strtoupper($project_type);
 $audit_stmt->bind_param('si', $auditProjectType, $project_id);
 $audit_stmt->execute();
 $audit_log = $audit_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+$physicalProgressRaw = (float) ($project['physical_progress'] ?? 0);
+$financialProgressRaw = (float) ($project['financial_progress'] ?? 0);
+$physicalProgressDisplay = round($physicalProgressRaw, 1);
+$financialProgressDisplay = round($financialProgressRaw, 1);
+$physicalProgressWidth = max(0, min(100, $physicalProgressRaw));
+$financialProgressWidth = max(0, min(100, $financialProgressRaw));
 
 ?>
 <!DOCTYPE html>
@@ -136,11 +161,11 @@ $audit_log = $audit_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                             </span>
                             <span class="badge" style="background-color: 
                                 <?php echo match($project['current_stage']) {
-                                    'Proposal' => '#6c757d',
-                                    'Pre-Implementation' => '#17a2b8',
-                                    'Procurement' => '#ffc107',
-                                    'Implementation' => '#0d6efd',
-                                    'Completed', 'Turned-Over' => '#28a745',
+                                    'Proposal' => '#9ca3af',
+                                    'Pre-Implementation' => '#7eb8d9',
+                                    'Procurement' => '#f5c57a',
+                                    'Implementation' => '#5b8def',
+                                    'Completed', 'Turned-Over' => '#5fd4a8',
                                     default => '#e3e3e3'
                                 }; ?>; color: <?php echo match($project['current_stage']) {
                                     'Procurement' => 'black',
@@ -159,6 +184,9 @@ $audit_log = $audit_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                     <div class="btn-group">
                         <button type="button" class="btn btn-outline-primary btn-sm" id="editBtn">
                             <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button type="button" class="btn btn-outline-dark btn-sm" id="printBtn">
+                            <i class="fas fa-print"></i> Print
                         </button>
                         <a href="scurve-monitoring.php?type=<?php echo $project_type; ?>&id=<?php echo $project_id; ?>" class="btn btn-outline-info btn-sm">
                             <i class="fas fa-chart-line"></i> S-Curve
@@ -245,22 +273,21 @@ $audit_log = $audit_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                                 </div>
                                 <div class="card-body">
                                     <div class="mb-4">
-                                        <label class="form-label">Physical Progress: <strong><?php echo round($project['physical_progress'], 1); ?>%</strong></label>
+                                        <label class="form-label">Physical Progress: <strong><?php echo $physicalProgressDisplay; ?>%</strong></label>
                                         <div class="progress" style="height: 30px;">
-                                            <div class="progress-bar" style="width: <?php echo $project['physical_progress']; ?>%; background-color: #0d6efd;">
-                                                <?php echo round($project['physical_progress'], 1); ?>%
+                                            <div class="progress-bar" style="width: <?php echo $physicalProgressWidth; ?>%; background-color: #5b8def;">
+                                                <?php echo $physicalProgressDisplay; ?>%
                                             </div>
                                         </div>
                                     </div>
                                     <div class="mb-4">
-                                        <label class="form-label">Financial Progress: <strong><?php echo round($project['financial_progress'], 1); ?>%</strong></label>
+                                        <label class="form-label">Financial Progress: <strong><?php echo $financialProgressDisplay; ?>%</strong></label>
                                         <div class="progress" style="height: 30px;">
-                                            <div class="progress-bar bg-success" style="width: <?php echo $project['financial_progress']; ?>%;">
-                                                <?php echo round($project['financial_progress'], 1); ?>%
+                                            <div class="progress-bar bg-success" style="width: <?php echo $financialProgressWidth; ?>%;">
+                                                <?php echo $financialProgressDisplay; ?>%
                                             </div>
                                         </div>
                                     </div>
-                                    <canvas id="progressChart" height="80"></canvas>
                                 </div>
                             </div>
                         </div>
@@ -331,25 +358,31 @@ $audit_log = $audit_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php foreach ($financial_records as $record): ?>
+                                        <?php if (empty($financial_records)): ?>
                                             <tr>
-                                                <td>
-                                                    <span class="badge" style="background-color: 
-                                                        <?php echo match($record['record_type']) {
-                                                            'Obligation' => '#0d6efd',
-                                                            'Disbursement' => '#28a745',
-                                                            'Liquidation' => '#17a2b8',
-                                                            default => '#6c757d'
-                                                        }; ?>">
-                                                        <?php echo htmlspecialchars($record['record_type']); ?>
-                                                    </span>
-                                                </td>
-                                                <td>₱<?php echo number_format($record['amount'], 2); ?></td>
-                                                <td><?php echo htmlspecialchars($record['reference_number'] ?? '-'); ?></td>
-                                                <td><?php echo date('M d, Y', strtotime($record['record_date'])); ?></td>
-                                                <td><?php echo htmlspecialchars($record['record_status']); ?></td>
+                                                <td colspan="5" class="text-center text-muted py-3">No financial records yet.</td>
                                             </tr>
-                                        <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <?php foreach ($financial_records as $record): ?>
+                                                <tr>
+                                                    <td>
+                                                        <span class="badge" style="background-color: 
+                                                            <?php echo match($record['record_type']) {
+                                                                'Obligation' => '#5b8def',
+                                                                'Disbursement' => '#5fd4a8',
+                                                                'Liquidation' => '#7eb8d9',
+                                                                default => '#6c757d'
+                                                            }; ?>">
+                                                            <?php echo htmlspecialchars($record['record_type']); ?>
+                                                        </span>
+                                                    </td>
+                                                    <td>₱<?php echo number_format((float) $record['amount'], 2); ?></td>
+                                                    <td><?php echo htmlspecialchars($record['reference_number'] !== '' ? $record['reference_number'] : '-'); ?></td>
+                                                    <td><?php echo $record['record_date'] !== '' ? date('M d, Y', strtotime($record['record_date'])) : '—'; ?></td>
+                                                    <td><?php echo htmlspecialchars($record['record_status']); ?></td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
                                     </tbody>
                                 </table>
                             </div>
@@ -391,6 +424,9 @@ $audit_log = $audit_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                                                     <td><?php echo htmlspecialchars($doc['uploaded_by']); ?></td>
                                                     <td><?php echo $doc['upload_date'] !== '' ? date('M d, Y', strtotime($doc['upload_date'])) : '—'; ?></td>
                                                     <td>
+                                                        <a href="api/documents.php?action=preview&amp;project_id=<?php echo (int) $project_id; ?>&amp;project_type=<?php echo htmlspecialchars($project_type, ENT_QUOTES, 'UTF-8'); ?>&amp;id=<?php echo (int) $doc['id']; ?>" class="btn btn-xs btn-outline-secondary" target="_blank" rel="noopener" title="View">
+                                                            <i class="fas fa-eye"></i>
+                                                        </a>
                                                         <a href="api/documents.php?action=download&amp;project_id=<?php echo (int) $project_id; ?>&amp;project_type=<?php echo htmlspecialchars($project_type, ENT_QUOTES, 'UTF-8'); ?>&amp;id=<?php echo (int) $doc['id']; ?>" class="btn btn-xs btn-outline-primary">
                                                             <i class="fas fa-download"></i>
                                                         </a>
@@ -516,12 +552,55 @@ $audit_log = $audit_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                         </div>
                         <div class="mb-3">
                             <label class="form-label">File</label>
-                            <input type="file" class="form-control" name="document_file" required accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                            <input type="file" class="form-control" name="document_file" required accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp,.gif,.heic,.heif">
+                            <div class="form-text">Allowed: PDF, DOC, DOCX, JPG, PNG, WEBP, GIF, HEIC, HEIF (max 10MB)</div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary">Upload</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addFinancialModal" tabindex="-1" aria-labelledby="addFinancialModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addFinancialModalLabel">Add financial record</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="addFinancialForm">
+                    <div class="modal-body">
+                        <input type="hidden" name="project_id" value="<?php echo (int) $project_id; ?>">
+                        <input type="hidden" name="project_type" value="<?php echo htmlspecialchars($project_type, ENT_QUOTES, 'UTF-8'); ?>">
+                        <div class="mb-3">
+                            <label class="form-label">Type</label>
+                            <select class="form-select" name="record_type" required>
+                                <option value="">— Select —</option>
+                                <option value="Obligation">Obligation</option>
+                                <option value="Disbursement">Disbursement</option>
+                                <option value="Liquidation">Liquidation</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Amount</label>
+                            <input type="number" class="form-control" name="amount" min="0.01" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Reference</label>
+                            <input type="text" class="form-control" name="reference_number" maxlength="100" placeholder="Optional reference number">
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label">Particulars</label>
+                            <textarea class="form-control" name="particulars" rows="3" maxlength="500" placeholder="Optional details"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save record</button>
                     </div>
                 </form>
             </div>
@@ -580,24 +659,9 @@ $audit_log = $audit_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             const modal = new bootstrap.Modal(document.getElementById('editModal'));
             modal.show();
         });
-
-        // Progress chart
-        new Chart(document.getElementById('progressChart'), {
-            type: 'bar',
-            data: {
-                labels: ['Physical', 'Financial'],
-                datasets: [{
-                    label: 'Progress (%)',
-                    data: [<?php echo round($project['physical_progress'], 1); ?>, <?php echo round($project['financial_progress'], 1); ?>],
-                    backgroundColor: ['#0d6efd', '#28a745']
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: { x: { max: 100, ticks: { callback: v => v + '%' } } }
-            }
+        document.getElementById('printBtn').addEventListener('click', function() {
+            const url = 'exports/project-detail-pdf.php?type=' + encodeURIComponent(projectType) + '&id=' + encodeURIComponent(projectId);
+            window.open(url, '_blank', 'noopener');
         });
 
         // Stage chart
@@ -610,7 +674,7 @@ $audit_log = $audit_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                 labels: stages,
                 datasets: [{
                     data: [20, 20, 20, 20, 20],
-                    backgroundColor: ['#6c757d', '#17a2b8', '#ffc107', '#0d6efd', '#28a745']
+                    backgroundColor: ['#9ca3af', '#c694f9', '#f5c57a', '#5b8def', '#5fd4a8']
                 }]
             },
             options: {
@@ -656,6 +720,42 @@ $audit_log = $audit_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             });
         }
 
+        const addFinancialForm = document.getElementById('addFinancialForm');
+        if (addFinancialForm) {
+            addFinancialForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const prev = submitBtn ? submitBtn.innerHTML : '';
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                }
+                try {
+                    const response = await fetch('api/financial.php?action=create', {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'same-origin'
+                    });
+                    const data = await response.json().catch(function () { return {}; });
+                    if (response.ok && data.status === 'success') {
+                        alert(data.message || 'Financial record added successfully');
+                        location.reload();
+                    } else {
+                        alert(data.message || 'Failed to add financial record');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Failed to add financial record');
+                } finally {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = prev;
+                    }
+                }
+            });
+        }
+
         // Save edit
         document.getElementById('saveEditBtn').addEventListener('click', async function() {
             const formData = new FormData(document.getElementById('editForm'));
@@ -691,7 +791,7 @@ $audit_log = $audit_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            background-color: #0d6efd;
+            background-color: #5b8def;
             margin-top: 3px;
             flex-shrink: 0;
         }
@@ -703,6 +803,46 @@ $audit_log = $audit_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             background-color: #dee2e6;
             left: 5px;
             top: 20px;
+        }
+        @media print {
+            body {
+                background: #fff !important;
+            }
+            .app-sidebar,
+            .topbar,
+            .navbar,
+            .nav-tabs,
+            .btn-group,
+            .modal,
+            .modal-backdrop {
+                display: none !important;
+            }
+            .app-main {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+            }
+            .container-fluid {
+                padding: 0 !important;
+            }
+            .tab-content,
+            .tab-pane,
+            .tab-pane.fade,
+            .tab-pane.fade.show,
+            .tab-pane.fade.show.active {
+                display: block !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+            }
+            .card {
+                border: 1px solid #d5d8dd !important;
+                box-shadow: none !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            canvas {
+                max-width: 100% !important;
+            }
         }
     </style>
 </body>

@@ -1,0 +1,90 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - img "ABED Logo" [ref=e5]
+      - generic [ref=e6]: ABED Integrated Data Management Hub
+      - generic [ref=e7]: Agricultural and Biosystems Engineering Division - LGU Malaybalay City
+      - paragraph [ref=e8]: Create Your Account
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - generic [ref=e11]:
+          - generic [ref=e12]:
+            - generic [ref=e13]:
+              - generic [ref=e14]: 
+              - text: Full Name
+            - textbox "Juan dela Cruz" [ref=e15]
+          - generic [ref=e16]:
+            - generic [ref=e17]:
+              - generic [ref=e18]: 
+              - text: Employee ID
+            - textbox "EMP-2026-001" [ref=e19]
+        - generic [ref=e20]:
+          - generic [ref=e21]:
+            - generic [ref=e22]: 
+            - text: Email Address
+          - generic [ref=e23]:
+            - generic [ref=e25] [cursor=pointer]: "@"
+            - textbox "your.email@abed.gov.ph" [ref=e26]
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - generic [ref=e29]: 
+            - text: Username
+          - generic [ref=e30]:
+            - generic [ref=e32] [cursor=pointer]: "@"
+            - textbox "Enter your username" [ref=e33]: glyn
+          - generic [ref=e34]:
+            - generic [ref=e35]: 
+            - text: Username must be 4-20 characters
+        - generic [ref=e36]:
+          - generic [ref=e37]:
+            - generic [ref=e38]: 
+            - text: Office Unit
+          - combobox [ref=e39]:
+            - option "-- Select Office Unit --" [selected]
+            - option "Bureau of Soils and Water Management (BKSP)"
+            - option "Land and Geospatial Engineering Division (LGED)"
+            - option "Agronomic and Plant Development Division (APD)"
+            - option "Agricultural and Fisheries Machineries and Equipment Division (AFMAD)"
+            - option "Other"
+        - generic [ref=e40]: Password Requirements
+        - generic [ref=e41]:
+          - generic [ref=e42]:
+            - generic [ref=e43]:
+              - generic [ref=e44]: 
+              - text: Password
+            - textbox "Enter password" [ref=e45]: Glynyohann01!
+            - text: Strong Password
+          - generic [ref=e47]:
+            - generic [ref=e48]:
+              - generic [ref=e49]: 
+              - text: Confirm Password
+            - textbox "Confirm password" [ref=e50]
+        - generic [ref=e51]:
+          - generic [ref=e52]:
+            - generic [ref=e53]: 
+            - text: At least 8 characters
+          - generic [ref=e54]:
+            - generic [ref=e55]: 
+            - text: At least one uppercase letter
+          - generic [ref=e56]:
+            - generic [ref=e57]: 
+            - text: At least one number
+          - generic [ref=e58]:
+            - generic [ref=e59]: 
+            - text: At least one special character (!@#$%^&*)
+        - generic [ref=e60]:
+          - checkbox "I agree to the Terms and Conditions and Privacy Policy" [ref=e61]
+          - generic [ref=e62]: I agree to the Terms and Conditions and Privacy Policy
+        - button " Create Account" [ref=e63] [cursor=pointer]:
+          - generic [ref=e64]: 
+          - text: Create Account
+      - generic [ref=e65]: Already have an account?
+      - link " Login Here" [ref=e66] [cursor=pointer]:
+        - /url: login.php
+        - generic [ref=e67]: 
+        - text: Login Here
+      - separator [ref=e68]
+      - paragraph [ref=e70]:
+        - generic [ref=e71]: 
+        - text: Your data is secure and encrypted
+  - generic [ref=e72]: © 2026 ABED IDM Hub. All rights reserved.

@@ -8,6 +8,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 requireLogin();
+$canDeleteProjects = isSuperAdmin();
 
 $page_title = 'Projects - ABED IDM Hub';
 $page_extra_head = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />'
@@ -122,10 +123,12 @@ renderAppLayout($page_title, $page_extra_head);
                                 <li><a class="dropdown-item" href="#" id="batchUpdateBtn">
                                     <i class="fas fa-edit"></i> Bulk Update
                                 </a></li>
+                                <?php if ($canDeleteProjects): ?>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item text-danger" href="#" id="batchDeleteBtn">
                                     <i class="fas fa-trash"></i> Delete Selected
                                 </a></li>
+                                <?php endif; ?>
                             </ul>
                         </div>
                     </div>
@@ -258,11 +261,11 @@ renderAppLayout($page_title, $page_extra_head);
                                         <td>
                                             <span class="badge" style="background-color: 
                                                 <?php echo match($project['current_stage']) {
-                                                    'Proposal' => '#6c757d',
-                                                    'Pre-Implementation' => '#17a2b8',
-                                                    'Procurement' => '#ffc107',
-                                                    'Implementation' => '#0d6efd',
-                                                    'Completed', 'Turned-Over' => '#28a745',
+                                                    'Proposal' => '#9ca3af',
+                                                    'Pre-Implementation' => '#7eb8d9',
+                                                    'Procurement' => '#f5c57a',
+                                                    'Implementation' => '#5b8def',
+                                                    'Completed', 'Turned-Over' => '#5fd4a8',
                                                     default => '#e3e3e3'
                                                 }; ?>; color: <?php echo match($project['current_stage']) {
                                                     'Procurement' => 'black',
@@ -273,7 +276,7 @@ renderAppLayout($page_title, $page_extra_head);
                                         </td>
                                         <td>
                                             <div class="progress" style="height: 20px; width: 100px;">
-                                                <div class="progress-bar" style="width: <?php echo $project['physical_progress']; ?>%; background-color: #0d6efd;">
+                                                <div class="progress-bar" style="width: <?php echo $project['physical_progress']; ?>%; background-color: #5b8def;">
                                                     <small><?php echo round($project['physical_progress'], 0); ?>%</small>
                                                 </div>
                                             </div>
@@ -303,6 +306,7 @@ renderAppLayout($page_title, $page_extra_head);
                                                    class="btn btn-secondary" title="S-Curve">
                                                     <i class="fas fa-chart-line"></i>
                                                 </a>
+                                                <?php if ($canDeleteProjects): ?>
                                                 <button type="button"
                                                         class="btn btn-danger single-delete-btn"
                                                         data-project-id="<?php echo (int) $project['id']; ?>"
@@ -310,6 +314,7 @@ renderAppLayout($page_title, $page_extra_head);
                                                         title="Delete Project">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
+                                                <?php endif; ?>
                                             </div>
                                         </td>
                                     </tr>
@@ -611,6 +616,7 @@ renderAppLayout($page_title, $page_extra_head);
             </div>
         </div>
 
+        <?php if ($canDeleteProjects): ?>
         <!-- Delete Confirmation Modal -->
         <div class="modal fade" id="deleteProjectModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog">
@@ -636,6 +642,7 @@ renderAppLayout($page_title, $page_extra_head);
                 </div>
             </div>
         </div>
+        <?php endif; ?>
 
         <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

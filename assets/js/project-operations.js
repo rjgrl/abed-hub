@@ -305,12 +305,12 @@ class ProjectManager {
    */
   getStageColor(stage) {
     const colors = {
-      Proposal: "#6c757d",
-      "Pre-Implementation": "#17a2b8",
-      Procurement: "#ffc107",
-      Implementation: "#0d6efd",
-      Completed: "#28a745",
-      "Turned-Over": "#28a745",
+      Proposal: "#9ca3af",
+      "Pre-Implementation": "#7eb8d9",
+      Procurement: "#f5c57a",
+      Implementation: "#5b8def",
+      Completed: "#5fd4a8",
+      "Turned-Over": "#5fd4a8",
     };
     return colors[stage] || "#e3e3e3";
   }
@@ -320,11 +320,11 @@ class ProjectManager {
    */
   getTypeColor(type) {
     const colors = {
-      fspf: "#0d6efd",
-      idp: "#17a2b8",
-      afme: "#28a745",
+      fspf: "#5b8def",
+      idp: "#c694f9",
+      afme: "#f5c57a",
     };
-    return colors[type.toLowerCase()] || "#6c757d";
+    return colors[type.toLowerCase()] || "#9ca3af";
   }
 
   /**
@@ -456,12 +456,12 @@ class MilestoneManager {
    */
   getStatusColor(status) {
     const colors = {
-      "On Track": "#28a745",
-      "At Risk": "#ffc107",
+      "On Track": "#5fd4a8",
+      "At Risk": "#f5c57a",
       Delayed: "#dc3545",
-      Completed: "#17a2b8",
+      Completed: "#7eb8d9",
     };
-    return colors[status] || "#6c757d";
+    return colors[status] || "#9ca3af";
   }
 }
 

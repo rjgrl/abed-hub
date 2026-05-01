@@ -38,6 +38,7 @@ $total_projects = $counts['total'];
 $stages   = $repo->stageDistribution($module);
 $financial = $repo->financialSummary($module);
 $recent_projects = $repo->recent($module, 10);
+$recent_deleted_projects = $repo->recentDeleted($module, 10);
 
 $pending_count    = 0;
 $pending_projects = [];
@@ -89,7 +90,7 @@ if (!empty($pending_projects)) {
                                     <p class="text-muted small mb-1">Total Projects</p>
                                     <h2 class="mb-0"><?php echo $total_projects; ?></h2>
                                 </div>
-                                <div class="rounded-circle p-3" style="background-color: rgba(13, 110, 253, 0.1);">
+                                <div class="rounded-circle p-3" style="background-color: rgba(91, 141, 239, 0.12);">
                                     <i class="fas fa-project-diagram fa-lg text-primary"></i>
                                 </div>
                             </div>
@@ -105,7 +106,7 @@ if (!empty($pending_projects)) {
                                     <p class="text-muted small mb-1">Total Allocated</p>
                                     <h2 class="mb-0">₱<?php echo number_format($financial['total_allocated'] ?? 0, 0); ?></h2>
                                 </div>
-                                <div class="rounded-circle p-3" style="background-color: rgba(40, 167, 69, 0.1);">
+                                <div class="rounded-circle p-3" style="background-color: rgba(95, 212, 168, 0.15);">
                                     <i class="fas fa-money-bill fa-lg text-success"></i>
                                 </div>
                             </div>
@@ -122,7 +123,7 @@ if (!empty($pending_projects)) {
                                     <?php $avgProgress = $repo->avgProgress($module); ?>
                                     <h2 class="mb-0"><?php echo $avgProgress['avg_physical']; ?>%</h2>
                                 </div>
-                                <div class="rounded-circle p-3" style="background-color: rgba(23, 162, 184, 0.1);">
+                                <div class="rounded-circle p-3" style="background-color: rgba(198, 148, 249, 0.12);">
                                     <i class="fas fa-chart-pie fa-lg text-info"></i>
                                 </div>
                             </div>
@@ -139,7 +140,7 @@ if (!empty($pending_projects)) {
                                         <p class="text-muted small mb-1"><?php echo htmlspecialchars($pending_title); ?></p>
                                         <h2 class="mb-0 text-warning"><?php echo $pending_count; ?></h2>
                                     </div>
-                                    <div class="rounded-circle p-3" style="background-color: rgba(255, 193, 7, 0.1);">
+                                    <div class="rounded-circle p-3" style="background-color: rgba(245, 197, 122, 0.28);">
                                         <i class="fas fa-clock fa-lg text-warning"></i>
                                     </div>
                                 </div>
@@ -295,7 +296,7 @@ if (!empty($pending_projects)) {
             <div class="row g-3">
                 <!-- Recent Projects -->
                 <div class="col-lg-8">
-                    <div class="card border-0 shadow-sm h-100">
+                    <div class="card border-0 shadow-sm mb-3">
                         <div class="card-header">
                             <h6 class="mb-0">Recent Projects</h6>
                         </div>
@@ -307,7 +308,6 @@ if (!empty($pending_projects)) {
                                             <th>Code</th>
                                             <th>Title</th>
                                             <th>Type</th>
-                                            <th>Stage</th>
                                             <th>Status</th>
                                             <th>Action</th>
                                         </tr>
@@ -323,25 +323,18 @@ if (!empty($pending_projects)) {
                                                     <span class="badge bg-primary"><?php echo strtoupper($project['type']); ?></span>
                                                 </td>
                                                 <td>
-                                                    <span class="badge" style="background-color: 
-                                                        <?php echo match($project['current_stage']) {
-                                                            'Proposal' => '#6c757d',
-                                                            'Pre-Implementation' => '#17a2b8',
-                                                            'Procurement' => '#ffc107',
-                                                            'Implementation' => '#0d6efd',
-                                                            'Completed', 'Turned-Over' => '#28a745',
-                                                            default => '#e3e3e3'
-                                                        }; ?>; color: <?php echo match($project['current_stage']) {
-                                                            'Procurement' => 'black',
-                                                            default => 'white'
-                                                        }; ?>">
-                                                        <?php echo htmlspecialchars($project['current_stage']); ?>
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <?php $approvalStatus = (string) ($project['approval_status'] ?? 'Pending'); ?>
-                                                    <span class="badge <?php echo $approvalStatus === 'Approved' ? 'bg-success' : 'bg-warning text-dark'; ?>">
-                                                        <?php echo htmlspecialchars($approvalStatus); ?>
+                                                    <?php $projectStage = (string) ($project['current_stage'] ?? ''); ?>
+                                                    <span class="badge bg-<?php
+                                                        echo match($projectStage) {
+                                                            'Proposal' => 'warning',
+                                                            'Pre-Implementation' => 'info',
+                                                            'Procurement' => 'secondary',
+                                                            'Implementation' => 'success',
+                                                            'Completed', 'Turned-Over' => 'success',
+                                                            default => 'secondary'
+                                                        };
+                                                    ?>">
+                                                        <?php echo htmlspecialchars($projectStage !== '' ? $projectStage : 'N/A'); ?>
                                                     </span>
                                                 </td>
                                                 <td>
@@ -358,6 +351,50 @@ if (!empty($pending_projects)) {
                         </div>
                         <div class="card-footer bg-light">
                             <a href="projects-advanced.php" class="btn btn-sm btn-outline-primary">View All Projects</a>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header">
+                            <h6 class="mb-0">Recently Deleted Projects</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Code</th>
+                                            <th>Title</th>
+                                            <th>Type</th>
+                                            <th>Deleted</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php if (!empty($recent_deleted_projects)): ?>
+                                            <?php foreach (array_slice($recent_deleted_projects, 0, 8) as $project): ?>
+                                                <tr>
+                                                    <td><?php echo htmlspecialchars(substr($project['project_code'], 0, 15)); ?></td>
+                                                    <td class="text-truncate" style="max-width: 200px;" title="<?php echo htmlspecialchars($project['project_title']); ?>">
+                                                        <?php echo htmlspecialchars(substr($project['project_title'], 0, 30)); ?>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-secondary"><?php echo strtoupper($project['type']); ?></span>
+                                                    </td>
+                                                    <td>
+                                                        <small class="text-muted">
+                                                            <?php echo !empty($project['updated_at']) ? htmlspecialchars(date('M d, Y', strtotime((string) $project['updated_at']))) : 'N/A'; ?>
+                                                        </small>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <tr>
+                                                <td colspan="4" class="text-center text-muted py-3">No recently deleted projects.</td>
+                                            </tr>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -398,7 +435,7 @@ if (!empty($pending_projects)) {
                 labels: ['FSPF', 'IDP', 'AFME'],
                 datasets: [{
                     data: [<?php echo $fspf_count; ?>, <?php echo $idp_count; ?>, <?php echo $afme_count; ?>],
-                    backgroundColor: ['#0d6efd', '#17a2b8', '#28a745']
+                    backgroundColor: ['#5b8def', '#c694f9', '#5fd4a8']
                 }]
             },
             options: {
@@ -419,7 +456,7 @@ if (!empty($pending_projects)) {
                 datasets: [{
                     label: 'Count',
                     data: stageCounts,
-                    backgroundColor: ['#6c757d', '#17a2b8', '#ffc107', '#0d6efd', '#28a745']
+                    backgroundColor: ['#9ca3af', '#c694f9', '#f5c57a', '#5b8def', '#5fd4a8']
                 }]
             },
             options: {

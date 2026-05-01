@@ -372,8 +372,8 @@ if (!$project_id) {
                         {
                             label: 'Planned Progress',
                             data: scurveData.map(d => d.planned),
-                            borderColor: '#6c757d',
-                            backgroundColor: 'rgba(108, 117, 125, 0.1)',
+                            borderColor: '#9ca3af',
+                            backgroundColor: 'rgba(156, 163, 175, 0.12)',
                             borderDash: [5, 5],
                             fill: false,
                             tension: 0.4
@@ -381,8 +381,8 @@ if (!$project_id) {
                         {
                             label: 'Actual Progress',
                             data: scurveData.map(d => d.actual),
-                            borderColor: '#0d6efd',
-                            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                            borderColor: '#5b8def',
+                            backgroundColor: 'rgba(91, 141, 239, 0.12)',
                             fill: true,
                             tension: 0.4
                         }
@@ -417,18 +417,18 @@ if (!$project_id) {
                         label: 'Expected Progress by Stage',
                         data: stageProgress,
                         backgroundColor: [
-                            'rgba(108, 117, 125, 0.5)',
-                            'rgba(23, 162, 184, 0.5)',
-                            'rgba(255, 193, 7, 0.5)',
-                            'rgba(13, 110, 253, 0.5)',
-                            'rgba(25, 135, 84, 0.5)'
+                            'rgba(156, 163, 175, 0.45)',
+                            'rgba(198, 148, 249, 0.45)',
+                            'rgba(245, 197, 122, 0.55)',
+                            'rgba(91, 141, 239, 0.45)',
+                            'rgba(95, 212, 168, 0.45)'
                         ],
                         borderColor: [
-                            'rgb(108, 117, 125)',
-                            'rgb(23, 162, 184)',
-                            'rgb(255, 193, 7)',
-                            'rgb(13, 110, 253)',
-                            'rgb(25, 135, 84)'
+                            'rgb(156, 163, 175)',
+                            'rgb(198, 148, 249)',
+                            'rgb(245, 197, 122)',
+                            'rgb(91, 141, 239)',
+                            'rgb(95, 212, 168)'
                         ],
                         borderWidth: 1
                     }]

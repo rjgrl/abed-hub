@@ -67,8 +67,10 @@ $finfo = finfo_open(FILEINFO_MIME_TYPE);
 $mime_type = finfo_file($finfo, $file_tmp);
 finfo_close($finfo);
 
-if (!in_array($mime_type, $allowed_types, true)) {
-    echo json_encode(['status' => 'error', 'message' => 'Invalid file type. Allowed: PDF, DOC, DOCX, JPG, PNG']);
+$ext = strtolower((string) pathinfo((string) $file_name, PATHINFO_EXTENSION));
+$allowed_extensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif'];
+if (!in_array($mime_type, $allowed_types, true) && !in_array($ext, $allowed_extensions, true)) {
+    echo json_encode(['status' => 'error', 'message' => 'Invalid file type. Allowed: PDF, DOC, DOCX, JPG, PNG, WEBP, GIF, HEIC, HEIF']);
     exit;
 }
 
@@ -79,7 +81,7 @@ if (!is_dir($folder) && !mkdir($folder, 0755, true) && !is_dir($folder)) {
     exit;
 }
 
-$file_extension = pathinfo((string) $file_name, PATHINFO_EXTENSION);
+$file_extension = $ext;
 $storedName = uniqid('doc_', true) . ($file_extension ? '.' . $file_extension : '');
 $file_path = $folder . $storedName;
 

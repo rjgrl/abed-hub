@@ -4,12 +4,12 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 $current_page = basename($_SERVER['SCRIPT_NAME']);
 ?>
-<nav class="navbar navbar-expand-lg border-bottom px-3 navbar-dark navbar-fixed bg-white">
+<nav class="navbar navbar-expand-lg app-subnav px-3 px-lg-4 navbar-light navbar-fixed">
     <div class="container-fluid">
-        <h6 class="m-0 fw-bold text-dark">System Management</h6>
+        <h6 class="m-0 fw-bold app-subnav-heading">System Management</h6>
 
-        <div class=" align-items-center text-black ms-3 border-start ps-3">
-            <small class="text-muted fw-bold">
+        <div class="d-flex align-items-center ms-3 app-subnav-breadcrumb">
+            <small class="text-muted fw-semibold">
                 <?php echo match($current_page) {
                     'dashboard-enhanced.php', 'dashboard.php' => 'Dashboard',
                     'reports.php' => 'Reports',
