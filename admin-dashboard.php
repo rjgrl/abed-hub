@@ -7,6 +7,82 @@ requireLogin();
 requireRoles(['admin']);
 
 $page_title = 'Super Admin Dashboard';
+$success_msg = '';
+$error_msg = '';
+$uploadStatusFilter = (string) ($_GET['upload_status'] ?? 'Pending');
+$uploadSourceFilter = (string) ($_GET['upload_source'] ?? 'all');
+$allowedUploadStatus = ['all', 'Pending', 'Approved', 'Rejected'];
+$allowedUploadSource = ['all', 'project', 'afme'];
+if (!in_array($uploadStatusFilter, $allowedUploadStatus, true)) {
+    $uploadStatusFilter = 'all';
+}
+if (!in_array($uploadSourceFilter, $allowedUploadSource, true)) {
+    $uploadSourceFilter = 'all';
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'review_upload') {
+    $source = (string) ($_POST['source'] ?? '');
+    $recordId = (int) ($_POST['record_id'] ?? 0);
+    $docId = (int) ($_POST['doc_id'] ?? 0);
+    $decision = (string) ($_POST['decision'] ?? '');
+    $allowedDecisions = ['Approved', 'Rejected'];
+
+    if (!in_array($source, ['project', 'afme'], true) || $recordId <= 0 || $docId <= 0 || !in_array($decision, $allowedDecisions, true)) {
+        $error_msg = 'Invalid review request.';
+    } else {
+        $column = $source === 'project' ? 'documents' : 'documents';
+        $table = $source === 'project' ? 'projects' : 'afme';
+        $idCol = 'id';
+
+        $stmt = $conn->prepare("SELECT {$column} FROM {$table} WHERE {$idCol} = ?");
+        $stmt->bind_param('i', $recordId);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if (!$row) {
+            $error_msg = 'Record not found.';
+        } else {
+            $docs = json_decode((string) ($row['documents'] ?? '[]'), true);
+            if (!is_array($docs)) {
+                $docs = [];
+            }
+
+            $updated = false;
+            foreach ($docs as &$doc) {
+                if (!is_array($doc) || (int) ($doc['id'] ?? 0) !== $docId) {
+                    continue;
+                }
+                $doc['review_status'] = $decision;
+                $doc['reviewed_by'] = (int) ($_SESSION['user_id'] ?? 0);
+                $doc['reviewed_at'] = date('Y-m-d H:i:s');
+                $updated = true;
+                break;
+            }
+            unset($doc);
+
+            if (!$updated) {
+                $error_msg = 'Document not found.';
+            } else {
+                $docsJson = json_encode($docs);
+                $up = $conn->prepare("UPDATE {$table} SET {$column} = ?, updated_at = CURRENT_TIMESTAMP WHERE {$idCol} = ?");
+                $up->bind_param('si', $docsJson, $recordId);
+                if ($up->execute()) {
+                    $success_msg = "Document marked as {$decision}.";
+                    logAudit('ADMIN_REVIEW_UPLOAD', null, null, null, [
+                        'source' => $source,
+                        'record_id' => $recordId,
+                        'doc_id' => $docId,
+                        'decision' => $decision
+                    ]);
+                } else {
+                    $error_msg = 'Failed to save review decision.';
+                }
+                $up->close();
+            }
+        }
+    }
+}
 
 $pendingUsers = $conn->query("
     SELECT id, full_name, username, email, office_unit, created_at
@@ -17,53 +93,132 @@ $pendingUsers = $conn->query("
 ")->fetch_all(MYSQLI_ASSOC);
 
 $recentUploads = [];
-$uploadsResult = $conn->query("
-    SELECT a.id AS afme_id,
-           a.project_id,
-           p.project_type,
-           p.user_id,
-           u.full_name AS uploaded_by_name,
-           a.documents,
-           a.updated_at
-    FROM afme a
-    LEFT JOIN projects p ON p.id = a.project_id
-    LEFT JOIN users u ON u.id = p.user_id
-    WHERE a.documents IS NOT NULL
-    ORDER BY a.updated_at DESC
-    LIMIT 50
-");
+$allUploads = [];
+$userNames = [];
+$uRes = $conn->query("SELECT id, full_name FROM users");
+if ($uRes) {
+    foreach ($uRes->fetch_all(MYSQLI_ASSOC) as $u) {
+        $userNames[(int) $u['id']] = (string) $u['full_name'];
+    }
+}
 
-if ($uploadsResult) {
-    foreach ($uploadsResult->fetch_all(MYSQLI_ASSOC) as $row) {
+$hasProjectDocumentsColumn = false;
+$colCheck = $conn->query("SHOW COLUMNS FROM projects LIKE 'documents'");
+if ($colCheck && $colCheck->num_rows > 0) {
+    $hasProjectDocumentsColumn = true;
+}
+
+$projectUploads = false;
+if ($hasProjectDocumentsColumn) {
+    $projectUploads = $conn->query("
+        SELECT id, project_type, documents, updated_at
+        FROM projects
+        WHERE documents IS NOT NULL AND documents <> '' AND documents <> '[]'
+        ORDER BY updated_at DESC
+        LIMIT 100
+    ");
+}
+
+if ($projectUploads) {
+    foreach ($projectUploads->fetch_all(MYSQLI_ASSOC) as $row) {
         $docs = json_decode((string) ($row['documents'] ?? ''), true);
         if (!is_array($docs)) {
             continue;
         }
-        foreach ($docs as $idx => $doc) {
+        foreach ($docs as $doc) {
             if (!is_array($doc)) {
                 continue;
             }
-            $recentUploads[] = [
-                'id' => $row['afme_id'] . ':' . $idx,
+            $uploaderId = (int) ($doc['uploaded_by'] ?? 0);
+            $allUploads[] = [
+                'source' => 'project',
+                'record_id' => (int) $row['id'],
+                'doc_id' => (int) ($doc['id'] ?? 0),
+                'project_type' => strtoupper((string) ($row['project_type'] ?? '')),
+                'project_id' => (int) $row['id'],
+                'doc_type' => $doc['document_type'] ?? ($doc['doc_type'] ?? 'Document'),
+                'file_name' => $doc['original_filename'] ?? ($doc['file_name'] ?? 'Unnamed file'),
+                'upload_date' => $doc['upload_date'] ?? $row['updated_at'],
+                'uploaded_by_name' => $userNames[$uploaderId] ?? 'Unknown',
+                'review_status' => $doc['review_status'] ?? 'Pending',
+            ];
+        }
+    }
+}
+
+$afmeUploads = $conn->query("
+    SELECT a.id AS afme_id, a.project_id, p.project_type, a.documents, a.updated_at
+    FROM afme a
+    LEFT JOIN projects p ON p.id = a.project_id
+    WHERE a.documents IS NOT NULL AND a.documents <> '' AND a.documents <> '[]'
+    ORDER BY a.updated_at DESC
+    LIMIT 100
+");
+
+if ($afmeUploads) {
+    foreach ($afmeUploads->fetch_all(MYSQLI_ASSOC) as $row) {
+        $docs = json_decode((string) ($row['documents'] ?? ''), true);
+        if (!is_array($docs)) {
+            continue;
+        }
+        foreach ($docs as $doc) {
+            if (!is_array($doc)) {
+                continue;
+            }
+            $uploaderId = (int) ($doc['uploaded_by'] ?? 0);
+            $allUploads[] = [
+                'source' => 'afme',
+                'record_id' => (int) $row['afme_id'],
+                'doc_id' => (int) ($doc['id'] ?? 0),
                 'project_type' => strtoupper((string) ($row['project_type'] ?? 'afme')),
                 'project_id' => (int) $row['project_id'],
                 'doc_type' => $doc['doc_type'] ?? 'Document',
                 'file_name' => $doc['file_name'] ?? ($doc['name'] ?? 'Unnamed file'),
                 'upload_date' => $doc['upload_date'] ?? $row['updated_at'],
-                'uploaded_by_name' => $row['uploaded_by_name'] ?? 'Unknown',
-                'can_archive' => false
+                'uploaded_by_name' => $userNames[$uploaderId] ?? 'Unknown',
+                'review_status' => $doc['review_status'] ?? 'Pending',
             ];
         }
     }
-    usort($recentUploads, static function ($a, $b) {
+}
+
+if (!empty($allUploads)) {
+    usort($allUploads, static function ($a, $b) {
         return strcmp((string) ($b['upload_date'] ?? ''), (string) ($a['upload_date'] ?? ''));
     });
+}
+
+foreach ($allUploads as $upload) {
+    $status = (string) ($upload['review_status'] ?? 'Pending');
+    $source = (string) ($upload['source'] ?? 'project');
+    if ($uploadStatusFilter !== 'all' && $status !== $uploadStatusFilter) {
+        continue;
+    }
+    if ($uploadSourceFilter !== 'all' && $source !== $uploadSourceFilter) {
+        continue;
+    }
+    $recentUploads[] = $upload;
+}
+if (!empty($recentUploads)) {
     $recentUploads = array_slice($recentUploads, 0, 50);
 }
 
 renderAppLayout($page_title);
 ?>
 <div class="container-fluid py-4">
+    <?php if ($success_msg): ?>
+        <div class="alert alert-success alert-dismissible fade show">
+            <?php echo htmlspecialchars($success_msg); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
+    <?php if ($error_msg): ?>
+        <div class="alert alert-danger alert-dismissible fade show">
+            <?php echo htmlspecialchars($error_msg); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
+
     <div class="row mb-4">
         <div class="col">
             <h1 class="h3 mb-0">Super Admin Dashboard</h1>
@@ -83,7 +238,7 @@ renderAppLayout($page_title);
         <div class="col-md-6">
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
-                    <p class="text-muted small mb-1">Recent Uploads</p>
+                    <p class="text-muted small mb-1">Uploads (Filtered)</p>
                     <h2 class="mb-0"><?php echo count($recentUploads); ?></h2>
                 </div>
             </div>
@@ -143,7 +298,24 @@ renderAppLayout($page_title);
         <div class="col-lg-6">
             <div class="card border-0 shadow-sm">
                 <div class="card-header">
-                    <h5 class="mb-0">Recent Employee Uploads</h5>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <h5 class="mb-0">Recent Employee Uploads</h5>
+                        <form method="GET" class="d-flex align-items-center gap-2">
+                            <select name="upload_status" class="form-select form-select-sm" style="min-width: 140px;">
+                                <option value="all" <?php echo $uploadStatusFilter === 'all' ? 'selected' : ''; ?>>All Status</option>
+                                <option value="Pending" <?php echo $uploadStatusFilter === 'Pending' ? 'selected' : ''; ?>>Pending</option>
+                                <option value="Approved" <?php echo $uploadStatusFilter === 'Approved' ? 'selected' : ''; ?>>Approved</option>
+                                <option value="Rejected" <?php echo $uploadStatusFilter === 'Rejected' ? 'selected' : ''; ?>>Rejected</option>
+                            </select>
+                            <select name="upload_source" class="form-select form-select-sm" style="min-width: 130px;">
+                                <option value="all" <?php echo $uploadSourceFilter === 'all' ? 'selected' : ''; ?>>All Sources</option>
+                                <option value="project" <?php echo $uploadSourceFilter === 'project' ? 'selected' : ''; ?>>Project</option>
+                                <option value="afme" <?php echo $uploadSourceFilter === 'afme' ? 'selected' : ''; ?>>AFME</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+                            <a href="admin-dashboard.php?upload_status=Pending&upload_source=all" class="btn btn-sm btn-outline-secondary">Reset</a>
+                        </form>
+                    </div>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -165,7 +337,30 @@ renderAppLayout($page_title);
                                         </td>
                                         <td><?php echo htmlspecialchars(($upload['project_type'] ?? 'N/A') . ' #' . ($upload['project_id'] ?? '')); ?></td>
                                         <td><?php echo htmlspecialchars($upload['uploaded_by_name'] ?? 'Unknown'); ?></td>
-                                        <td><span class="text-muted small">N/A</span></td>
+                                        <td>
+                                            <?php $reviewStatus = (string) ($upload['review_status'] ?? 'Pending'); ?>
+                                            <span class="badge <?php echo $reviewStatus === 'Approved' ? 'bg-success' : ($reviewStatus === 'Rejected' ? 'bg-danger' : 'bg-warning text-dark'); ?>">
+                                                <?php echo htmlspecialchars($reviewStatus); ?>
+                                            </span>
+                                            <div class="btn-group btn-group-sm ms-2">
+                                                <form method="POST" class="d-inline">
+                                                    <input type="hidden" name="action" value="review_upload">
+                                                    <input type="hidden" name="source" value="<?php echo htmlspecialchars((string) $upload['source']); ?>">
+                                                    <input type="hidden" name="record_id" value="<?php echo (int) $upload['record_id']; ?>">
+                                                    <input type="hidden" name="doc_id" value="<?php echo (int) $upload['doc_id']; ?>">
+                                                    <input type="hidden" name="decision" value="Approved">
+                                                    <button type="submit" class="btn btn-outline-success" title="Approve"><i class="fas fa-check"></i></button>
+                                                </form>
+                                                <form method="POST" class="d-inline">
+                                                    <input type="hidden" name="action" value="review_upload">
+                                                    <input type="hidden" name="source" value="<?php echo htmlspecialchars((string) $upload['source']); ?>">
+                                                    <input type="hidden" name="record_id" value="<?php echo (int) $upload['record_id']; ?>">
+                                                    <input type="hidden" name="doc_id" value="<?php echo (int) $upload['doc_id']; ?>">
+                                                    <input type="hidden" name="decision" value="Rejected">
+                                                    <button type="submit" class="btn btn-outline-danger" title="Reject"><i class="fas fa-times"></i></button>
+                                                </form>
+                                            </div>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                                 <?php if (empty($recentUploads)): ?>

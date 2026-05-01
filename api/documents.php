@@ -150,6 +150,9 @@ function uploadDocument(): array {
         'mime_type' => $mime,
         'upload_date' => date('Y-m-d H:i:s'),
         'uploaded_by' => (int) ($_SESSION['user_id'] ?? 0),
+        'review_status' => 'Pending',
+        'reviewed_by' => null,
+        'reviewed_at' => null,
     ];
     $docs[] = $doc;
 

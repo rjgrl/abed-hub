@@ -13,7 +13,7 @@
 }
 
 * {
-  transition: var(--transition);
+  transition: none;
 }
 
 /* ========================================
@@ -21,21 +21,21 @@
    ======================================== */
 
 .auth-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    margin: 0;
-    padding: 0;
-} 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
 
 .auth-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100%;
 }
 
 .auth-card {
@@ -44,22 +44,11 @@
   box-shadow: var(--shadow-lg);
   max-width: 450px;
   margin: 0 auto;
-  animation: slideUp 0.5s ease-out;
+  animation: none;
 }
 
 .auth-card.login {
   max-width: 400px;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 /* ========================================
@@ -210,8 +199,10 @@
 
 :root {
   --sidebar-width: 250px;
-  --topbar-height: 70px;
-  --navbar-height: 56px;
+  --topbar-height: 52px;
+  --navbar-height: 38px;
+  --app-header-offset: calc(var(--topbar-height) + var(--navbar-height));
+  --app-content-gap: 1.5rem;
   --layout-gutter: 1rem;
 }
 
@@ -219,6 +210,7 @@ body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  background: #ffffff;
 }
 
 main.app-main {
@@ -227,13 +219,22 @@ main.app-main {
   display: block;
   width: calc(100% - var(--sidebar-width));
   margin-left: var(--sidebar-width);
-  margin-top: calc(var(--topbar-height) + var(--navbar-height));
-  padding: var(--layout-gutter);
-  min-height: calc(
-    100vh - var(--topbar-height) - var(--navbar-height) - var(--layout-gutter)
-  );
-  background: #f8f9fa;
+  /* Offset content below fixed topbar + navbar without using margin gaps */
+  margin-top: 0;
+  padding-top: calc(var(--app-header-offset) + var(--app-content-gap));
+  padding-right: var(--layout-gutter);
+  padding-bottom: var(--layout-gutter);
+  padding-left: var(--layout-gutter);
+  min-height: calc(100vh - var(--app-header-offset) - var(--app-content-gap));
+  background: #ffffff;
   box-sizing: border-box;
+}
+
+/* Normalize top spacing across all modules; avoid stacked top padding gaps */
+main.app-main > .container-fluid,
+main.app-main > .container,
+main.app-main > .container-fluid.py-4 {
+  padding-top: 0 !important;
 }
 
 .sidebar-fixed {
@@ -272,9 +273,9 @@ main.app-main {
   opacity: 0.55 !important;
 }
 
-/* keep modal layer on top of all fixed bars */
+/* Modals must stack above fixed topbar (1300) / navbar (1250); Bootstrap defaults (1055/1050) get buried */
 .modal {
-  z-index: 1060 !important;
+  z-index: 2000 !important;
 }
 
 .modal.show {
@@ -282,14 +283,24 @@ main.app-main {
 }
 
 .modal-backdrop {
-  z-index: 1050 !important;
+  z-index: 1990 !important;
 }
 
 .modal-backdrop.show {
   opacity: 0.5 !important;
 }
 
-.modal-dialog { margin: 1.75rem auto !important; }
+.modal-dialog {
+  margin-top: calc(var(--app-header-offset) + var(--app-content-gap)) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  margin-bottom: 1.75rem !important;
+  max-height: calc(100vh - var(--app-header-offset) - var(--app-content-gap) - 2rem);
+}
+
+.modal-dialog-scrollable .modal-content {
+  max-height: calc(100vh - var(--app-header-offset) - var(--app-content-gap) - 4rem);
+}
 
 .modal-content {
   position: relative;
@@ -305,7 +316,8 @@ main.app-main {
 /* fallback if manually styled pages still exist */
 main:not(.app-main) {
   margin-left: var(--sidebar-width);
-  margin-top: calc(var(--topbar-height) + var(--navbar-height) + 1rem);
+  margin-top: 0;
+  padding-top: calc(var(--app-header-offset) + var(--app-content-gap));
 }
 
 @media (max-width: 992px) {
@@ -337,7 +349,8 @@ main:not(.app-main) {
   }
 
   .app-main {
-    margin-top: calc(var(--topbar-height) + var(--navbar-height) + 1rem);
+    margin-top: 0;
+    padding-top: calc(var(--app-header-offset) + var(--app-content-gap));
   }
 }
 

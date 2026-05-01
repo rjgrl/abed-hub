@@ -13,52 +13,6 @@ $page_title = 'Help & Guide';
 renderAppLayout($page_title);
 ?>
 <div class="container-fluid py-4">
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-light">
-            <h4 class="mb-0"><i class="fas fa-question-circle me-2"></i>Help & Guide</h4>
-        </div>
-        <div class="card-body">
-            <p class="text-muted">Quick usage guide for core workflows.</p>
-            <ul>
-                <li><strong>Projects:</strong> Open `Projects` to filter by type, stage, year, and perform batch actions.</li>
-                <li><strong>New Project:</strong> Click `New Project` and the form auto-matches the current tab (FSPF, IDP, AFME).</li>
-                <li><strong>Analytics:</strong> Use `Analytics & Reports` for status distribution and budget insights.</li>
-                <li><strong>GeoMap:</strong> View projects with coordinates on the map and filter by type/status.</li>
-                <li><strong>Admin Tools:</strong> Admin/coordinator users can access user management and audit logs.</li>
-            </ul>
-        </div>
-    </div>
-</div>
-<?php renderAppLayoutFooter(); ?>
-<?php
-require_once __DIR__ . '/components/layout.php';
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit;
-}
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Guide - ABED IDM Hub</title>
-    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body>
-    <?php include 'components/sidebar.php'; ?>
-    <?php include 'components/topbar.php'; ?>
-    <?php include 'components/navbar.php'; ?>
-
-    <main class="app-main">
-        <div class="container-fluid py-4">
             <!-- Header -->
             <div class="row mb-4">
                 <div class="col">
@@ -126,8 +80,8 @@ if (!isset($_SESSION['user_id'])) {
                                             <p>Browse, search, and filter all projects by type, stage, and status.</p>
                                         </div>
                                         <div class="col-md-6">
-                                            <h6><i class="fas fa-chart-line text-primary"></i> S-Curve Monitoring</h6>
-                                            <p>Track project progress over time with S-curve analysis and performance metrics.</p>
+                                            <h6><i class="fas fa-map-marked-alt text-primary"></i> GeoMap</h6>
+                                            <p>View geotagged projects on the interactive map and filter by type and stage.</p>
                                         </div>
                                         <div class="col-md-6">
                                             <h6><i class="fas fa-chart-bar text-primary"></i> Analytics & Reports</h6>
@@ -147,8 +101,8 @@ if (!isset($_SESSION['user_id'])) {
                                         <li><strong>View Dashboard</strong> - Get an overview of all projects and metrics</li>
                                         <li><strong>Browse Projects</strong> - Navigate to Projects page to see all available projects</li>
                                         <li><strong>View Project Details</strong> - Click on any project to see detailed information</li>
-                                        <li><strong>Monitor Progress</strong> - Use S-Curve Monitoring to track progress over time</li>
-                                        <li><strong>Generate Reports</strong> - Create reports for stakeholders and analysis</li>
+                                        <li><strong>Open GeoMap</strong> - Validate project locations and mapped assets</li>
+                                        <li><strong>Review Analytics</strong> - Use Analytics & Reports for snapshots and trends</li>
                                     </ol>
                                 </div>
                             </div>
@@ -160,17 +114,17 @@ if (!isset($_SESSION['user_id'])) {
                                     <h6 class="mb-0">Quick Links</h6>
                                 </div>
                                 <div class="list-group list-group-flush">
-                                    <a href="dashboard-enhanced.php" class="list-group-item list-group-item-action">
+                                    <a href="dashboard.php" class="list-group-item list-group-item-action">
                                         <i class="fas fa-th-large"></i> Dashboard
                                     </a>
                                     <a href="projects-advanced.php" class="list-group-item list-group-item-action">
-                                        <i class="fas fa-list"></i> All Projects
+                                        <i class="fas fa-list"></i> Projects
                                     </a>
                                     <a href="analytics-reports.php" class="list-group-item list-group-item-action">
-                                        <i class="fas fa-chart-bar"></i> Reports
+                                        <i class="fas fa-chart-bar"></i> Analytics & Reports
                                     </a>
-                                    <a href="my-account.php" class="list-group-item list-group-item-action">
-                                        <i class="fas fa-user-circle"></i> My Account
+                                    <a href="geomap.php" class="list-group-item list-group-item-action">
+                                        <i class="fas fa-map-marked-alt"></i> GeoMap
                                     </a>
                                 </div>
                             </div>
@@ -485,7 +439,7 @@ if (!isset($_SESSION['user_id'])) {
                             </h2>
                             <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                                 <div class="accordion-body">
-                                    Go to Analytics & Reports section, select the desired year and report type, then view the generated metrics and charts. Use the Print button to create a printable version.
+                                    Go to Analytics & Reports, select the desired year and report type, then view generated metrics and charts.
                                 </div>
                             </div>
                         </div>
@@ -506,8 +460,4 @@ if (!isset($_SESSION['user_id'])) {
                 </div>
             </div>
         </div>
-    </main>
-
-    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<?php renderAppLayoutFooter(); ?>
