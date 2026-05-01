@@ -326,10 +326,10 @@ if (!empty($pending_projects)) {
                                                     <span class="badge" style="background-color: 
                                                         <?php echo match($project['current_stage']) {
                                                             'Proposal' => '#6c757d',
-                                                            'Pre-Implementation' => '#17a2b8',
+                                                            'Pre-Implementation' => '#7eb8d9',
                                                             'Procurement' => '#ffc107',
-                                                            'Implementation' => '#0d6efd',
-                                                            'Completed', 'Turned-Over' => '#28a745',
+                                                            'Implementation' => '#5b8def',
+                                                            'Completed', 'Turned-Over' => '#5fd4a8',
                                                             default => '#e3e3e3'
                                                         }; ?>; color: <?php echo match($project['current_stage']) {
                                                             'Procurement' => 'black',
@@ -398,7 +398,7 @@ if (!empty($pending_projects)) {
                 labels: ['FSPF', 'IDP', 'AFME'],
                 datasets: [{
                     data: [<?php echo $fspf_count; ?>, <?php echo $idp_count; ?>, <?php echo $afme_count; ?>],
-                    backgroundColor: ['#0d6efd', '#17a2b8', '#28a745']
+                    backgroundColor: ['#5b8def', '#c694f9', '#5fd4a8']
                 }]
             },
             options: {
@@ -419,7 +419,7 @@ if (!empty($pending_projects)) {
                 datasets: [{
                     label: 'Count',
                     data: stageCounts,
-                    backgroundColor: ['#6c757d', '#17a2b8', '#ffc107', '#0d6efd', '#28a745']
+                    backgroundColor: ['#9ca3af', '#c694f9', '#f5c57a', '#5b8def', '#5fd4a8']
                 }]
             },
             options: {

@@ -1,0 +1,43 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - img "AgriTrack Logo" [ref=e5]
+      - generic [ref=e6]: ABED Integrated Data Management Hub
+      - generic [ref=e7]: Agricultural and Biosystems Engineering Division - LGU Malaybalay City
+    - generic [ref=e8]:
+      - alert [ref=e41]:
+        - generic [ref=e42]: 
+        - text: Please use Admin Login for Super Admin accounts
+        - button [ref=e43] [cursor=pointer]
+      - generic [ref=e9]:
+        - generic [ref=e10]:
+          - generic [ref=e11]: Login As
+          - combobox [ref=e12]:
+            - option "Employee Login" [selected]
+            - option "Admin Login (Super Admin)"
+        - generic [ref=e13]:
+          - generic [ref=e14]: Username
+          - generic [ref=e15]:
+            - generic [ref=e17] [cursor=pointer]: 
+            - textbox "Enter your username" [ref=e18]: glyn
+        - generic [ref=e19]:
+          - generic [ref=e20]: Password
+          - generic [ref=e21]:
+            - generic [ref=e23] [cursor=pointer]: 
+            - textbox "Enter your password" [ref=e24]: Glynyohann01!
+        - generic [ref=e25]:
+          - checkbox "Remember me" [ref=e26]
+          - generic [ref=e27]: Remember me
+        - button " Login" [ref=e28] [cursor=pointer]:
+          - generic [ref=e44]: 
+          - text: Login
+      - generic [ref=e30]: New User?
+      - link " Create Account" [ref=e32] [cursor=pointer]:
+        - /url: signup.php
+        - generic [ref=e33]: 
+        - text: Create Account
+      - link "Forgot Password?" [ref=e35] [cursor=pointer]:
+        - /url: forgot-password.php
+      - separator [ref=e36]
+      - paragraph [ref=e38]: For support, contact your system administrator
+  - generic [ref=e39]: © 2026 ABED IDM Hub. All rights reserved.

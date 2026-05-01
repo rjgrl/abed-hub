@@ -159,10 +159,10 @@ class NotificationManager {
   showToast(title, message, type = "info") {
     const toastId = "toast_" + Date.now();
     const colors = {
-      success: "#28a745",
+      success: "#5fd4a8",
       error: "#dc3545",
       warning: "#ffc107",
-      info: "#0d6efd",
+      info: "#5b8def",
     };
 
     const html = `
@@ -252,7 +252,7 @@ class NotificationManager {
    */
   getSeverityColor(severity) {
     const colors = {
-      low: "#17a2b8",
+      low: "#7eb8d9",
       medium: "#ffc107",
       high: "#fd7e14",
       critical: "#dc3545",

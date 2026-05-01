@@ -122,7 +122,7 @@ class ProjectRepository {
 
     public function recent(string $module = 'all', int $limit = 10): array {
         $safe = $this->normalizeModule($module);
-        $where = " WHERE approval_status IN ('Pending', 'Approved')";
+        $where = " WHERE approval_status IN ('Pending', 'Approved') AND (status IS NULL OR status <> 'Archived')";
         if ($safe !== 'all') {
             $where .= " AND project_type = '{$safe}'";
         }
@@ -131,6 +131,21 @@ class ProjectRepository {
             "SELECT id, project_code, title AS project_title, current_stage, created_at, project_type AS type, approval_status
              FROM projects{$where}
              ORDER BY created_at DESC
+             LIMIT {$limit}"
+        );
+    }
+
+    public function recentDeleted(string $module = 'all', int $limit = 10): array {
+        $safe = $this->normalizeModule($module);
+        $where = " WHERE status = 'Archived'";
+        if ($safe !== 'all') {
+            $where .= " AND project_type = '{$safe}'";
+        }
+        $limit = max(1, (int) $limit);
+        return $this->fetchAll(
+            "SELECT id, project_code, title AS project_title, current_stage, updated_at, project_type AS type
+             FROM projects{$where}
+             ORDER BY updated_at DESC
              LIMIT {$limit}"
         );
     }

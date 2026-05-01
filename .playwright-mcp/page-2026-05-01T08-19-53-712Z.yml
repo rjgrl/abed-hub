@@ -1,0 +1,251 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - img "AgriTrack Logo" [ref=e4]
+    - list [ref=e5]:
+      - listitem [ref=e6]:
+        - link " Dashboard" [ref=e7] [cursor=pointer]:
+          - /url: dashboard.php
+          - generic [ref=e8]: 
+          - text: Dashboard
+      - listitem [ref=e9]:
+        - link " Projects" [ref=e10] [cursor=pointer]:
+          - /url: projects-advanced.php
+          - generic [ref=e11]: 
+          - text: Projects
+      - listitem [ref=e12]:
+        - link " Analytics & Reports" [ref=e13] [cursor=pointer]:
+          - /url: analytics-reports.php
+          - generic [ref=e14]: 
+          - text: Analytics & Reports
+      - listitem [ref=e15]:
+        - link " GeoMap" [ref=e16] [cursor=pointer]:
+          - /url: geomap.php
+          - generic [ref=e17]: 
+          - text: GeoMap
+      - listitem [ref=e18]:
+        - link " Help & Guide" [ref=e19] [cursor=pointer]:
+          - /url: user-guide.php
+          - generic [ref=e20]: 
+          - text: Help & Guide
+      - separator [ref=e21]
+      - listitem [ref=e22]:
+        - generic [ref=e23]:
+          - generic [ref=e24]: 
+          - text: ADMIN TOOLS
+      - listitem [ref=e25]:
+        - link " User Management" [ref=e26] [cursor=pointer]:
+          - /url: admin-dashboard.php
+          - generic [ref=e27]: 
+          - text: User Management
+      - listitem [ref=e28]:
+        - link " System Settings" [ref=e29] [cursor=pointer]:
+          - /url: admin-settings.php
+          - generic [ref=e30]: 
+          - text: System Settings
+      - listitem [ref=e31]:
+        - link " Audit Log" [ref=e32] [cursor=pointer]:
+          - /url: admin-audit.php
+          - generic [ref=e33]: 
+          - text: Audit Log
+    - separator [ref=e34]
+    - list [ref=e35]:
+      - listitem [ref=e36]:
+        - link " Logout" [ref=e37] [cursor=pointer]:
+          - /url: logout.php
+          - generic [ref=e38]: 
+          - text: Logout
+  - generic [ref=e39]:
+    - link "ABED Logo ABED Integrated Data Management Hub Agricultural and Biosystems Engineering Division - LGU Malaybalay City" [ref=e40] [cursor=pointer]:
+      - /url: dashboard.php
+      - img "ABED Logo" [ref=e41]
+      - generic [ref=e42]:
+        - generic [ref=e43]: ABED Integrated Data Management Hub
+        - generic [ref=e44]: Agricultural and Biosystems Engineering Division - LGU Malaybalay City
+    - generic [ref=e46]:
+      - generic [ref=e47]:
+        - generic [ref=e48]: Glyn
+        - generic [ref=e49]: admin
+      - link "GL" [ref=e50] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=e51]: GL
+      - text:  
+  - navigation [ref=e52]:
+    - generic [ref=e53]:
+      - heading "System Management" [level=6] [ref=e54]
+      - generic [ref=e55]: GeoMap
+  - main [ref=e56]:
+    - generic [ref=e57]:
+      - generic [ref=e60]:
+        - generic [ref=e62]:
+          - generic [ref=e63]:
+            - heading " GeoMap" [level=4] [ref=e64]:
+              - generic [ref=e65]: 
+              - text: GeoMap
+            - text: Philippines only — markers use coordinates saved when registering FSPF, IDP, or AFME projects
+          - generic [ref=e67]: 8 Projects Mapped
+        - generic [ref=e68]:
+          - generic [ref=e69]:
+            - generic [ref=e70]:
+              - generic [ref=e71]: Filter by Type
+              - combobox [ref=e72]:
+                - option "All Types" [selected]
+                - option "FSPF Projects"
+                - option "IDP Projects"
+                - option "AFME Machinery"
+            - generic [ref=e73]:
+              - generic [ref=e74]: Filter by Status
+              - combobox [ref=e75]:
+                - option "All Status" [selected]
+                - option "Proposal"
+                - option "Pre-Implementation"
+                - option "Procurement"
+                - option "Implementation"
+                - option "Completed"
+            - generic [ref=e76]:
+              - generic [ref=e77]:
+                - text: Legend
+                - generic [ref=e78]: (project type)
+              - generic [ref=e79]:
+                - generic [ref=e82]: FSPF Projects
+                - generic [ref=e85]: IDP Projects
+                - generic [ref=e88]: AFME Machinery
+          - generic [ref=e89]:
+            - generic:
+              - generic:
+                - img
+            - generic:
+              - generic [ref=e98]:
+                - button "Zoom in" [ref=e99] [cursor=pointer]: +
+                - button "Zoom out" [ref=e100] [cursor=pointer]: −
+              - generic [ref=e101]:
+                - link "Leaflet" [ref=e102] [cursor=pointer]:
+                  - /url: https://leafletjs.com
+                  - img [ref=e103]
+                  - text: Leaflet
+                - text: "| © OpenStreetMap contributors"
+      - generic [ref=e109]:
+        - heading "Mapped Projects" [level=5] [ref=e111]
+        - table [ref=e114]:
+          - rowgroup [ref=e115]:
+            - row "Type Project Code Project Title Status Location Budget Coordinates Actions" [ref=e116]:
+              - columnheader "Type" [ref=e117]
+              - columnheader "Project Code" [ref=e118]
+              - columnheader "Project Title" [ref=e119]
+              - columnheader "Status" [ref=e120]
+              - columnheader "Location" [ref=e121]
+              - columnheader "Budget" [ref=e122]
+              - columnheader "Coordinates" [ref=e123]
+              - columnheader "Actions" [ref=e124]
+          - rowgroup [ref=e125]:
+            - row "FSPF 12 Vince Proposal City of Malaybalay, Bukidnon ₱1,000.00 8.29341209, 125.15539221 " [ref=e126]:
+              - cell "FSPF" [ref=e127]:
+                - generic [ref=e128]: FSPF
+              - cell "12" [ref=e129]
+              - cell "Vince" [ref=e130]
+              - cell "Proposal" [ref=e131]:
+                - generic [ref=e132]: Proposal
+              - cell "City of Malaybalay, Bukidnon" [ref=e133]
+              - cell "₱1,000.00" [ref=e134]
+              - cell "8.29341209, 125.15539221" [ref=e135]
+              - cell "" [ref=e136]:
+                - link "" [ref=e137] [cursor=pointer]:
+                  - /url: project-detail-enhanced.php?type=FSPF&id=4
+                  - generic [ref=e138]: 
+            - row "IDP 123 DC Proposal City of Malaybalay, Bukidnon ₱10,000.00 8.10141676, 125.12827219 " [ref=e139]:
+              - cell "IDP" [ref=e140]:
+                - generic [ref=e141]: IDP
+              - cell "123" [ref=e142]
+              - cell "DC" [ref=e143]
+              - cell "Proposal" [ref=e144]:
+                - generic [ref=e145]: Proposal
+              - cell "City of Malaybalay, Bukidnon" [ref=e146]
+              - cell "₱10,000.00" [ref=e147]
+              - cell "8.10141676, 125.12827219" [ref=e148]
+              - cell "" [ref=e149]:
+                - link "" [ref=e150] [cursor=pointer]:
+                  - /url: project-detail-enhanced.php?type=IDP&id=5
+                  - generic [ref=e151]: 
+            - row "FSPF 3333 Kamote Proposal City of Malaybalay, Bukidnon ₱9,999,999.97 8.13890748, 125.11921812 " [ref=e152]:
+              - cell "FSPF" [ref=e153]:
+                - generic [ref=e154]: FSPF
+              - cell "3333" [ref=e155]
+              - cell "Kamote" [ref=e156]
+              - cell "Proposal" [ref=e157]:
+                - generic [ref=e158]: Proposal
+              - cell "City of Malaybalay, Bukidnon" [ref=e159]
+              - cell "₱9,999,999.97" [ref=e160]
+              - cell "8.13890748, 125.11921812" [ref=e161]
+              - cell "" [ref=e162]:
+                - link "" [ref=e163] [cursor=pointer]:
+                  - /url: project-detail-enhanced.php?type=FSPF&id=6
+                  - generic [ref=e164]: 
+            - row "IDP 10 Fritz Proposal Dingalan, Aurora ₱999.99 13.92814318, 124.62925547 " [ref=e165]:
+              - cell "IDP" [ref=e166]:
+                - generic [ref=e167]: IDP
+              - cell "10" [ref=e168]
+              - cell "Fritz" [ref=e169]
+              - cell "Proposal" [ref=e170]:
+                - generic [ref=e171]: Proposal
+              - cell "Dingalan, Aurora" [ref=e172]
+              - cell "₱999.99" [ref=e173]
+              - cell "13.92814318, 124.62925547" [ref=e174]
+              - cell "" [ref=e175]:
+                - link "" [ref=e176] [cursor=pointer]:
+                  - /url: project-detail-enhanced.php?type=IDP&id=7
+                  - generic [ref=e177]: 
+            - row "FSPF Yohann Vince Bayot Proposal City of Malaybalay, Bukidnon ₱100,000.00 8.21160358, 125.27710076 " [ref=e178]:
+              - cell "FSPF" [ref=e179]:
+                - generic [ref=e180]: FSPF
+              - cell "Yohann" [ref=e181]
+              - cell "Vince Bayot" [ref=e182]
+              - cell "Proposal" [ref=e183]:
+                - generic [ref=e184]: Proposal
+              - cell "City of Malaybalay, Bukidnon" [ref=e185]
+              - cell "₱100,000.00" [ref=e186]
+              - cell "8.21160358, 125.27710076" [ref=e187]
+              - cell "" [ref=e188]:
+                - link "" [ref=e189] [cursor=pointer]:
+                  - /url: project-detail-enhanced.php?type=FSPF&id=8
+                  - generic [ref=e190]: 
+            - row "FSPF FSPF-2026-BUG-001 Bug repro project Proposal , ₱10,000.00 12.49021366, 121.76587163 " [ref=e191]:
+              - cell "FSPF" [ref=e192]:
+                - generic [ref=e193]: FSPF
+              - cell "FSPF-2026-BUG-001" [ref=e194]
+              - cell "Bug repro project" [ref=e195]
+              - cell "Proposal" [ref=e196]:
+                - generic [ref=e197]: Proposal
+              - cell "," [ref=e198]
+              - cell "₱10,000.00" [ref=e199]
+              - cell "12.49021366, 121.76587163" [ref=e200]
+              - cell "" [ref=e201]:
+                - link "" [ref=e202] [cursor=pointer]:
+                  - /url: project-detail-enhanced.php?type=FSPF&id=9
+                  - generic [ref=e203]: 
+            - row "IDP IDP-2026-BUG-001 IDP bug repro Proposal , ₱11,000.00 12.49021366, 121.76587163 " [ref=e204]:
+              - cell "IDP" [ref=e205]:
+                - generic [ref=e206]: IDP
+              - cell "IDP-2026-BUG-001" [ref=e207]
+              - cell "IDP bug repro" [ref=e208]
+              - cell "Proposal" [ref=e209]:
+                - generic [ref=e210]: Proposal
+              - cell "," [ref=e211]
+              - cell "₱11,000.00" [ref=e212]
+              - cell "12.49021366, 121.76587163" [ref=e213]
+              - cell "" [ref=e214]:
+                - link "" [ref=e215] [cursor=pointer]:
+                  - /url: project-detail-enhanced.php?type=IDP&id=10
+                  - generic [ref=e216]: 
+            - row "AFME AFME-2026-BUG-002 AFME bug repro Proposal , ₱12,000.00 12.49879444, 121.76587163 " [ref=e217]:
+              - cell "AFME" [ref=e218]:
+                - generic [ref=e219]: AFME
+              - cell "AFME-2026-BUG-002" [ref=e220]
+              - cell "AFME bug repro" [ref=e221]
+              - cell "Proposal" [ref=e222]:
+                - generic [ref=e223]: Proposal
+              - cell "," [ref=e224]
+              - cell "₱12,000.00" [ref=e225]
+              - cell "12.49879444, 121.76587163" [ref=e226]
+              - cell "" [ref=e227]:
+                - link "" [ref=e228] [cursor=pointer]:
+                  - /url: afme-machinery-details.php?id=11
+                  - generic [ref=e229]: 

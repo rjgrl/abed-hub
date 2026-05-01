@@ -39,7 +39,15 @@ error_reporting(E_ALL);
 // File upload settings
 define('MAX_FILE_SIZE', 10 * 1024 * 1024); // 10MB
 define('UPLOAD_DIR', 'uploads/');
-define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/png', 'image/jpg']);
+define('ALLOWED_IMAGE_TYPES', [
+    'image/jpeg',
+    'image/png',
+    'image/jpg',
+    'image/webp',
+    'image/gif',
+    'image/heic',
+    'image/heif',
+]);
 define('ALLOWED_DOCUMENT_TYPES', ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']);
 define('ALLOWED_EXCEL_TYPES', ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']);
 

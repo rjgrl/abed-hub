@@ -255,6 +255,10 @@ function batchBulkUpdate(): array {
 function batchDeleteProjects(): array {
     global $conn;
 
+    if (($_SESSION['role'] ?? '') !== 'admin') {
+        throw new Exception('Only admins can delete projects');
+    }
+
     $data     = apiInputJson();
     $ids      = $data['ids'] ?? $data['projects'] ?? [];
     $typeRaw  = $data['project_type'] ?? $data['type'] ?? '';

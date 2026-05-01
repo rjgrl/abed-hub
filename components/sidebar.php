@@ -4,77 +4,77 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 $current_page = basename($_SERVER['SCRIPT_NAME']);
 ?>
-<div class="sidebar-fixed bg-dark text-white p-3 vh-100 d-flex flex-column">
-  <div class="d-flex justify-content-center align-items-center mb-4">
-    <img src="logos/Agri.png" alt="AgriTrack Logo" style="width: 200px; height: 115px; object-fit: contain;">
+<div class="sidebar-fixed app-sidebar p-3 vh-100 d-flex flex-column">
+  <div class="app-sidebar-brand d-flex justify-content-center align-items-center mb-4">
+    <img src="logos/Agri.png" alt="AgriTrack Logo" class="app-sidebar-logo">
   </div>
 
   <ul class="nav nav-pills flex-column mb-auto">
     <li class="nav-item mb-2">
-      <a href="dashboard.php" class="nav-link text-white <?php echo (in_array($current_page, ['dashboard-enhanced.php', 'dashboard.php'])) ? 'active' : ''; ?>">
+      <a href="dashboard.php" class="nav-link <?php echo (in_array($current_page, ['dashboard-enhanced.php', 'dashboard.php'])) ? 'active' : ''; ?>">
         <i class="fas fa-tachometer-alt me-2"></i>Dashboard
         <span class="badge bg-danger ms-auto d-none" id="notificationBadge" data-notification-badge>0</span>
       </a>
     </li>
 
     <li class="nav-item mb-2">
-      <a href="projects-advanced.php" class="nav-link text-white <?php echo (in_array($current_page, ['projects-advanced.php', 'projects.php', 'project-detail-enhanced.php'])) ? 'active' : ''; ?>">
+      <a href="projects-advanced.php" class="nav-link <?php echo (in_array($current_page, ['projects-advanced.php', 'projects.php', 'project-detail-enhanced.php'])) ? 'active' : ''; ?>">
         <i class="fas fa-folder-open me-2"></i>Projects
       </a>
     </li>
 
     <li class="nav-item mb-2">
-      <a href="analytics-reports.php" class="nav-link text-white <?php echo (in_array($current_page, ['analytics-reports.php', 'analytics.php', 'reports.php'])) ? 'active' : ''; ?>">
+      <a href="analytics-reports.php" class="nav-link <?php echo (in_array($current_page, ['analytics-reports.php', 'analytics.php', 'reports.php'])) ? 'active' : ''; ?>">
         <i class="fas fa-chart-bar me-2"></i>Analytics & Reports
       </a>
     </li>
 
     <li class="nav-item mb-2">
-      <a href="geomap.php" class="nav-link text-white <?php echo ($current_page === 'geomap.php') ? 'active' : ''; ?>">
+      <a href="geomap.php" class="nav-link <?php echo ($current_page === 'geomap.php') ? 'active' : ''; ?>">
         <i class="fas fa-map me-2"></i>GeoMap
       </a>
     </li>
 
     <li class="nav-item mb-2">
-      <a href="user-guide.php" class="nav-link text-white <?php echo ($current_page === 'user-guide.php') ? 'active' : ''; ?>">
+      <a href="user-guide.php" class="nav-link <?php echo ($current_page === 'user-guide.php') ? 'active' : ''; ?>">
         <i class="fas fa-question-circle me-2"></i>Help & Guide
       </a>
     </li>
 
     <!-- Admin Only Section -->
     <?php if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'coordinator'])): ?>
-    <hr class="my-3">
+    <hr class="app-sidebar-hr my-3">
     <li class="nav-item mb-2">
-      <span class="nav-link text-white small fw-bold px-0">
+      <span class="nav-link nav-section-label small fw-bold px-2 py-1">
         <i class="fas fa-cog me-2"></i>ADMIN TOOLS
       </span>
     </li>
 
     <li class="nav-item mb-2">
-      <a href="admin-dashboard.php" class="nav-link text-white <?php echo (in_array($current_page, ['admin-users.php', 'admin-dashboard.php'])) ? 'active' : ''; ?>">
+      <a href="admin-dashboard.php" class="nav-link <?php echo (in_array($current_page, ['admin-users.php', 'admin-dashboard.php'])) ? 'active' : ''; ?>">
         <i class="fas fa-users me-2"></i>User Management
       </a>
     </li>
 
     <li class="nav-item mb-2">
-      <a href="admin-settings.php" class="nav-link text-white <?php echo ($current_page === 'admin-settings.php') ? 'active' : ''; ?>">
+      <a href="admin-settings.php" class="nav-link <?php echo ($current_page === 'admin-settings.php') ? 'active' : ''; ?>">
         <i class="fas fa-sliders-h me-2"></i>System Settings
       </a>
     </li>
 
     <li class="nav-item mb-2">
-      <a href="admin-audit.php" class="nav-link text-white <?php echo ($current_page === 'admin-audit.php') ? 'active' : ''; ?>">
+      <a href="admin-audit.php" class="nav-link <?php echo ($current_page === 'admin-audit.php') ? 'active' : ''; ?>">
         <i class="fas fa-history me-2"></i>Audit Log
       </a>
     </li>
     <?php endif; ?>
   </ul>
 
-  <hr />
+  <hr class="app-sidebar-hr" />
 
   <ul class="nav nav-pills flex-column">
     <li class="nav-item mb-2">
-      <a href="logout.php" class="nav-link text-danger">
+      <a href="logout.php" class="nav-link app-sidebar-logout">
         <i class="fas fa-sign-out-alt me-2"></i>Logout
       </a>
     </li>

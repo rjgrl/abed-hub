@@ -29,7 +29,7 @@ $html .= '<tr><th align="left">Metric</th><th align="left">Value</th></tr>';
 $html .= '<tr><td>Total Projects</td><td>' . (int) ($summary['total_projects'] ?? 0) . '</td></tr>';
 $html .= '</table>';
 
-$css = 'body { font-family: sans-serif; font-size: 12px; } h2 { color: #0d6efd; } th { background: #f4f6f8; }';
+$css = 'body { font-family: sans-serif; font-size: 12px; } h2 { color: #5b8def; } th { background: #f4f6f8; }';
 
 try {
     generatePDF([

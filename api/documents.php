@@ -134,8 +134,12 @@ function uploadDocument(): array {
     }
 
     $mime = mime_content_type($file['tmp_name']) ?: ($file['type'] ?? '');
-    if (!in_array($mime, $allowed, true)) {
-        throw new Exception('Invalid file type');
+    $ext = strtolower((string) pathinfo((string) ($file['name'] ?? ''), PATHINFO_EXTENSION));
+    $allowedExt = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif'];
+    $mimeAllowed = in_array($mime, $allowed, true);
+    $extAllowed = in_array($ext, $allowedExt, true);
+    if (!$mimeAllowed && !$extAllowed) {
+        throw new Exception('Invalid file type. Allowed: PDF, DOC, DOCX, JPG, PNG, WEBP, GIF, HEIC, HEIF');
     }
 
     $uploadRoot = defined('UPLOAD_DIR') ? UPLOAD_DIR : (__DIR__ . '/../uploads/');
@@ -144,7 +148,6 @@ function uploadDocument(): array {
         throw new Exception('Unable to create upload directory');
     }
 
-    $ext = pathinfo((string) $file['name'], PATHINFO_EXTENSION);
     $storedName = uniqid('doc_', true) . ($ext ? '.' . $ext : '');
     $path = $folder . $storedName;
     if (!move_uploaded_file($file['tmp_name'], $path)) {
@@ -243,7 +246,10 @@ function previewDocument(): never {
         die('Document file not found');
     }
 
+    $inlineName = basename((string) ($doc['original_filename'] ?? basename($path)));
     header('Content-Type: ' . ($doc['mime_type'] ?? mime_content_type($path)));
+    header('Content-Disposition: inline; filename="' . $inlineName . '"');
+    header('X-Content-Type-Options: nosniff');
     readfile($path);
     exit;
 }

@@ -304,6 +304,10 @@ function updateProgress(mysqli $conn, ?string $project_type, ?int $project_id, a
 }
 
 function archiveProject(mysqli $conn, ?string $project_type, int $project_id): never {
+    if (($_SESSION['role'] ?? '') !== 'admin') {
+        apiError('Only admins can delete projects', 403);
+    }
+
     $table = apiTableFor($project_type ?? '');
 
     $stmt = $conn->prepare("UPDATE $table SET status = 'Archived' WHERE id = ? AND project_type = ?");

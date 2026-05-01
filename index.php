@@ -117,70 +117,112 @@ $conn->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ABED IDM Hub - Homepage</title>
     <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/css/style.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-    <style>
-      body {
-        background: #f5f7fa;
-      }
-      .hero {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 80px 0;
-        text-align: center;
-      }
-      .stat-card {
-        border-left: 4px solid;
-        transition: all 0.3s ease;
-      }
-      .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-      }
-      .stat-card.fspf { border-left-color: #28a745; }
-      .stat-card.idp { border-left-color: #007bff; }
-      .stat-card.afme { border-left-color: #ffc107; }
-      .project-badge {
-        font-size: 0.75rem;
-        padding: 0.4rem 0.6rem;
-      }
-      .progress-small {
-        height: 5px;
-      }
-      .navbar {
-        background: white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      }
-      .card-hover {
-        transition: all 0.3s ease;
-        border: none;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      }
-      .card-hover:hover {
-        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-        transform: translateY(-3px);
-      }
-    </style>
   </head>
-  <body>
-    <!-- Hero Section -->
-    <section class="hero">
+  <body class="public-home">
+    <header class="public-header">
       <div class="container">
-        <h1 class="display-4 fw-bold mb-3">ABED IDM Hub</h1>
-        <p class="lead mb-4">Agricultural and Bioenterprise Enhancement Division<br>Infrastructure Development Management System</p>
-        <?php if (!isset($_SESSION['user_id'])): ?>
-        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-          <a href="login.php" class="btn btn-light btn-lg px-4">
-            <i class="fas fa-sign-in-alt me-2"></i>Login
+        <nav class="navbar navbar-expand-lg py-3 public-navbar" aria-label="Public navigation">
+          <a class="navbar-brand d-flex align-items-center gap-2" href="index.php">
+            <img src="logos/abed_logo.png" alt="ABED IDM Hub" class="public-brand-logo" />
+            <span class="fw-bold d-none d-sm-inline">ABED IDM Hub</span>
           </a>
-          <a href="signup.php" class="btn btn-outline-light btn-lg px-4">
-            <i class="fas fa-user-plus me-2"></i>Register
-          </a>
+
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#publicNav" aria-controls="publicNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+
+          <div class="collapse navbar-collapse" id="publicNav">
+            <ul class="navbar-nav mx-auto mb-3 mb-lg-0">
+              <li class="nav-item"><a class="nav-link" href="#overview">Overview</a></li>
+              <li class="nav-item"><a class="nav-link" href="#projects">Projects</a></li>
+              <li class="nav-item"><a class="nav-link" href="#uploads">Uploads</a></li>
+              <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+            </ul>
+            <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-2 gap-lg-3 public-nav-utils">
+              <?php if (!isset($_SESSION['user_id'])): ?>
+              <a href="login.php" class="btn btn-outline-primary btn-sm">Login</a>
+              <a href="signup.php" class="btn btn-primary btn-sm">Sign Up</a>
+              <?php else: ?>
+              <a href="dashboard-enhanced.php" class="btn btn-primary btn-sm">Dashboard</a>
+              <?php endif; ?>
+              <a href="#contact" class="nav-link p-0">Contact</a>
+              <button type="button" class="btn btn-light btn-sm px-3" aria-label="Current language">EN</button>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <section class="public-hero-layout" id="overview">
+      <div class="container">
+        <div class="row g-0 align-items-stretch public-hero-row">
+          <div class="col-lg-6 public-hero-copy-wrap">
+            <div class="public-hero-copy">
+              <span class="public-hero-kicker">Overview of Agricultural Support Programs</span>
+              <h1 class="public-hero-title">Infrastructure Management Made Easier.</h1>
+              <p class="public-hero-description">
+                Track project performance, monitor infrastructure progress, and access verified public records through the ABED IDM Hub.
+              </p>
+              <?php if (!isset($_SESSION['user_id'])): ?>
+              <div class="d-flex flex-wrap gap-2 mt-4">
+                <a href="login.php" class="btn btn-primary px-4">Login</a>
+                <a href="signup.php" class="btn btn-outline-primary px-4">Create Account</a>
+              </div>
+              <?php else: ?>
+              <div class="mt-4">
+                <p class="mb-2">Welcome back, <strong><?php echo htmlspecialchars($_SESSION['full_name']); ?></strong></p>
+                <a href="dashboard-enhanced.php" class="btn btn-primary px-4">Go to Dashboard</a>
+              </div>
+              <?php endif; ?>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="public-hero-visual">
+            </div>
+          </div>
         </div>
-        <?php else: ?>
-        <p class="lead">Welcome back, <strong><?php echo htmlspecialchars($_SESSION['full_name']); ?></strong></p>
-        <a href="dashboard-enhanced.php" class="btn btn-light btn-lg">Go to Dashboard</a>
-        <?php endif; ?>
+
+        <div class="row g-3 public-feature-cards">
+          <div class="col-12 col-sm-6 col-lg-3">
+            <article class="card h-100 card-hover public-feature-card">
+              <div class="card-body">
+                <div class="public-feature-icon"><i class="fas fa-chart-line"></i></div>
+                <h3 class="h5 mb-2">Project Visibility</h3>
+                <p class="mb-0 text-muted">Get a quick view of approved initiatives and current implementation stages.</p>
+              </div>
+            </article>
+          </div>
+          <div class="col-12 col-sm-6 col-lg-3">
+            <article class="card h-100 card-hover public-feature-card">
+              <div class="card-body">
+                <div class="public-feature-icon"><i class="fas fa-file-circle-check"></i></div>
+                <h3 class="h5 mb-2">Verified Records</h3>
+                <p class="mb-0 text-muted">Browse uploads that have been reviewed and approved by administrators.</p>
+              </div>
+            </article>
+          </div>
+          <div class="col-12 col-sm-6 col-lg-3">
+            <article class="card h-100 card-hover public-feature-card public-feature-card--featured">
+              <div class="card-body">
+                <div class="public-feature-icon"><i class="fas fa-water"></i></div>
+                <h3 class="h5 mb-2">Infrastructure Focus</h3>
+                <p class="mb-0 text-muted">Monitor irrigation and farm-to-market development priorities in one place.</p>
+              </div>
+            </article>
+          </div>
+          <div class="col-12 col-sm-6 col-lg-3">
+            <article class="card h-100 card-hover public-feature-card">
+              <div class="card-body">
+                <div class="public-feature-icon"><i class="fas fa-users"></i></div>
+                <h3 class="h5 mb-2">Program Access</h3>
+                <p class="mb-0 text-muted">Support field staff and stakeholders with centralized reporting tools.</p>
+              </div>
+            </article>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -200,7 +242,7 @@ $conn->close();
                     <h2 class="mb-2"><?php echo $fspf_count; ?></h2>
                     <small class="text-success">₱<?php echo number_format($fspf_funded, 2); ?></small>
                   </div>
-                  <div style="font-size: 3rem; color: #28a745; opacity: 0.2;">
+                  <div class="stat-icon text-success">
                     <i class="fas fa-tractor"></i>
                   </div>
                 </div>
@@ -218,7 +260,7 @@ $conn->close();
                     <h2 class="mb-2"><?php echo $idp_count; ?></h2>
                     <small class="text-info">₱<?php echo number_format($idp_funded, 2); ?></small>
                   </div>
-                  <div style="font-size: 3rem; color: #007bff; opacity: 0.2;">
+                  <div class="stat-icon text-primary">
                     <i class="fas fa-water"></i>
                   </div>
                 </div>
@@ -236,7 +278,7 @@ $conn->close();
                     <h2 class="mb-2"><?php echo $afme_count; ?></h2>
                     <small class="text-warning">₱<?php echo number_format($afme_funded, 2); ?></small>
                   </div>
-                  <div style="font-size: 3rem; color: #ffc107; opacity: 0.2;">
+                  <div class="stat-icon text-warning">
                     <i class="fas fa-cog"></i>
                   </div>
                 </div>
@@ -248,7 +290,7 @@ $conn->close();
     </section>
 
     <!-- Recent Projects Section -->
-    <section class="py-5 bg-white" id="projects">
+    <section class="py-5 bg-white public-section-surface" id="projects">
       <div class="container">
         <h2 class="mb-5">Recent Projects</h2>
 
@@ -411,7 +453,7 @@ $conn->close();
       </div>
     </section>
 
-    <section class="py-5">
+    <section class="py-5" id="uploads">
       <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
           <h2 class="mb-0">Verified Uploads</h2>
@@ -452,7 +494,7 @@ $conn->close();
     </section>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white py-4 mt-5">
+    <footer class="public-footer py-4 mt-5" id="contact">
       <div class="container">
         <div class="row">
           <div class="col-md-4">
