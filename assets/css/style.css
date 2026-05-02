@@ -1136,15 +1136,98 @@ body.public-home {
   z-index: 1020;
 }
 
+.public-header > .container {
+  padding-left: 0.65rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 576px) {
+  .public-header > .container {
+    padding-left: 0.75rem;
+    padding-right: 1.25rem;
+  }
+}
+
 .public-navbar .navbar-brand {
   color: #ffffff;
   text-decoration: none;
+  overflow: visible;
+}
+
+/* Logo + stacked title (structure only; colors via Bootstrap utilities on markup) */
+.public-navbar-brand {
+  max-width: 100%;
+  /* Slightly larger logo + title visually without changing navbar padding/flow */
+  transform: scale(1.07);
+  transform-origin: left center;
+}
+
+.public-brand-text {
+  min-width: 0;
+}
+
+.public-brand-title {
+  display: block;
+  font-size: clamp(0.76rem, 1.2vw, 0.88rem);
+  line-height: 1.15;
+}
+
+.public-brand-subtitle {
+  display: block;
+  margin-top: 0.06rem;
+  font-size: 0.6875rem;
+  line-height: 1.2;
 }
 
 .public-brand-logo {
   width: 42px;
   height: 42px;
   object-fit: contain;
+  
+  transform: translateX(-0.60rem) scale(1.8);
+  transform-origin: left center;
+}
+
+@media (min-width: 992px) {
+  .public-navbar.navbar-expand-lg .navbar-collapse {
+    align-items: center;
+  }
+
+  .public-navbar.navbar-expand-lg .navbar-nav {
+    align-items: center;
+  }
+
+  .public-navbar .navbar-nav .nav-link {
+    white-space: nowrap;
+  }
+}
+
+.public-nav-utils {
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.public-nav-utils .public-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  box-sizing: border-box;
+}
+
+.public-nav-extra-link {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  min-height: 2rem;
+  padding-left: 0.35rem;
+  padding-right: 0.35rem;
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+.public-nav-extra-link:hover,
+.public-nav-extra-link:focus {
+  color: #ffffff !important;
 }
 
 .public-navbar .nav-link {
@@ -1218,7 +1301,15 @@ body.public-home {
 
 .public-hero-visual {
   height: 100%;
-  min-height: 340px;
+  min-height: 420px;
+}
+
+.public-hero-agriblack {
+  max-width: min(100%, 640px);
+  max-height: min(68vh, 520px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
 }
 
 .public-feature-cards {
