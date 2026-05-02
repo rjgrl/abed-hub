@@ -411,10 +411,11 @@ renderAppLayout($page_title);
                                         <td><?php echo htmlspecialchars($upload['uploaded_by_name'] ?? 'Unknown'); ?></td>
                                         <td>
                                             <?php $reviewStatus = (string) ($upload['review_status'] ?? 'Pending'); ?>
+                                            <div class="d-flex flex-column align-items-start gap-2">
                                             <span class="badge <?php echo $reviewStatus === 'Approved' ? 'bg-success' : ($reviewStatus === 'Rejected' ? 'bg-danger' : 'bg-warning text-dark'); ?>">
                                                 <?php echo htmlspecialchars($reviewStatus); ?>
                                             </span>
-                                            <div class="btn-group btn-group-sm ms-2">
+                                            <div class="d-flex align-items-center gap-3 flex-wrap">
                                                 <?php if ($isRegistration && $reviewStatus === 'Pending'): ?>
                                                     <form method="POST" class="d-inline">
                                                         <input type="hidden" name="action" value="review_pending_project">
@@ -446,6 +447,7 @@ renderAppLayout($page_title);
                                                         <button type="submit" class="btn btn-outline-danger" title="Reject"><i class="fas fa-times"></i></button>
                                                     </form>
                                                 <?php endif; ?>
+                                            </div>
                                             </div>
                                         </td>
                                     </tr>
