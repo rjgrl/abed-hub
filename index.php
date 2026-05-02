@@ -139,6 +139,7 @@ $conn->close();
               <li class="nav-item"><a class="nav-link" href="#overview">Overview</a></li>
               <li class="nav-item"><a class="nav-link" href="#projects">Projects</a></li>
               <li class="nav-item"><a class="nav-link" href="#uploads">Uploads</a></li>
+              <li class="nav-item"><a class="nav-link" href="team.php">Meet Our Team</a></li>
               <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
             </ul>
             <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-2 gap-lg-3 public-nav-utils">
@@ -161,8 +162,8 @@ $conn->close();
         <div class="row g-0 align-items-stretch public-hero-row">
           <div class="col-lg-6 public-hero-copy-wrap">
             <div class="public-hero-copy">
-              <span class="public-hero-kicker">Overview of Agricultural Support Programs</span>
-              <h1 class="public-hero-title">Infrastructure Management Made Easier.</h1>
+              <span class="public-hero-kicker">Agricultural and Biosystems Engineering Division</span>
+              <h1 class="public-hero-title">ABED Integrated Data Management Hub</h1>
               <p class="public-hero-description">
                 Track project performance, monitor infrastructure progress, and access verified public records through the ABED IDM Hub.
               </p>

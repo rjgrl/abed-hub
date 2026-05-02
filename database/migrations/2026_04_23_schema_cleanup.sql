@@ -1,7 +1,7 @@
 -- ============================================================
 -- Schema Cleanup Migration — apply to existing databases only
 -- Run ONCE in a maintenance window; safe to skip for fresh installs
--- (db.sql already contains the correct final schema).
+-- (database/db.sql already contains the correct final schema).
 -- ============================================================
 
 START TRANSACTION;
