@@ -11,21 +11,37 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-$project_type = $_POST['type'] ?? 'fspf';
+$project_type = strtolower(trim($_POST['type'] ?? 'fspf'));
+if ($project_type === '') {
+    $project_type = 'fspf';
+}
 $selected_ids = isset($_POST['selected_ids']) ? json_decode($_POST['selected_ids'], true) : null;
 
 $table = 'projects';
 
+$catalog_filter = "approval_status = 'Approved' AND (status IS NULL OR status <> 'Archived')";
+
 // Build query
-if ($selected_ids && is_array($selected_ids)) {
+if ($selected_ids && is_array($selected_ids) && count($selected_ids) > 0) {
     $placeholders = str_repeat('?,', count($selected_ids) - 1) . '?';
-    $query = "SELECT * FROM $table WHERE project_type = ? AND id IN ($placeholders) ORDER BY project_code";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param('s' . str_repeat('i', count($selected_ids)), $project_type, ...$selected_ids);
+    if ($project_type === 'all') {
+        $query = "SELECT * FROM $table WHERE id IN ($placeholders) AND $catalog_filter ORDER BY project_code";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param(str_repeat('i', count($selected_ids)), ...array_map('intval', $selected_ids));
+    } else {
+        $query = "SELECT * FROM $table WHERE project_type = ? AND id IN ($placeholders) AND $catalog_filter ORDER BY project_code";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param('s' . str_repeat('i', count($selected_ids)), $project_type, ...array_map('intval', $selected_ids));
+    }
 } else {
-    $query = "SELECT * FROM $table WHERE project_type = ? ORDER BY project_code";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param('s', $project_type);
+    if ($project_type === 'all') {
+        $query = "SELECT * FROM $table WHERE $catalog_filter ORDER BY project_code";
+        $stmt = $conn->prepare($query);
+    } else {
+        $query = "SELECT * FROM $table WHERE project_type = ? AND $catalog_filter ORDER BY project_code";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param('s', $project_type);
+    }
 }
 
 $stmt->execute();
@@ -33,7 +49,8 @@ $projects = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 // Set headers for CSV download
 header('Content-Type: text/csv; charset=utf-8');
-header('Content-Disposition: attachment; filename="' . strtoupper($project_type) . '_projects_' . date('Y-m-d') . '.csv"');
+$fname_prefix = $project_type === 'all' ? 'ALL' : strtoupper($project_type);
+header('Content-Disposition: attachment; filename="' . $fname_prefix . '_projects_' . date('Y-m-d') . '.csv"');
 
 // Create output stream
 $output = fopen('php://output', 'w');

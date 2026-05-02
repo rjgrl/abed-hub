@@ -176,11 +176,11 @@ renderAppLayout($page_title);
 
                     <form method="POST" enctype="multipart/form-data">
                         <div class="mb-4 d-flex align-items-center gap-3">
-                            <div class="rounded-circle overflow-hidden border d-flex align-items-center justify-content-center bg-light" style="width: 88px; height: 88px;">
+                            <div class="rounded-circle overflow-hidden border d-flex align-items-center justify-content-center bg-light account-avatar-box">
                                 <?php if (!empty($profile_picture)): ?>
-                                    <img src="<?php echo htmlspecialchars($profile_picture); ?>" alt="Profile picture" style="width: 100%; height: 100%; object-fit: cover;">
+                                    <img src="<?php echo htmlspecialchars($profile_picture); ?>" alt="Profile picture">
                                 <?php else: ?>
-                                    <span class="fw-bold text-secondary" style="font-size: 1.4rem;">
+                                    <span class="fw-bold text-secondary account-avatar-initials">
                                         <?php echo htmlspecialchars(strtoupper(substr((string) ($user['full_name'] ?? 'U'), 0, 2))); ?>
                                     </span>
                                 <?php endif; ?>

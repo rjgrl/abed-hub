@@ -130,15 +130,13 @@ $audit_stmt = $conn->prepare(
 $audit_stmt->bind_param("isss", $user_id, $action, $ip_address, $user_agent);
 $audit_stmt->execute();
 
-// Return success
+$stmt->close();
+$insert_stmt->close();
+$audit_stmt->close();
+$conn->close();
+
 die(json_encode([
     'status' => 'success',
     'message' => 'Recovery code sent to your email',
     'token' => $token
 ]));
-
-$stmt->close();
-$insert_stmt->close();
-$audit_stmt->close();
-$conn->close();
-?>

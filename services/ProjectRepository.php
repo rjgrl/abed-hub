@@ -231,14 +231,23 @@ class ProjectRepository {
         );
     }
 
-    public function monthlyTrend(int $year): array {
+    public function monthlyTrend(int $year, string $module = 'all'): array {
+        $safe = $this->normalizeModule($module);
+        $year = max(2000, min(2100, $year));
+        $typeSql = '';
+        if ($safe !== 'all') {
+            $typeSql = " AND project_type = '{$safe}'";
+        }
         $rows = $this->fetchAll(
             "SELECT MONTH(created_at) AS month,
                     COUNT(*) AS count,
                     ROUND(AVG(physical_progress), 1) AS avg_physical,
                     ROUND(AVG(financial_progress), 1) AS avg_financial
              FROM projects
-             WHERE YEAR(created_at) = {$year} AND approval_status = 'Approved'
+             WHERE YEAR(created_at) = {$year}
+               AND approval_status = 'Approved'
+               AND (status IS NULL OR status <> 'Archived')
+               {$typeSql}
              GROUP BY MONTH(created_at)
              ORDER BY month"
         );

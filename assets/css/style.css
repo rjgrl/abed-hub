@@ -392,6 +392,12 @@ main.app-main > .container-fluid.py-4 {
   z-index: 1350 !important;
 }
 
+/* Dropdowns in modals use Popper (often position:fixed). Global dropdown z-index (1350) must stay above
+   .modal-backdrop (1990) or the menu renders behind the backdrop and cannot be used (e.g. Register Project location). */
+.modal .dropdown-menu {
+  z-index: 2050 !important;
+}
+
 .mp {
   opacity: 0.55 !important;
 }
@@ -1099,6 +1105,10 @@ main:not(.app-main) {
   padding: 0.55rem 1rem;
 }
 
+.app-main .nav-tabs button.nav-link {
+  background: transparent;
+}
+
 .app-main .nav-tabs .nav-link:hover {
   color: var(--accent-blue-deep);
   background: rgba(91, 141, 239, 0.06);
@@ -1325,43 +1335,38 @@ body.public-home {
 }
 
 .team-showcase {
-  --team-image-radius: 6px;
-  --team-header-gap-bottom: clamp(2.5rem, 5vw, 4rem);
-  padding-top: clamp(2.75rem, 6vw, 4.75rem);
-  padding-bottom: clamp(2rem, 4vw, 3.25rem);
-  background: var(--app-surface);
+  --team-image-radius: 12px;
+  --team-header-gap-bottom: clamp(2.75rem, 6vw, 4.25rem);
+  padding-top: clamp(2.5rem, 5.5vw, 4rem);
+  padding-bottom: clamp(2.25rem, 4.5vw, 3.5rem);
   width: 100%;
   max-width: 100%;
+  background:
+    linear-gradient(180deg, rgba(17, 24, 39, 0.07) 0%, rgba(248, 249, 250, 0.96) 48px, #f8f9fa 100%);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    0 12px 40px rgba(15, 23, 42, 0.04);
+}
+
+.team-showcase-container {
+  z-index: 0;
 }
 
 .team-showcase-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: clamp(1.25rem, 3vw, 2rem);
   margin-bottom: var(--team-header-gap-bottom);
 }
 
-.team-showcase-header-copy {
-  flex: 1 1 18rem;
-  max-width: min(100%, 44rem);
-  text-align: left;
-}
-
-.team-showcase-header-action {
-  flex: 0 0 auto;
-  align-self: flex-start;
-}
-
-@media (max-width: 575.98px) {
-  .team-showcase-header-action {
-    width: 100%;
-  }
-
-  .team-read-more-btn {
-    width: 100%;
-  }
+.team-showcase-intro {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  max-width: min(100%, 42rem);
+  margin-inline: auto;
 }
 
 .team-page .team-page-title {
@@ -1372,29 +1377,16 @@ body.public-home {
   line-height: 1.15;
   margin-bottom: clamp(1rem, 2vw, 1.35rem);
   color: var(--app-text);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.5rem 0.85rem;
-}
-
-.team-title-index {
-  font-weight: 500;
-  font-size: 0.55em;
-  letter-spacing: 0.02em;
-  color: var(--app-muted-soft);
-}
-
-.team-title-text {
-  flex: 1 1 auto;
-  min-width: 0;
+  text-align: center;
+  width: 100%;
 }
 
 .team-page .team-lead {
   font-size: clamp(0.98rem, 1.35vw, 1.0625rem);
-  line-height: 1.65;
-  max-width: min(100%, 38rem);
-  margin: 0;
+  line-height: 1.78;
+  max-width: min(100%, 40rem);
+  margin: 0 0 clamp(1.25rem, 2.5vw, 1.75rem);
+  text-align: center;
 }
 
 .team-read-more-btn {
@@ -1402,6 +1394,13 @@ body.public-home {
   padding: 0.55rem 1.35rem;
   font-weight: 600;
   font-size: 0.9375rem;
+  align-self: center;
+}
+
+@media (max-width: 575.98px) {
+  .team-read-more-btn {
+    width: 100%;
+  }
 }
 
 .team-member-grid {
@@ -1468,6 +1467,12 @@ body.public-home {
   object-fit: cover;
   object-position: center 42%;
   display: block;
+  filter: grayscale(18%) brightness(0.97);
+  transition: filter 0.25s ease;
+}
+
+.team-card:hover .team-card-image {
+  filter: grayscale(8%) brightness(1);
 }
 
 
@@ -1526,4 +1531,359 @@ body.public-home {
 .team-reveal.is-visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* S-curve monitoring: fixed plot areas so large KPI values do not stretch the layout */
+.scurve-kpi-cell {
+  min-height: 5.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.scurve-kpi-value {
+  min-height: 3.25rem;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  line-height: 1.15;
+  font-size: clamp(1.15rem, 2.8vw, 2.35rem);
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  padding: 0 0.25rem;
+}
+
+.scurve-kpi-value--stage {
+  font-size: clamp(0.95rem, 2vw, 1.35rem);
+  font-weight: 600;
+}
+
+.scurve-chart-host {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  max-height: 300px;
+}
+
+.scurve-breakdown-host {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  max-height: 240px;
+}
+
+.scurve-chart-host canvas,
+.scurve-breakdown-host canvas {
+  display: block;
+  max-width: 100%;
+}
+
+/* Analytics performance: monthly execution curve — bounded box so Chart.js (maintainAspectRatio: false)
+   does not fill stretched Bootstrap columns and grow vertically off the page */
+.analytics-monthly-chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  max-height: 260px;
+}
+
+.analytics-monthly-chart-wrap canvas {
+  display: block;
+  max-width: 100%;
+}
+
+/* ========================================
+   Shared UI (extracted from inline PHP styles)
+   ======================================== */
+
+#map {
+  height: 600px;
+  width: 100%;
+}
+
+#newProjectMap {
+  height: 240px;
+  width: 100%;
+  border-radius: 0.375rem;
+  border: 1px solid #dee2e6;
+  z-index: 0;
+}
+
+.project-marker {
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  border: 2px solid white;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+.fspf-marker {
+  background-color: #5b8def;
+}
+
+.idp-marker {
+  background-color: #c694f9;
+}
+
+.afme-marker {
+  background-color: #f5c57a;
+}
+
+.batch-actions-toggle.batch-actions-locked {
+  opacity: 0.55;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.hover-lift {
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.timeline {
+  position: relative;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 1rem;
+}
+
+.timeline-marker {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--accent-blue);
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.timeline-item:not(:last-child) .timeline-marker::after {
+  content: "";
+  position: absolute;
+  width: 2px;
+  height: 40px;
+  background-color: #dee2e6;
+  left: 5px;
+  top: 20px;
+}
+
+.stat-icon-well {
+  border-radius: 50%;
+  padding: 1rem;
+}
+
+.stat-icon-well--blue {
+  background-color: rgba(91, 141, 239, 0.12);
+}
+
+.stat-icon-well--mint {
+  background-color: rgba(95, 212, 168, 0.15);
+}
+
+.stat-icon-well--purple {
+  background-color: rgba(198, 148, 249, 0.12);
+}
+
+.stat-icon-well--amber {
+  background-color: rgba(245, 197, 122, 0.28);
+}
+
+.stat-icon-well--bs-primary {
+  background-color: rgba(13, 110, 253, 0.1);
+}
+
+.stat-icon-well--bs-success {
+  background-color: rgba(40, 167, 69, 0.1);
+}
+
+.stat-icon-well--bs-info {
+  background-color: rgba(23, 162, 184, 0.1);
+}
+
+.stat-icon-well--bs-warning {
+  background-color: rgba(255, 193, 7, 0.1);
+}
+
+.progress.progress-xs {
+  height: 8px;
+}
+
+.progress.progress-sm-tall {
+  height: 20px;
+}
+
+.progress.progress-rail {
+  height: 18px;
+}
+
+.progress.progress-inline-metric {
+  width: 88px;
+  height: 22px;
+}
+
+.progress.progress-md {
+  height: 28px;
+}
+
+.progress.progress-lg {
+  height: 30px;
+}
+
+.progress-table-compact {
+  height: 20px;
+  width: 100px;
+}
+
+.progress-bar-physical {
+  background-color: var(--accent-blue);
+}
+
+.table-title-cell {
+  max-width: 200px;
+}
+
+.topbar-user-name {
+  line-height: 1.2;
+}
+
+.topbar-user-role {
+  font-size: 0.75rem;
+}
+
+.app-user-avatar--placeholder {
+  background: var(--primary-color);
+}
+
+.app-user-avatar img {
+  object-fit: cover;
+}
+
+.analytics-chart-card-body {
+  min-height: 220px;
+}
+
+.form-narrow {
+  max-width: 540px;
+}
+
+.progress-strength-track {
+  height: 6px;
+}
+
+.progress-bar-strength {
+  width: 0%;
+  transition:
+    width 0.3s,
+    background-color 0.3s;
+}
+
+.account-avatar-box {
+  width: 88px;
+  height: 88px;
+}
+
+.account-avatar-initials {
+  font-size: 1.4rem;
+}
+
+.account-avatar-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.form-select-width-role {
+  width: 130px;
+}
+
+.form-select-width-upload-status {
+  min-width: 140px;
+}
+
+.form-select-width-upload-source {
+  min-width: 130px;
+}
+
+.form-select-saved-views {
+  max-width: 250px;
+}
+
+.search-results-scroll {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.location-filter-panel {
+  max-width: 100%;
+  min-width: 280px;
+}
+
+.badge-fs-md {
+  font-size: 0.9rem;
+}
+
+.password-rule-check {
+  color: #ccc;
+  transition: color 0.2s ease;
+}
+
+.password-rule-check.is-valid-rule {
+  color: #28a745;
+}
+
+@media print {
+  body {
+    background: #fff !important;
+  }
+
+  .app-sidebar,
+  .topbar,
+  .navbar,
+  .nav-tabs,
+  .btn-group,
+  .modal,
+  .modal-backdrop {
+    display: none !important;
+  }
+
+  .app-main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  .container-fluid {
+    padding: 0 !important;
+  }
+
+  .tab-content,
+  .tab-pane,
+  .tab-pane.fade,
+  .tab-pane.fade.show,
+  .tab-pane.fade.show.active {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .card {
+    border: 1px solid #d5d8dd !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  canvas {
+    max-width: 100% !important;
+  }
 }

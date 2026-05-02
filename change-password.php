@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 renderAppLayout($page_title);
 ?>
-<div class="container py-4" style="max-width: 540px;">
+<div class="container py-4 form-narrow">
     <div class="d-flex align-items-center mb-4 gap-3">
         <a href="my-account.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i>
@@ -83,8 +83,8 @@ renderAppLayout($page_title);
                     <input type="password" name="new_password" id="newPass" class="form-control"
                            required minlength="8" autocomplete="new-password"
                            oninput="checkStrength(this.value)">
-                    <div class="progress mt-2" style="height:6px;">
-                        <div id="strengthBar" class="progress-bar" style="width:0%;transition:width .3s,background-color .3s;"></div>
+                    <div class="progress progress-strength-track mt-2">
+                        <div id="strengthBar" class="progress-bar progress-bar-strength"></div>
                     </div>
                     <small id="strengthLabel" class="text-muted">Enter a password</small>
                 </div>
@@ -118,7 +118,7 @@ function checkStrength(pw) {
     ];
     const lvl = levels[score - 1] ?? { pct: '0%', cls: '', txt: 'Enter a password' };
     bar.style.width          = lvl.pct;
-    bar.className            = 'progress-bar ' + lvl.cls;
+    bar.className            = 'progress-bar progress-bar-strength ' + lvl.cls;
     label.textContent        = lvl.txt;
 }
 </script>

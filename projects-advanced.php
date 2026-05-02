@@ -11,11 +11,14 @@ requireLogin();
 $canDeleteProjects = isSuperAdmin();
 
 $page_title = 'Projects - ABED IDM Hub';
-$page_extra_head = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />'
-    . '<style>#newProjectMap{height:240px;width:100%;border-radius:.375rem;border:1px solid #dee2e6;z-index:0;}</style>';
+$page_extra_head = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />';
 
 // Get filter parameters
-$project_type = $_GET['type'] ?? 'fspf';
+$project_type = strtolower((string) ($_GET['type'] ?? 'fspf'));
+$allowed_types = ['fspf', 'idp', 'afme', 'all'];
+if (!in_array($project_type, $allowed_types, true)) {
+    $project_type = 'fspf';
+}
 $stage_filter = $_GET['stage'] ?? '';
 $search = $_GET['search'] ?? '';
 $year = $_GET['year'] ?? date('Y');
@@ -26,12 +29,21 @@ $offset = ($page - 1) * $per_page;
 // Unified table in refactored schema
 $table = 'projects';
 
+$catalog_where = "approval_status = 'Approved' AND (status IS NULL OR status <> 'Archived')";
+
 // Build query
-$query = "SELECT *, title AS project_title FROM $table WHERE project_type = ? AND approval_status = 'Approved' AND (status IS NULL OR status <> 'Archived')";
-$count_query = "SELECT COUNT(*) as total FROM $table WHERE project_type = ? AND approval_status = 'Approved' AND (status IS NULL OR status <> 'Archived')";
-$params = [];
-$types = 's';
-$params[] = $project_type;
+if ($project_type === 'all') {
+    $query = "SELECT *, title AS project_title FROM $table WHERE $catalog_where";
+    $count_query = "SELECT COUNT(*) as total FROM $table WHERE $catalog_where";
+    $params = [];
+    $types = '';
+} else {
+    $query = "SELECT *, title AS project_title FROM $table WHERE project_type = ? AND $catalog_where";
+    $count_query = "SELECT COUNT(*) as total FROM $table WHERE project_type = ? AND $catalog_where";
+    $params = [];
+    $types = 's';
+    $params[] = $project_type;
+}
 
 if ($stage_filter) {
     $query .= " AND current_stage = ?";
@@ -86,10 +98,17 @@ $saved_views_query->execute();
 $saved_views = $saved_views_query->get_result()->fetch_all(MYSQLI_ASSOC);
 
 // Get available stages
-$stages_stmt = $conn->prepare("SELECT DISTINCT current_stage FROM $table WHERE project_type = ? AND approval_status = 'Approved' AND (status IS NULL OR status <> 'Archived') ORDER BY current_stage");
-$stages_stmt->bind_param('s', $project_type);
-$stages_stmt->execute();
+if ($project_type === 'all') {
+    $stages_stmt = $conn->prepare("SELECT DISTINCT current_stage FROM $table WHERE $catalog_where ORDER BY current_stage");
+    $stages_stmt->execute();
+} else {
+    $stages_stmt = $conn->prepare("SELECT DISTINCT current_stage FROM $table WHERE project_type = ? AND $catalog_where ORDER BY current_stage");
+    $stages_stmt->bind_param('s', $project_type);
+    $stages_stmt->execute();
+}
 $available_stages = $stages_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+$type_display_label = $project_type === 'all' ? 'all project types (FSPF, IDP, AFME)' : strtoupper($project_type);
 
 renderAppLayout($page_title, $page_extra_head);
 ?>
@@ -113,12 +132,15 @@ renderAppLayout($page_title, $page_extra_head);
                             <i class="fas fa-check-square"></i> Select All
                         </button>
                         <div class="btn-group" role="group">
-                            <button type="button" class="btn btn-outline-warning dropdown-toggle" data-bs-toggle="dropdown" id="batchActionsBtn" disabled>
+                            <button type="button" class="btn btn-outline-warning dropdown-toggle batch-actions-toggle batch-actions-locked" data-bs-toggle="dropdown" id="batchActionsBtn" aria-expanded="false" aria-haspopup="true" aria-disabled="true" title="Select one or more projects first">
                                 <i class="fas fa-tasks"></i> Batch Actions
                             </button>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="#" id="batchExportBtn">
                                     <i class="fas fa-file-export"></i> Export Selected
+                                </a></li>
+                                <li><a class="dropdown-item" href="#" id="batchPerformanceBtn">
+                                    <i class="fas fa-chart-line"></i> Compare to system performance
                                 </a></li>
                                 <li><a class="dropdown-item" href="#" id="batchUpdateBtn">
                                     <i class="fas fa-edit"></i> Bulk Update
@@ -150,13 +172,16 @@ renderAppLayout($page_title, $page_extra_head);
 
                                 <input type="radio" class="btn-check" name="type" id="type_afme" value="afme" <?php echo $project_type === 'afme' ? 'checked' : ''; ?> onchange="this.form.submit()">
                                 <label class="btn btn-outline-primary" for="type_afme">AFME</label>
+
+                                <input type="radio" class="btn-check" name="type" id="type_all" value="all" <?php echo $project_type === 'all' ? 'checked' : ''; ?> onchange="this.form.submit()">
+                                <label class="btn btn-outline-primary" for="type_all">All Projects</label>
                             </div>
                         </div>
 
                         <!-- Saved Views -->
                         <div class="col-12">
                             <div class="d-flex gap-2 align-items-center">
-                                <select id="savedViewsSelect" class="form-select" style="max-width: 250px;">
+                                <select id="savedViewsSelect" class="form-select form-select-saved-views">
                                     <option value="">Load Saved View...</option>
                                     <?php foreach ($saved_views as $view): ?>
                                         <option value="<?php echo $view['id']; ?>" data-filters='<?php echo htmlspecialchars($view['filters']); ?>'>
@@ -167,7 +192,7 @@ renderAppLayout($page_title, $page_extra_head);
                                 <button type="button" class="btn btn-outline-secondary" id="saveViewBtn" data-bs-toggle="modal" data-bs-target="#saveViewModal">
                                     <i class="fas fa-save"></i> Save View
                                 </button>
-                                <button type="button" class="btn btn-outline-danger" id="deleteViewBtn" style="display: none;">
+                                <button type="button" class="btn btn-outline-danger d-none" id="deleteViewBtn">
                                     <i class="fas fa-trash"></i> Delete
                                 </button>
                             </div>
@@ -216,7 +241,7 @@ renderAppLayout($page_title, $page_extra_head);
             <!-- Results Info -->
             <div class="alert alert-info mb-4">
                 Showing <strong><?php echo count($projects); ?></strong> of <strong><?php echo $total_records; ?></strong> 
-                <?php echo strtoupper($project_type); ?> projects
+                <?php echo htmlspecialchars($type_display_label); ?>
                 <?php if ($search): ?> matching "<strong><?php echo htmlspecialchars($search); ?></strong>"<?php endif; ?>
             </div>
 
@@ -229,6 +254,9 @@ renderAppLayout($page_title, $page_extra_head);
                                 <th width="40">
                                     <input type="checkbox" class="form-check-input" id="masterCheckbox">
                                 </th>
+                                <?php if ($project_type === 'all'): ?>
+                                <th>Type</th>
+                                <?php endif; ?>
                                 <th>Code</th>
                                 <th>Title</th>
                                 <th>Stage</th>
@@ -242,14 +270,22 @@ renderAppLayout($page_title, $page_extra_head);
                         <tbody>
                             <?php if (empty($projects)): ?>
                                 <tr>
-                                    <td colspan="9" class="text-center py-4 text-muted">No projects found</td>
+                                    <td colspan="<?php echo $project_type === 'all' ? 10 : 9; ?>" class="text-center py-4 text-muted">No projects found</td>
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($projects as $project): ?>
+                                    <?php
+                                    $row_project_type = $project_type === 'all' ? ($project['project_type'] ?? 'fspf') : $project_type;
+                                    ?>
                                     <tr>
                                         <td>
                                             <input type="checkbox" class="form-check-input row-checkbox" value="<?php echo $project['id']; ?>">
                                         </td>
+                                        <?php if ($project_type === 'all'): ?>
+                                        <td>
+                                            <span class="badge bg-secondary"><?php echo strtoupper(htmlspecialchars($project['project_type'] ?? '')); ?></span>
+                                        </td>
+                                        <?php endif; ?>
                                         <td>
                                             <strong><?php echo htmlspecialchars($project['project_code']); ?></strong>
                                         </td>
@@ -275,14 +311,14 @@ renderAppLayout($page_title, $page_extra_head);
                                             </span>
                                         </td>
                                         <td>
-                                            <div class="progress" style="height: 20px; width: 100px;">
-                                                <div class="progress-bar" style="width: <?php echo $project['physical_progress']; ?>%; background-color: #5b8def;">
+                                            <div class="progress progress-table-compact">
+                                                <div class="progress-bar progress-bar-physical" style="width: <?php echo $project['physical_progress']; ?>%;">
                                                     <small><?php echo round($project['physical_progress'], 0); ?>%</small>
                                                 </div>
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="progress" style="height: 20px; width: 100px;">
+                                            <div class="progress progress-table-compact">
                                                 <div class="progress-bar bg-success" style="width: <?php echo $project['financial_progress']; ?>%;">
                                                     <small><?php echo round($project['financial_progress'], 0); ?>%</small>
                                                 </div>
@@ -298,11 +334,11 @@ renderAppLayout($page_title, $page_extra_head);
                                         </td>
                                         <td>
                                             <div class="btn-group btn-group-sm">
-                                                <a href="project-detail-enhanced.php?type=<?php echo $project_type; ?>&id=<?php echo $project['id']; ?>" 
+                                                <a href="project-detail-enhanced.php?type=<?php echo htmlspecialchars($row_project_type); ?>&id=<?php echo $project['id']; ?>" 
                                                    class="btn btn-info" title="View Details">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <a href="scurve-monitoring.php?type=<?php echo $project_type; ?>&id=<?php echo $project['id']; ?>" 
+                                                <a href="scurve-monitoring.php?type=<?php echo htmlspecialchars($row_project_type); ?>&id=<?php echo $project['id']; ?>" 
                                                    class="btn btn-secondary" title="S-Curve">
                                                     <i class="fas fa-chart-line"></i>
                                                 </a>
@@ -439,6 +475,29 @@ renderAppLayout($page_title, $page_extra_head);
             </div>
         </div>
 
+        <!-- Selection vs overall system performance (batch action) -->
+        <div class="modal fade" id="portfolioPerformanceModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="fas fa-chart-line me-2"></i>Selection vs system performance</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted small mb-3">System metrics match the dashboard catalog: approved projects that are not archived.</p>
+                        <div class="row g-3" id="portfolioPerformanceContent">
+                            <div class="col-12 text-center text-muted py-3">Loading…</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="dashboard.php" class="btn btn-outline-primary"><i class="fas fa-tachometer-alt me-1"></i>Dashboard</a>
+                        <a href="analytics-reports.php" class="btn btn-outline-secondary"><i class="fas fa-chart-pie me-1"></i>Analytics</a>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- New Project Modal -->
         <div class="modal fade" id="newProjectModal" tabindex="-1">
             <div class="modal-dialog modal-xl">
@@ -492,7 +551,7 @@ renderAppLayout($page_title, $page_extra_head);
                                             aria-expanded="false" aria-haspopup="true">
                                             <span class="text-truncate me-2" id="locationSummaryText">Click to choose province, city/municipality, barangay…</span>
                                         </button>
-                                        <div class="dropdown-menu shadow-sm p-3 w-100 border" style="max-width: 100%; min-width: 280px;" id="locationDropdownPanel" onclick="event.stopPropagation();">
+                                        <div class="dropdown-menu shadow-sm p-3 w-100 border location-filter-panel" id="locationDropdownPanel" onclick="event.stopPropagation();">
                                             <p class="small text-muted mb-3 mb-md-2">Select in order: province → city or municipality → barangay; then optional purok, zone, or sitio.</p>
                                             <div class="mb-2">
                                                 <label class="form-label small mb-0" for="locProvinceSelect">Province</label>
@@ -520,10 +579,10 @@ renderAppLayout($page_title, $page_extra_head);
                                     </div>
                                 </div>
 
-                                <!-- GeoMap: pin inside Philippines (saved with project) -->
+                                <!-- Geo Map: pin inside Philippines (saved with project) -->
                                 <div class="col-12">
-                                    <label class="form-label">Map location <span class="text-danger">*</span> <span class="text-muted fw-normal">(GeoMap / legend)</span></label>
-                                    <p class="small text-muted mb-2">Click the map to drop a pin. It is stored as latitude and longitude and shown on <a href="geomap.php" target="_blank" rel="noopener">GeoMap</a> by project type.</p>
+                                    <label class="form-label">Map location <span class="text-danger">*</span> <span class="text-muted fw-normal">(Geo Map / legend)</span></label>
+                                    <p class="small text-muted mb-2">Click the map to drop a pin. It is stored as latitude and longitude and shown on <a href="geomap.php" target="_blank" rel="noopener">Geo Map</a> by project type.</p>
                                     <input type="hidden" name="latitude" id="newProjectLatitude" value="">
                                     <input type="hidden" name="longitude" id="newProjectLongitude" value="">
                                     <div id="newProjectMap" role="application" aria-label="Philippines map, click to set coordinates"></div>
@@ -548,7 +607,7 @@ renderAppLayout($page_title, $page_extra_head);
                                 </div>
 
                                 <!-- Scope of Work (FSPF/IDP only) -->
-                                <div class="col-md-6" id="scopeOfWorkField" style="display: none;">
+                                <div class="col-md-6 d-none" id="scopeOfWorkField">
                                     <label class="form-label">Scope of Work</label>
                                     <select class="form-select" name="scope_of_work">
                                         <option value="">Select scope</option>
@@ -598,7 +657,7 @@ renderAppLayout($page_title, $page_extra_head);
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p class="mb-2">Choose what to export for <strong><?php echo strtoupper($project_type); ?></strong>.</p>
+                        <p class="mb-2">Choose what to export for <strong><?php echo $project_type === 'all' ? 'All project types' : strtoupper($project_type); ?></strong>.</p>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="exportScope" id="exportAllScope" value="all" checked>
                             <label class="form-check-label" for="exportAllScope">All filtered rows on this tab</label>
@@ -644,7 +703,7 @@ renderAppLayout($page_title, $page_extra_head);
         </div>
         <?php endif; ?>
 
-        <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <!-- Bootstrap is loaded once in layout footer; avoid duplicate bundle (breaks dropdowns/modals). -->
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script>
             const currentProjectType = '<?php echo $project_type; ?>';
@@ -708,7 +767,7 @@ renderAppLayout($page_title, $page_extra_head);
                 const lat = parseFloat(la && la.value ? la.value : '');
                 const lng = parseFloat(lo && lo.value ? lo.value : '');
                 if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-                    alert('Please click the map to set a location pin (Philippines). It is required for GeoMap.');
+                    alert('Please click the map to set a location pin (Philippines). It is required for Geo Map.');
                     return false;
                 }
                 if (lat < PH_REG_BOUNDS.getSouth() || lat > PH_REG_BOUNDS.getNorth()
@@ -721,7 +780,8 @@ renderAppLayout($page_title, $page_extra_head);
 
             function syncNewProjectTypeWithActiveTab() {
                 const current = (new URLSearchParams(window.location.search).get('type') || currentProjectType || 'fspf').toLowerCase();
-                const radio = document.querySelector(`input[name="project_type"][value="${current}"]`);
+                const formType = current === 'all' ? 'fspf' : current;
+                const radio = document.querySelector('input[name="project_type"][value="' + formType + '"]');
                 if (radio) {
                     radio.checked = true;
                 }
@@ -732,7 +792,12 @@ renderAppLayout($page_title, $page_extra_head);
             async function submitNewProject() {
                 const form = document.getElementById('newProjectForm');
                 const submitBtn = document.getElementById('submitNewProjectBtn');
-                const projectType = document.querySelector('input[name="project_type"]:checked').value;
+                const typeRadio = document.querySelector('input[name="project_type"]:checked');
+                if (!typeRadio) {
+                    alert('Please select a project type (FSPF, IDP, or AFME).');
+                    return;
+                }
+                const projectType = typeRadio.value;
 
                 // Validate form
                 if (!form.checkValidity()) {
@@ -797,7 +862,10 @@ renderAppLayout($page_title, $page_extra_head);
                 const selectedType = document.querySelector('input[name="project_type"]:checked');
                 const scopeField = document.getElementById('scopeOfWorkField');
                 if (!scopeField || !selectedType) return;
-                scopeField.style.display = (selectedType.value === 'fspf' || selectedType.value === 'idp') ? '' : 'none';
+                scopeField.classList.toggle(
+                    'd-none',
+                    selectedType.value !== 'fspf' && selectedType.value !== 'idp'
+                );
             }
 
             /** Philippine location (PSGC public API) for Register New Project */
@@ -939,7 +1007,7 @@ renderAppLayout($page_title, $page_extra_head);
 
             document.addEventListener('DOMContentLoaded', function() {
                 // Move modals to <body> so Bootstrap backdrop stacking works reliably.
-                ['saveViewModal', 'bulkUpdateModal', 'newProjectModal', 'exportModal', 'deleteProjectModal'].forEach(function (id) {
+                ['saveViewModal', 'bulkUpdateModal', 'newProjectModal', 'exportModal', 'deleteProjectModal', 'portfolioPerformanceModal'].forEach(function (id) {
                     const el = document.getElementById(id);
                     if (el && el.parentElement !== document.body) {
                         document.body.appendChild(el);
@@ -1011,7 +1079,7 @@ renderAppLayout($page_title, $page_extra_head);
                 if (deleteViewBtn && savedViewsSelect) {
                     savedViewsSelect.addEventListener('change', function() {
                         if (this.value) {
-                            deleteViewBtn.style.display = 'inline-block';
+                            deleteViewBtn.classList.remove('d-none');
                             deleteViewBtn.onclick = function() {
                                 if (confirm('Delete this saved view?')) {
                                     fetch('api/saved-views.php', {
@@ -1032,7 +1100,7 @@ renderAppLayout($page_title, $page_extra_head);
                                 }
                             };
                         } else {
-                            deleteViewBtn.style.display = 'none';
+                            deleteViewBtn.classList.add('d-none');
                         }
                     });
                 }
@@ -1043,6 +1111,7 @@ renderAppLayout($page_title, $page_extra_head);
                 const batchActionsBtn = document.getElementById('batchActionsBtn');
                 const selectAllBtn = document.getElementById('selectAllBtn');
                 const batchExportBtn = document.getElementById('batchExportBtn');
+                const batchPerformanceBtn = document.getElementById('batchPerformanceBtn');
                 const batchDeleteBtn = document.getElementById('batchDeleteBtn');
                 const batchUpdateBtn = document.getElementById('batchUpdateBtn');
                 const confirmBulkUpdate = document.getElementById('confirmBulkUpdate');
@@ -1055,8 +1124,13 @@ renderAppLayout($page_title, $page_extra_head);
                 let pendingDeleteIds = [];
 
                 function updateBatchActionsState() {
+                    if (!batchActionsBtn) return;
                     const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
-                    batchActionsBtn.disabled = checkedBoxes.length === 0;
+                    const locked = checkedBoxes.length === 0;
+                    /* Do not use the HTML disabled attribute: Bootstrap never initializes dropdowns on disabled toggles, so the menu would never work after enabling. */
+                    batchActionsBtn.classList.toggle('batch-actions-locked', locked);
+                    batchActionsBtn.setAttribute('aria-disabled', locked ? 'true' : 'false');
+                    batchActionsBtn.title = locked ? 'Select one or more projects first' : 'Batch actions for selected rows';
                 }
 
                 function openDeleteModal(ids, label) {
@@ -1148,6 +1222,15 @@ renderAppLayout($page_title, $page_extra_head);
                     });
                 }
 
+                if (batchActionsBtn) {
+                    batchActionsBtn.addEventListener('show.bs.dropdown', function (e) {
+                        if (batchActionsBtn.classList.contains('batch-actions-locked')) {
+                            e.preventDefault();
+                        }
+                    });
+                }
+                updateBatchActionsState();
+
                 // Batch Export
                 if (batchExportBtn) {
                     batchExportBtn.addEventListener('click', function() {
@@ -1156,11 +1239,78 @@ renderAppLayout($page_title, $page_extra_head);
                         const form = document.createElement('form');
                         form.method = 'POST';
                         form.action = 'api/export-projects.php';
-                        form.appendChild(Object.assign(document.createElement('input'), {type: 'hidden', name: 'type', value: '<?php echo $project_type; ?>'}));
+                        form.appendChild(Object.assign(document.createElement('input'), {type: 'hidden', name: 'type', value: currentProjectType}));
                         form.appendChild(Object.assign(document.createElement('input'), {type: 'hidden', name: 'selected_ids', value: JSON.stringify(selectedIds)}));
                         document.body.appendChild(form);
                         form.submit();
                         document.body.removeChild(form);
+                    });
+                }
+
+                // Compare selection to overall system performance (same KPI basis as dashboard / ProjectRepository)
+                if (batchPerformanceBtn) {
+                    batchPerformanceBtn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+                        if (selectedIds.length === 0) return;
+                        const content = document.getElementById('portfolioPerformanceContent');
+                        const modalEl = document.getElementById('portfolioPerformanceModal');
+                        if (content) {
+                            content.innerHTML = '<div class="col-12 text-center text-muted py-3">Loading…</div>';
+                        }
+                        if (modalEl) {
+                            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                        }
+                        fetch('api/portfolio-performance.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ ids: selectedIds })
+                        })
+                            .then(function (r) { return r.json(); })
+                            .then(function (data) {
+                                if (!content) return;
+                                if (data.status !== 'success' || !data.data) {
+                                    content.innerHTML = '<div class="col-12 alert alert-danger">' + (data.message || 'Unable to load metrics.') + '</div>';
+                                    return;
+                                }
+                                var sys = data.data.system;
+                                var sel = data.data.selection;
+                                function fmtPct(n) {
+                                    return (typeof n === 'number' && !isNaN(n)) ? n.toFixed(1) + '%' : '—';
+                                }
+                                function fmtMoney(n) {
+                                    return '₱' + Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+                                }
+                                content.innerHTML =
+                                    '<div class="col-md-6">' +
+                                        '<div class="card border-0 bg-light h-100">' +
+                                            '<div class="card-body">' +
+                                                '<h6 class="text-uppercase text-muted small mb-3">Overall system</h6>' +
+                                                '<p class="mb-2"><strong>' + sys.total_projects + '</strong> approved projects</p>' +
+                                                '<p class="mb-2">Avg physical: <strong>' + fmtPct(sys.avg_physical) + '</strong></p>' +
+                                                '<p class="mb-2">Avg financial: <strong>' + fmtPct(sys.avg_financial) + '</strong></p>' +
+                                                '<p class="mb-0">Total allocated: <strong>' + fmtMoney(sys.total_allocated) + '</strong></p>' +
+                                            '</div>' +
+                                        '</div>' +
+                                    '</div>' +
+                                    '<div class="col-md-6">' +
+                                        '<div class="card border-primary h-100">' +
+                                            '<div class="card-body">' +
+                                                '<h6 class="text-uppercase text-primary small mb-3">Selected (' + (sel ? sel.count : 0) + ')</h6>' +
+                                                (sel && sel.count
+                                                    ? '<p class="mb-2">Avg physical: <strong>' + fmtPct(sel.avg_physical) + '</strong></p>' +
+                                                      '<p class="mb-2">Avg financial: <strong>' + fmtPct(sel.avg_financial) + '</strong></p>' +
+                                                      '<p class="mb-0">Allocated (sum): <strong>' + fmtMoney(sel.total_allocated) + '</strong></p>'
+                                                    : '<p class="text-muted mb-0">No matching rows in the active catalog.</p>') +
+                                            '</div>' +
+                                        '</div>' +
+                                    '</div>';
+                            })
+                            .catch(function (err) {
+                                if (content) {
+                                    content.innerHTML = '<div class="col-12 alert alert-danger">' + err.message + '</div>';
+                                }
+                            });
                     });
                 }
 

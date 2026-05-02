@@ -8,13 +8,15 @@ if (session_status() === PHP_SESSION_NONE) {
 $isAuthenticated = isset($_SESSION['user_id']);
 $userName = htmlspecialchars($_SESSION['full_name'] ?? 'Guest User');
 $userRole = htmlspecialchars($_SESSION['role'] ?? 'Guest');
+$profilePicture = isset($_SESSION['profile_picture']) ? trim((string) $_SESSION['profile_picture']) : '';
+$hasProfilePicture = $profilePicture !== '';
 ?>
 <div class="topbar-fixed app-topbar px-3 px-lg-4 d-flex justify-content-between align-items-center">
     <a class="navbar-brand app-topbar-brand d-flex align-items-center text-decoration-none" href="dashboard.php">
         <img src="logos/abed_logo.png" alt="ABED Logo" class="app-topbar-logo">
         <div class="app-topbar-titles">
             <div class="app-topbar-title fw-bold">ABED Integrated Data Management Hub</div>
-            <small class="app-topbar-subtitle d-block">Agricultural and Biosystems Engineering Division - LGU Malaybalay City</small>
+            <small class="app-topbar-subtitle d-block">Agricultural and Biosystems Engineering Division — LGU Malaybalay City</small>
         </div>
     </a>
     
@@ -22,14 +24,17 @@ $userRole = htmlspecialchars($_SESSION['role'] ?? 'Guest');
         <?php if ($isAuthenticated): ?>
             <div class="dropdown d-flex align-items-center">
                 <div class="text-end me-3 d-none d-sm-block">
-                    <div class="fw-bold small text-dark" style="line-height: 1.2;"><?php echo $userName; ?></div>
-                    <div class="text-muted small" style="font-size: 0.75rem;"><?php echo $userRole; ?></div>
+                    <div class="fw-bold small text-dark topbar-user-name"><?php echo $userName; ?></div>
+                    <div class="text-muted small topbar-user-role"><?php echo $userRole; ?></div>
                 </div>
 
                 <a href="#" class="d-flex align-items-center text-decoration-none" id="userTopbarDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    <div class="rounded-circle fw-bold text-white d-flex align-items-center justify-content-center app-user-avatar"
-                         style="background: var(--primary-color);">
-                        <?php echo strtoupper(substr($userName, 0, 2)); ?>
+                    <div class="rounded-circle fw-bold text-white d-flex align-items-center justify-content-center app-user-avatar overflow-hidden<?php echo $hasProfilePicture ? '' : ' app-user-avatar--placeholder'; ?>">
+                        <?php if ($hasProfilePicture): ?>
+                            <img src="<?php echo htmlspecialchars($profilePicture); ?>" alt="" class="w-100 h-100">
+                        <?php else: ?>
+                            <?php echo strtoupper(substr($userName, 0, 2)); ?>
+                        <?php endif; ?>
                     </div>
                 </a>
 

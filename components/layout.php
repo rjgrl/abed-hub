@@ -37,6 +37,7 @@ function renderAppLayout($page_title = 'ABED IDM Hub', $extra_head = '') {
 function renderAppLayoutFooter() {
     ?>
     </main>
+    <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
     <script src="assets/js/main.js"></script>
 </body>
 </html>

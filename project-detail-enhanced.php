@@ -156,10 +156,10 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
                 <div class="col">
                     <div class="d-flex align-items-center gap-3">
                         <div>
-                            <span class="badge bg-primary" style="font-size: 0.9rem;">
+                            <span class="badge bg-primary badge-fs-md">
                                 <?php echo strtoupper($project_type); ?>
                             </span>
-                            <span class="badge" style="background-color: 
+                            <span class="badge badge-fs-md" style="background-color: 
                                 <?php echo match($project['current_stage']) {
                                     'Proposal' => '#9ca3af',
                                     'Pre-Implementation' => '#7eb8d9',
@@ -170,7 +170,7 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
                                 }; ?>; color: <?php echo match($project['current_stage']) {
                                     'Procurement' => 'black',
                                     default => 'white'
-                                }; ?>; font-size: 0.9rem;">
+                                }; ?>">
                                 <?php echo htmlspecialchars($project['current_stage']); ?>
                             </span>
                         </div>
@@ -274,15 +274,15 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
                                 <div class="card-body">
                                     <div class="mb-4">
                                         <label class="form-label">Physical Progress: <strong><?php echo $physicalProgressDisplay; ?>%</strong></label>
-                                        <div class="progress" style="height: 30px;">
-                                            <div class="progress-bar" style="width: <?php echo $physicalProgressWidth; ?>%; background-color: #5b8def;">
+                                        <div class="progress progress-lg">
+                                            <div class="progress-bar progress-bar-physical" style="width: <?php echo $physicalProgressWidth; ?>%;">
                                                 <?php echo $physicalProgressDisplay; ?>%
                                             </div>
                                         </div>
                                     </div>
                                     <div class="mb-4">
                                         <label class="form-label">Financial Progress: <strong><?php echo $financialProgressDisplay; ?>%</strong></label>
-                                        <div class="progress" style="height: 30px;">
+                                        <div class="progress progress-lg">
                                             <div class="progress-bar bg-success" style="width: <?php echo $financialProgressWidth; ?>%;">
                                                 <?php echo $financialProgressDisplay; ?>%
                                             </div>
@@ -779,71 +779,5 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
             }
         });
     </script>
-    <style>
-        .timeline {
-            position: relative;
-        }
-        .timeline-item {
-            display: flex;
-            gap: 1rem;
-        }
-        .timeline-marker {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background-color: #5b8def;
-            margin-top: 3px;
-            flex-shrink: 0;
-        }
-        .timeline-item:not(:last-child) .timeline-marker::after {
-            content: '';
-            position: absolute;
-            width: 2px;
-            height: 40px;
-            background-color: #dee2e6;
-            left: 5px;
-            top: 20px;
-        }
-        @media print {
-            body {
-                background: #fff !important;
-            }
-            .app-sidebar,
-            .topbar,
-            .navbar,
-            .nav-tabs,
-            .btn-group,
-            .modal,
-            .modal-backdrop {
-                display: none !important;
-            }
-            .app-main {
-                margin: 0 !important;
-                padding: 0 !important;
-                width: 100% !important;
-            }
-            .container-fluid {
-                padding: 0 !important;
-            }
-            .tab-content,
-            .tab-pane,
-            .tab-pane.fade,
-            .tab-pane.fade.show,
-            .tab-pane.fade.show.active {
-                display: block !important;
-                opacity: 1 !important;
-                visibility: visible !important;
-            }
-            .card {
-                border: 1px solid #d5d8dd !important;
-                box-shadow: none !important;
-                break-inside: avoid;
-                page-break-inside: avoid;
-            }
-            canvas {
-                max-width: 100% !important;
-            }
-        }
-    </style>
 </body>
 </html>

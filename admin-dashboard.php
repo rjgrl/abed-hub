@@ -367,13 +367,13 @@ renderAppLayout($page_title);
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <h5 class="mb-0">Recent Employee Uploads</h5>
                         <form method="GET" class="d-flex align-items-center gap-2">
-                            <select name="upload_status" class="form-select form-select-sm" style="min-width: 140px;">
+                            <select name="upload_status" class="form-select form-select-sm form-select-width-upload-status">
                                 <option value="all" <?php echo $uploadStatusFilter === 'all' ? 'selected' : ''; ?>>All Status</option>
                                 <option value="Pending" <?php echo $uploadStatusFilter === 'Pending' ? 'selected' : ''; ?>>Pending</option>
                                 <option value="Approved" <?php echo $uploadStatusFilter === 'Approved' ? 'selected' : ''; ?>>Approved</option>
                                 <option value="Rejected" <?php echo $uploadStatusFilter === 'Rejected' ? 'selected' : ''; ?>>Rejected</option>
                             </select>
-                            <select name="upload_source" class="form-select form-select-sm" style="min-width: 130px;">
+                            <select name="upload_source" class="form-select form-select-sm form-select-width-upload-source">
                                 <option value="all" <?php echo $uploadSourceFilter === 'all' ? 'selected' : ''; ?>>All Sources</option>
                                 <option value="project" <?php echo $uploadSourceFilter === 'project' ? 'selected' : ''; ?>>Project</option>
                                 <option value="afme" <?php echo $uploadSourceFilter === 'afme' ? 'selected' : ''; ?>>AFME</option>

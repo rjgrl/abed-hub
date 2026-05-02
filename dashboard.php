@@ -90,7 +90,7 @@ if (!empty($pending_projects)) {
                                     <p class="text-muted small mb-1">Total Projects</p>
                                     <h2 class="mb-0"><?php echo $total_projects; ?></h2>
                                 </div>
-                                <div class="rounded-circle p-3" style="background-color: rgba(91, 141, 239, 0.12);">
+                                <div class="rounded-circle p-3 stat-icon-well stat-icon-well--blue">
                                     <i class="fas fa-project-diagram fa-lg text-primary"></i>
                                 </div>
                             </div>
@@ -106,7 +106,7 @@ if (!empty($pending_projects)) {
                                     <p class="text-muted small mb-1">Total Allocated</p>
                                     <h2 class="mb-0">₱<?php echo number_format($financial['total_allocated'] ?? 0, 0); ?></h2>
                                 </div>
-                                <div class="rounded-circle p-3" style="background-color: rgba(95, 212, 168, 0.15);">
+                                <div class="rounded-circle p-3 stat-icon-well stat-icon-well--mint">
                                     <i class="fas fa-money-bill fa-lg text-success"></i>
                                 </div>
                             </div>
@@ -123,7 +123,7 @@ if (!empty($pending_projects)) {
                                     <?php $avgProgress = $repo->avgProgress($module); ?>
                                     <h2 class="mb-0"><?php echo $avgProgress['avg_physical']; ?>%</h2>
                                 </div>
-                                <div class="rounded-circle p-3" style="background-color: rgba(198, 148, 249, 0.12);">
+                                <div class="rounded-circle p-3 stat-icon-well stat-icon-well--purple">
                                     <i class="fas fa-chart-pie fa-lg text-info"></i>
                                 </div>
                             </div>
@@ -140,7 +140,7 @@ if (!empty($pending_projects)) {
                                         <p class="text-muted small mb-1"><?php echo htmlspecialchars($pending_title); ?></p>
                                         <h2 class="mb-0 text-warning"><?php echo $pending_count; ?></h2>
                                     </div>
-                                    <div class="rounded-circle p-3" style="background-color: rgba(245, 197, 122, 0.28);">
+                                    <div class="rounded-circle p-3 stat-icon-well stat-icon-well--amber">
                                         <i class="fas fa-clock fa-lg text-warning"></i>
                                     </div>
                                 </div>
@@ -249,7 +249,7 @@ if (!empty($pending_projects)) {
                                             <?php echo $conn->query("SELECT COUNT(*) AS cnt FROM projects WHERE approval_status = 'Approved' AND physical_progress < 25")->fetch_assoc()['cnt']; ?>
                                         </small>
                                     </div>
-                                    <div class="progress" style="height: 8px;">
+                                    <div class="progress progress-xs">
                                         <div class="progress-bar bg-danger" style="width: 25%;"></div>
                                     </div>
                                 </div>
@@ -260,7 +260,7 @@ if (!empty($pending_projects)) {
                                             <?php echo $conn->query("SELECT COUNT(*) AS cnt FROM projects WHERE approval_status = 'Approved' AND physical_progress >= 25 AND physical_progress < 50")->fetch_assoc()['cnt']; ?>
                                         </small>
                                     </div>
-                                    <div class="progress" style="height: 8px;">
+                                    <div class="progress progress-xs">
                                         <div class="progress-bar bg-warning" style="width: 50%;"></div>
                                     </div>
                                 </div>
@@ -271,7 +271,7 @@ if (!empty($pending_projects)) {
                                             <?php echo $conn->query("SELECT COUNT(*) AS cnt FROM projects WHERE approval_status = 'Approved' AND physical_progress >= 50 AND physical_progress < 75")->fetch_assoc()['cnt']; ?>
                                         </small>
                                     </div>
-                                    <div class="progress" style="height: 8px;">
+                                    <div class="progress progress-xs">
                                         <div class="progress-bar bg-info" style="width: 75%;"></div>
                                     </div>
                                 </div>
@@ -282,7 +282,7 @@ if (!empty($pending_projects)) {
                                             <?php echo $conn->query("SELECT COUNT(*) AS cnt FROM projects WHERE approval_status = 'Approved' AND physical_progress >= 75")->fetch_assoc()['cnt']; ?>
                                         </small>
                                     </div>
-                                    <div class="progress" style="height: 8px;">
+                                    <div class="progress progress-xs">
                                         <div class="progress-bar bg-success" style="width: 100%;"></div>
                                     </div>
                                 </div>
@@ -316,7 +316,7 @@ if (!empty($pending_projects)) {
                                         <?php foreach (array_slice($recent_projects, 0, 8) as $project): ?>
                                             <tr>
                                                 <td><?php echo htmlspecialchars(substr($project['project_code'], 0, 15)); ?></td>
-                                                <td class="text-truncate" style="max-width: 200px;" title="<?php echo htmlspecialchars($project['project_title']); ?>">
+                                                <td class="text-truncate table-title-cell" title="<?php echo htmlspecialchars($project['project_title']); ?>">
                                                     <?php echo htmlspecialchars(substr($project['project_title'], 0, 30)); ?>
                                                 </td>
                                                 <td>
@@ -374,7 +374,7 @@ if (!empty($pending_projects)) {
                                             <?php foreach (array_slice($recent_deleted_projects, 0, 8) as $project): ?>
                                                 <tr>
                                                     <td><?php echo htmlspecialchars(substr($project['project_code'], 0, 15)); ?></td>
-                                                    <td class="text-truncate" style="max-width: 200px;" title="<?php echo htmlspecialchars($project['project_title']); ?>">
+                                                    <td class="text-truncate table-title-cell" title="<?php echo htmlspecialchars($project['project_title']); ?>">
                                                         <?php echo htmlspecialchars(substr($project['project_title'], 0, 30)); ?>
                                                     </td>
                                                     <td>

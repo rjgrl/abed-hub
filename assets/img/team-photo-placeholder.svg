@@ -1,5 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="480" height="560" viewBox="0 0 480 560" preserveAspectRatio="xMidYMid slice">
-  <rect width="480" height="560" fill="#eef2f7"/>
-  <rect x="1" y="1" width="478" height="558" rx="6" fill="none" stroke="#e2e8f0" stroke-width="1"/>
-  <text x="240" y="284" text-anchor="middle" dominant-baseline="middle" fill="#64748b" font-family="system-ui,Segoe UI,sans-serif" font-size="20" font-weight="500">Photo</text>
-</svg>
