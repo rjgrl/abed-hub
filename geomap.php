@@ -5,7 +5,7 @@ require_once 'config/database.php';
 
 requireLogin();
 
-$page_title = 'GeoMap';
+$page_title = 'Geo Map';
 
 // Get all projects with coordinates
 $projects = [];
@@ -24,8 +24,7 @@ $projects = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 ?>
 <?php
 require_once __DIR__ . '/components/layout.php';
-$extra_head = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />'
-    . '<style>#map{height:600px;width:100%;}.project-marker{border-radius:50%;width:20px;height:20px;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.3);} .fspf-marker{background-color:#5b8def;} .idp-marker{background-color:#c694f9;} .afme-marker{background-color:#f5c57a;}</style>';
+$extra_head = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />';
 renderAppLayout($page_title, $extra_head);
 ?>
         <div class="container-fluid">
@@ -36,7 +35,7 @@ renderAppLayout($page_title, $extra_head);
                     <div class="card-header bg-info text-white">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h4 class="mb-0"><i class="fas fa-map-marked-alt me-2"></i><?php echo htmlspecialchars($page_title ?? 'GeoMap'); ?></h4>
+                                <h4 class="mb-0"><i class="fas fa-map-marked-alt me-2"></i><?php echo htmlspecialchars($page_title ?? 'Geo Map'); ?></h4>
                                 <small>Philippines only — markers use coordinates saved when registering FSPF, IDP, or AFME projects</small>
                             </div>
                             <div>

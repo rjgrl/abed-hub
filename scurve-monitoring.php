@@ -167,42 +167,44 @@ if (!$project_id) {
                                 </h5>
                             </div>
                             <div class="card-body">
-                                <div class="row mb-4">
+                                <div class="row mb-4 scurve-kpi-grid g-3">
                                     <div class="col-md-3">
-                                        <div class="text-center">
-                                            <div class="display-4 text-primary">
+                                        <div class="text-center scurve-kpi-cell">
+                                            <div class="scurve-kpi-value text-primary">
                                                 <?php echo round($project['physical_progress'], 1); ?>%
                                             </div>
                                             <small class="text-muted">Physical Progress</small>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
-                                        <div class="text-center">
-                                            <div class="display-4 text-success">
+                                        <div class="text-center scurve-kpi-cell">
+                                            <div class="scurve-kpi-value text-success">
                                                 <?php echo round($project['financial_progress'], 1); ?>%
                                             </div>
                                             <small class="text-muted">Financial Progress</small>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
-                                        <div class="text-center">
-                                            <div class="display-4 text-info">
-                                                <?php echo round($project['proposed_amount'], 0); ?>
+                                        <div class="text-center scurve-kpi-cell">
+                                            <div class="scurve-kpi-value text-info">
+                                                <?php echo number_format((float) $project['proposed_amount'], 0, '.', ','); ?>
                                             </div>
                                             <small class="text-muted">Proposed Amount</small>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
-                                        <div class="text-center">
-                                            <div class="display-4 text-warning">
-                                                <?php echo $project['current_stage']; ?>
+                                        <div class="text-center scurve-kpi-cell">
+                                            <div class="scurve-kpi-value scurve-kpi-value--stage text-warning">
+                                                <?php echo htmlspecialchars($project['current_stage']); ?>
                                             </div>
                                             <small class="text-muted">Current Stage</small>
                                         </div>
                                     </div>
                                 </div>
 
-                                <canvas id="scurveChart" height="80"></canvas>
+                                <div class="scurve-chart-host">
+                                    <canvas id="scurveChart"></canvas>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -214,14 +216,16 @@ if (!$project_id) {
                                 <h6 class="mb-0">Physical Progress Breakdown</h6>
                             </div>
                             <div class="card-body">
-                                <div class="progress mb-3" style="height: 28px;">
+                                <div class="progress progress-md mb-3">
                                     <div class="progress-bar bg-primary" 
                                          style="width: <?php echo $project['physical_progress']; ?>%"
                                          role="progressbar">
                                         <?php echo round($project['physical_progress'], 1); ?>%
                                     </div>
                                 </div>
-                                <canvas id="physicalBreakdownChart" height="200"></canvas>
+                                <div class="scurve-breakdown-host">
+                                    <canvas id="physicalBreakdownChart"></canvas>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -232,7 +236,7 @@ if (!$project_id) {
                                 <h6 class="mb-0">Financial Progress Breakdown</h6>
                             </div>
                             <div class="card-body">
-                                <div class="progress mb-3" style="height: 28px;">
+                                <div class="progress progress-md mb-3">
                                     <div class="progress-bar bg-success" 
                                          style="width: <?php echo $project['financial_progress']; ?>%"
                                          role="progressbar">
@@ -330,14 +334,14 @@ if (!$project_id) {
                                                 <td><code><?php echo htmlspecialchars($proj['project_code']); ?></code></td>
                                                 <td><?php echo htmlspecialchars(substr($proj['project_title'], 0, 40)); ?></td>
                                                 <td>
-                                                    <div class="progress" style="height: 20px;">
+                                                    <div class="progress progress-sm-tall">
                                                         <div class="progress-bar bg-primary" style="width: <?php echo $phys_pct; ?>%">
                                                             <?php echo $phys_pct; ?>%
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <div class="progress" style="height: 20px;">
+                                                    <div class="progress progress-sm-tall">
                                                         <div class="progress-bar bg-success" style="width: <?php echo $fin_pct; ?>%">
                                                             <?php echo $fin_pct; ?>%
                                                         </div>

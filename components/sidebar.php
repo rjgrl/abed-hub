@@ -31,7 +31,7 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
 
     <li class="nav-item mb-2">
       <a href="geomap.php" class="nav-link <?php echo ($current_page === 'geomap.php') ? 'active' : ''; ?>">
-        <i class="fas fa-map me-2"></i>GeoMap
+        <i class="fas fa-map me-2"></i>Geo Map
       </a>
     </li>
 
