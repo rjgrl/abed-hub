@@ -25,10 +25,16 @@ class PDFService {
         $css = $data['css'] ?? '';
         $mode = $data['mode'] ?? 'S';
 
+        $tmpDir = __DIR__ . '/../tmp';
+        if (!is_dir($tmpDir)) {
+            mkdir($tmpDir, 0775, true);
+        }
+
         $mpdfClass = '\Mpdf\Mpdf';
         $mpdf = new $mpdfClass([
             'format' => 'A4',
-            'tempDir' => __DIR__ . '/../tmp',
+            'tempDir' => $tmpDir,
+            'default_font' => 'dejavusans',
         ]);
 
         $mpdf->SetTitle($title);
@@ -38,10 +44,6 @@ class PDFService {
             $mpdf->WriteHTML($css, $headerCssMode);
         }
         $mpdf->WriteHTML($html, $htmlBodyMode);
-
-        if (!is_dir(__DIR__ . '/../tmp')) {
-            mkdir(__DIR__ . '/../tmp', 0775, true);
-        }
 
         $filename = $data['filename'] ?? ('report-' . date('Ymd-His') . '.pdf');
         return $mpdf->Output($filename, $mode);

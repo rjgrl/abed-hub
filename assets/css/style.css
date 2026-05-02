@@ -1147,6 +1147,11 @@ body.public-home {
   color: #ffffff;
 }
 
+.public-navbar .nav-link.active {
+  color: #ffffff;
+  font-weight: 600;
+}
+
 .public-navbar .navbar-toggler {
   border-color: rgba(255, 255, 255, 0.2);
 }
@@ -1308,4 +1313,217 @@ body.public-home {
     order: 2;
     min-height: 240px;
   }
+}
+
+/* ========================================
+   TEAM PAGE (Meet Our Team)
+   ======================================== */
+
+.team-page {
+  font-family: "Inter", system-ui, sans-serif;
+  overflow-x: clip;
+}
+
+.team-showcase {
+  --team-image-radius: 6px;
+  --team-header-gap-bottom: clamp(2.5rem, 5vw, 4rem);
+  padding-top: clamp(2.75rem, 6vw, 4.75rem);
+  padding-bottom: clamp(2rem, 4vw, 3.25rem);
+  background: var(--app-surface);
+  width: 100%;
+  max-width: 100%;
+}
+
+.team-showcase-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  margin-bottom: var(--team-header-gap-bottom);
+}
+
+.team-showcase-header-copy {
+  flex: 1 1 18rem;
+  max-width: min(100%, 44rem);
+  text-align: left;
+}
+
+.team-showcase-header-action {
+  flex: 0 0 auto;
+  align-self: flex-start;
+}
+
+@media (max-width: 575.98px) {
+  .team-showcase-header-action {
+    width: 100%;
+  }
+
+  .team-read-more-btn {
+    width: 100%;
+  }
+}
+
+.team-page .team-page-title {
+  font-family: "Poppins", "Inter", system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-size: clamp(1.85rem, 3.5vw, 2.65rem);
+  line-height: 1.15;
+  margin-bottom: clamp(1rem, 2vw, 1.35rem);
+  color: var(--app-text);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 0.85rem;
+}
+
+.team-title-index {
+  font-weight: 500;
+  font-size: 0.55em;
+  letter-spacing: 0.02em;
+  color: var(--app-muted-soft);
+}
+
+.team-title-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.team-page .team-lead {
+  font-size: clamp(0.98rem, 1.35vw, 1.0625rem);
+  line-height: 1.65;
+  max-width: min(100%, 38rem);
+  margin: 0;
+}
+
+.team-read-more-btn {
+  border-radius: 8px;
+  padding: 0.55rem 1.35rem;
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.team-member-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(1.25rem, 2.5vw, 2rem);
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .team-member-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 992px) {
+  .team-member-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.team-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
+  height: 100%;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+  transition:
+    transform 0.25s ease,
+    filter 0.25s ease;
+}
+
+.team-card:hover {
+  transform: translateY(-3px);
+}
+
+.team-card:hover .team-card-image-wrap {
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+}
+
+.team-card-image-wrap {
+  aspect-ratio: 4 / 5;
+  width: 100%;
+  min-height: 0;
+  background: var(--app-bg);
+  border-radius: var(--team-image-radius, 6px);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  border: 1px solid var(--app-border-subtle);
+  transition: box-shadow 0.25s ease;
+}
+
+.team-card-image {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  object-fit: cover;
+  object-position: center 42%;
+  display: block;
+}
+
+
+.team-card-body {
+  flex: 0 0 auto;
+  padding: clamp(0.75rem, 1.5vw, 1rem) 0 0;
+  text-align: left;
+}
+
+.team-card-name {
+  font-family: "Poppins", "Inter", system-ui, sans-serif;
+  font-weight: 600;
+  color: var(--app-text);
+  line-height: 1.3;
+}
+
+.team-card-role {
+  margin-top: 0.2rem;
+  line-height: 1.4;
+}
+
+#about-project {
+  scroll-margin-top: 5.5rem;
+}
+
+.team-section-divider {
+  border-top: 1px solid var(--app-border-subtle);
+  max-width: 1140px;
+}
+
+.team-prose {
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.team-about-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(91, 141, 239, 0.12);
+  color: var(--accent-blue-deep);
+  font-size: 1.1rem;
+}
+
+.team-reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.55s ease,
+    transform 0.55s ease;
+}
+
+.team-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
 }

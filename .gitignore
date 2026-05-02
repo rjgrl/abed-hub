@@ -1,6 +1,9 @@
 vendor/
 uploads/
 tmp/
+
+# Editor / MCP debug output (regenerated locally)
+.playwright-mcp/
 .env
 .env.local
 .env.development.local
