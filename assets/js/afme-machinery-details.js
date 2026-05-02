@@ -13,11 +13,13 @@ document.addEventListener("DOMContentLoaded", function () {
         .then((response) => response.json())
         .then((data) => {
           if (data.status === "success") {
-            alert("Document uploaded successfully!");
-            location.reload();
-          } else {
-            alert("Error: " + data.message);
+            return AppModal
+              .alert("Document uploaded successfully!", { title: "Upload", variant: "success" })
+              .then(function () {
+                location.reload();
+              });
           }
+          return AppModal.alert("Error: " + data.message, { title: "Error", variant: "danger" });
         })
         .catch((error) => console.error("Error:", error));
     });
@@ -36,11 +38,13 @@ document.addEventListener("DOMContentLoaded", function () {
         .then((response) => response.json())
         .then((data) => {
           if (data.status === "success") {
-            alert("Milestone added successfully!");
-            location.reload();
-          } else {
-            alert("Error: " + data.message);
+            return AppModal
+              .alert("Milestone added successfully!", { title: "Milestone", variant: "success" })
+              .then(function () {
+                location.reload();
+              });
           }
+          return AppModal.alert("Error: " + data.message, { title: "Error", variant: "danger" });
         })
         .catch((error) => console.error("Error:", error));
     });

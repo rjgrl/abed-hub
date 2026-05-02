@@ -750,18 +750,18 @@ renderAppLayout($page_title, $page_extra_head);
                 }, 200);
             }
 
-            function validateNewProjectMapPin() {
+            async function validateNewProjectMapPin() {
                 const la = document.getElementById('newProjectLatitude');
                 const lo = document.getElementById('newProjectLongitude');
                 const lat = parseFloat(la && la.value ? la.value : '');
                 const lng = parseFloat(lo && lo.value ? lo.value : '');
                 if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-                    alert('Please click the map to set a location pin (Philippines). It is required for Geo Map.');
+                    await AppModal.alert('Please click the map to set a location pin (Philippines). It is required for Geo Map.', { title: 'Location required' });
                     return false;
                 }
                 if (lat < PH_REG_BOUNDS.getSouth() || lat > PH_REG_BOUNDS.getNorth()
                     || lng < PH_REG_BOUNDS.getWest() || lng > PH_REG_BOUNDS.getEast()) {
-                    alert('The pin must be inside the Philippines.');
+                    await AppModal.alert('The pin must be inside the Philippines.', { title: 'Invalid location' });
                     return false;
                 }
                 return true;
@@ -783,7 +783,7 @@ renderAppLayout($page_title, $page_extra_head);
                 const submitBtn = document.getElementById('submitNewProjectBtn');
                 const typeRadio = document.querySelector('input[name="project_type"]:checked');
                 if (!typeRadio) {
-                    alert('Please select a project type (FSPF, IDP, or AFME).');
+                    await AppModal.alert('Please select a project type (FSPF, IDP, or AFME).', { title: 'Project type' });
                     return;
                 }
                 const projectType = typeRadio.value;
@@ -794,7 +794,7 @@ renderAppLayout($page_title, $page_extra_head);
                     return;
                 }
 
-                if (!validateNewProjectMapPin()) {
+                if (!(await validateNewProjectMapPin())) {
                     return;
                 }
 
@@ -827,18 +827,18 @@ renderAppLayout($page_title, $page_extra_head);
 
                     console.log('Response data:', data);
                     if (data.status === 'success') {
-                        alert(data.message);
+                        await AppModal.alert(data.message, { title: 'Registered', variant: 'success' });
                         form.reset();
                         updateFormFields();
                         const modal = bootstrap.Modal.getInstance(document.getElementById('newProjectModal'));
                         if (modal) modal.hide();
                         setTimeout(() => location.reload(), 500);
                     } else {
-                        alert('Error: ' + (data.message || 'Failed to register project'));
+                        await AppModal.alert('Error: ' + (data.message || 'Failed to register project'), { title: 'Registration failed', variant: 'danger' });
                     }
                 } catch (error) {
                     console.error('Fetch error:', error);
-                    alert('An error occurred: ' + error.message);
+                    await AppModal.alert('An error occurred: ' + error.message, { title: 'Error', variant: 'danger' });
                 } finally {
                     if (submitBtn) {
                         submitBtn.disabled = false;
@@ -1032,10 +1032,10 @@ renderAppLayout($page_title, $page_extra_head);
                 // Confirm Save View
                 const confirmSaveView = document.getElementById('confirmSaveView');
                 if (confirmSaveView) {
-                    confirmSaveView.addEventListener('click', function() {
+                    confirmSaveView.addEventListener('click', async function() {
                         const viewName = document.getElementById('viewNameInput').value.trim();
                         if (!viewName) {
-                            alert('Please enter a view name');
+                            await AppModal.alert('Please enter a view name', { title: 'Save view' });
                             return;
                         }
 
@@ -1050,12 +1050,12 @@ renderAppLayout($page_title, $page_extra_head);
                             })
                         })
                         .then(r => r.json())
-                        .then(data => {
+                        .then(async data => {
                             if (data.success) {
-                                alert('View saved successfully!');
+                                await AppModal.alert('View saved successfully!', { title: 'Saved', variant: 'success' });
                                 location.reload();
                             } else {
-                                alert('Error: ' + data.message);
+                                await AppModal.alert('Error: ' + data.message, { title: 'Error', variant: 'danger' });
                             }
                         });
 
@@ -1069,24 +1069,28 @@ renderAppLayout($page_title, $page_extra_head);
                     savedViewsSelect.addEventListener('change', function() {
                         if (this.value) {
                             deleteViewBtn.classList.remove('d-none');
-                            deleteViewBtn.onclick = function() {
-                                if (confirm('Delete this saved view?')) {
-                                    fetch('api/saved-views.php', {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({
-                                            action: 'delete',
-                                            view_id: savedViewsSelect.value
-                                        })
+                            deleteViewBtn.onclick = async function() {
+                                const ok = await AppModal.confirm('Delete this saved view?', {
+                                    title: 'Delete saved view',
+                                    variant: 'danger',
+                                    confirmLabel: 'Delete',
+                                });
+                                if (!ok) return;
+                                fetch('api/saved-views.php', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        action: 'delete',
+                                        view_id: savedViewsSelect.value
                                     })
-                                    .then(r => r.json())
-                                    .then(data => {
-                                        if (data.success) {
-                                            alert('View deleted!');
-                                            location.reload();
-                                        }
-                                    });
-                                }
+                                })
+                                .then(r => r.json())
+                                .then(async data => {
+                                    if (data.success) {
+                                        await AppModal.alert('View deleted!', { title: 'Deleted', variant: 'success' });
+                                        location.reload();
+                                    }
+                                });
                             };
                         } else {
                             deleteViewBtn.classList.add('d-none');
@@ -1144,7 +1148,7 @@ renderAppLayout($page_title, $page_extra_head);
                     if (!pendingDeleteIds.length) return;
                     const password = (deletePasswordInput?.value || '').trim();
                     if (!password) {
-                        alert('Password is required.');
+                        await AppModal.alert('Password is required.', { title: 'Password required' });
                         if (deletePasswordInput) deletePasswordInput.focus();
                         return;
                     }
@@ -1168,13 +1172,13 @@ renderAppLayout($page_title, $page_extra_head);
                         });
                         const data = await response.json();
                         if (data.status === 'success') {
-                            alert(`Deleted ${data.data.deleted_count} project(s).`);
+                            await AppModal.alert(`Deleted ${data.data.deleted_count} project(s).`, { title: 'Deleted', variant: 'success' });
                             location.reload();
                             return;
                         }
-                        alert('Error: ' + (data.message || 'Unknown error'));
+                        await AppModal.alert('Error: ' + (data.message || 'Unknown error'), { title: 'Delete failed', variant: 'danger' });
                     } catch (error) {
-                        alert('Failed to delete project(s): ' + error.message);
+                        await AppModal.alert('Failed to delete project(s): ' + error.message, { title: 'Error', variant: 'danger' });
                     } finally {
                         confirmDeleteProjectBtn.disabled = false;
                         confirmDeleteProjectBtn.innerHTML = originalHtml;
@@ -1344,7 +1348,7 @@ renderAppLayout($page_title, $page_extra_head);
                 }
 
                 if (confirmBulkUpdate) {
-                    confirmBulkUpdate.addEventListener('click', function() {
+                    confirmBulkUpdate.addEventListener('click', async function() {
                         const formData = new FormData(document.getElementById('bulkUpdateForm'));
                         const updates = {};
                         for (let [key, value] of formData.entries()) {
@@ -1353,7 +1357,7 @@ renderAppLayout($page_title, $page_extra_head);
                             }
                         }
                         if (Object.keys(updates).length === 0) {
-                            alert('Specify at least one field to update');
+                            await AppModal.alert('Specify at least one field to update', { title: 'Bulk update' });
                             return;
                         }
                         fetch('api/batch.php?action=bulk-update', {
@@ -1366,9 +1370,9 @@ renderAppLayout($page_title, $page_extra_head);
                             })
                         })
                         .then(r => r.json())
-                        .then(data => {
+                        .then(async data => {
                             if (data.status === 'success') {
-                                alert(`Updated ${data.data.updated_count} projects`);
+                                await AppModal.alert(`Updated ${data.data.updated_count} projects`, { title: 'Updated', variant: 'success' });
                                 location.reload();
                             }
                         });
@@ -1407,11 +1411,11 @@ renderAppLayout($page_title, $page_extra_head);
                 loadPhProvinceOptions();
 
                 if (confirmExportBtn) {
-                    confirmExportBtn.addEventListener('click', function () {
+                    confirmExportBtn.addEventListener('click', async function () {
                         const scope = document.querySelector('input[name="exportScope"]:checked')?.value || 'all';
                         const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
                         if (scope === 'selected' && selectedIds.length === 0) {
-                            alert('Select at least one row before exporting selected items.');
+                            await AppModal.alert('Select at least one row before exporting selected items.', { title: 'Export' });
                             return;
                         }
                         const form = document.createElement('form');

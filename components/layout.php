@@ -38,6 +38,7 @@ function renderAppLayoutFooter() {
     ?>
     </main>
     <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
+    <script src="assets/js/app-modal.js"></script>
     <script src="assets/js/main.js"></script>
 </body>
 </html>
