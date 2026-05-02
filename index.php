@@ -140,7 +140,7 @@ $conn->close();
               <li class="nav-item"><a class="nav-link" href="#projects">Projects</a></li>
               <li class="nav-item"><a class="nav-link" href="#uploads">Uploads</a></li>
               <li class="nav-item"><a class="nav-link" href="team.php">Meet Our Team</a></li>
-              <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+              <li class="nav-item"><a class="nav-link" href="contact.php">Contact</a></li>
             </ul>
             <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-2 gap-lg-3 public-nav-utils">
               <?php if (!isset($_SESSION['user_id'])): ?>
@@ -149,7 +149,7 @@ $conn->close();
               <?php else: ?>
               <a href="dashboard-enhanced.php" class="btn btn-primary btn-sm">Dashboard</a>
               <?php endif; ?>
-              <a href="#contact" class="nav-link p-0">Contact</a>
+              <a href="contact.php" class="nav-link p-0">Contact</a>
               <button type="button" class="btn btn-light btn-sm px-3" aria-label="Current language">EN</button>
             </div>
           </div>
@@ -495,7 +495,7 @@ $conn->close();
     </section>
 
     <!-- Footer -->
-    <footer class="public-footer py-4 mt-5" id="contact">
+    <footer class="public-footer py-4 mt-5">
       <div class="container">
         <div class="row">
           <div class="col-md-4">
@@ -506,7 +506,7 @@ $conn->close();
             <h6 class="fw-bold mb-3">Quick Links</h6>
             <ul class="list-unstyled small">
               <li><a href="#" class="text-muted text-decoration-none">About Us</a></li>
-              <li><a href="#" class="text-muted text-decoration-none">Contact</a></li>
+              <li><a href="contact.php" class="text-muted text-decoration-none">Contact</a></li>
               <li><a href="#" class="text-muted text-decoration-none">Privacy Policy</a></li>
             </ul>
           </div>
@@ -514,7 +514,7 @@ $conn->close();
             <h6 class="fw-bold mb-3">Contact</h6>
             <p class="small text-muted">
               Malaybalay City, Bukidnon<br>
-              Email: info@abed.gov.ph
+              Email: <a href="mailto:placeholder.abed.idm@example.com" class="text-muted">placeholder.abed.idm@example.com</a>
             </p>
           </div>
         </div>

@@ -7,7 +7,7 @@ session_start();
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Meet Our Team — ABED IDM Hub</title>
+    <title>The Team — ABED IDM Hub</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -34,8 +34,8 @@ session_start();
               <li class="nav-item"><a class="nav-link" href="index.php#overview">Overview</a></li>
               <li class="nav-item"><a class="nav-link" href="index.php#projects">Projects</a></li>
               <li class="nav-item"><a class="nav-link" href="index.php#uploads">Uploads</a></li>
-              <li class="nav-item"><a class="nav-link active" href="team.php" aria-current="page">Meet Our Team</a></li>
-              <li class="nav-item"><a class="nav-link" href="index.php#contact">Contact</a></li>
+              <li class="nav-item"><a class="nav-link active" href="team.php">Meet Our Team</a></li>
+              <li class="nav-item"><a class="nav-link" href="contact.php">Contact</a></li>
             </ul>
             <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-2 gap-lg-3 public-nav-utils">
               <?php if (!isset($_SESSION['user_id'])): ?>
@@ -44,7 +44,7 @@ session_start();
               <?php else: ?>
               <a href="dashboard-enhanced.php" class="btn btn-primary btn-sm">Dashboard</a>
               <?php endif; ?>
-              <a href="index.php#contact" class="nav-link p-0">Contact</a>
+              <a href="contact.php" class="nav-link p-0">Contact</a>
               <button type="button" class="btn btn-light btn-sm px-3" aria-label="Current language">EN</button>
             </div>
           </div>
@@ -57,10 +57,7 @@ session_start();
         <div class="container">
           <header class="team-showcase-header team-reveal" data-reveal>
             <div class="team-showcase-header-copy">
-              <h1 id="team-hero-title" class="team-page-title">
-                <span class="team-title-index" aria-hidden="true">04</span>
-                <span class="team-title-text">Meet Our Team</span>
-              </h1>
+              <h1 id="team-hero-title" class="team-page-title">Meet Our Team</h1>
               <p class="team-lead text-muted mb-0">
                 We are a small, multidisciplinary group focused on clarity, reliability, and inclusive collaboration.
                 Together we design, build, and document solutions that support transparent infrastructure and data stewardship for our community.
@@ -108,7 +105,7 @@ session_start();
               </article>
               <article class="team-card">
                 <div class="team-card-image-wrap">
-                  <imggit
+                  <img
                     class="team-card-image"
                     src="logos/glyn.jpg"
                     width="480"
@@ -194,7 +191,7 @@ session_start();
       </section>
     </main>
 
-    <footer class="public-footer py-4 mt-5" id="contact">
+    <footer class="public-footer py-4 mt-5">
       <div class="container">
         <div class="row">
           <div class="col-md-4">
@@ -205,7 +202,7 @@ session_start();
             <h6 class="fw-bold mb-3">Quick Links</h6>
             <ul class="list-unstyled small">
               <li><a href="team.php" class="text-muted text-decoration-none">Meet Our Team</a></li>
-              <li><a href="index.php#contact" class="text-muted text-decoration-none">Contact</a></li>
+              <li><a href="contact.php" class="text-muted text-decoration-none">Contact</a></li>
               <li><a href="#" class="text-muted text-decoration-none">Privacy Policy</a></li>
             </ul>
           </div>
@@ -213,7 +210,7 @@ session_start();
             <h6 class="fw-bold mb-3">Contact</h6>
             <p class="small text-muted">
               Malaybalay City, Bukidnon<br>
-              Email: info@abed.gov.ph
+              Email: <a href="mailto:placeholder.abed.idm@example.com" class="text-muted">placeholder.abed.idm@example.com</a>
             </p>
           </div>
         </div>
