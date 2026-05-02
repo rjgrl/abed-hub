@@ -173,7 +173,12 @@ class ProjectManager {
       id: projectId,
     });
 
-    if (!confirm("Are you sure you want to delete this project?")) {
+    const ok = await AppModal.confirm("Are you sure you want to delete this project?", {
+      title: "Delete project",
+      variant: "danger",
+      confirmLabel: "Delete",
+    });
+    if (!ok) {
       return { cancelled: true };
     }
 
@@ -434,7 +439,12 @@ class MilestoneManager {
       id: milestoneId,
     });
 
-    if (!confirm("Delete this milestone?")) {
+    const ok = await AppModal.confirm("Delete this milestone?", {
+      title: "Delete milestone",
+      variant: "danger",
+      confirmLabel: "Delete",
+    });
+    if (!ok) {
       return { cancelled: true };
     }
 

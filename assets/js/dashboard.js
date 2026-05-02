@@ -13,11 +13,13 @@ document.addEventListener("DOMContentLoaded", function () {
         .then((response) => response.json())
         .then((data) => {
           if (data.status === "success") {
-            alert("FSPF Project registered successfully!");
-            location.reload();
-          } else {
-            alert("Error: " + data.message);
+            return AppModal
+              .alert("FSPF Project registered successfully!", { title: "Registered", variant: "success" })
+              .then(function () {
+                location.reload();
+              });
           }
+          return AppModal.alert("Error: " + data.message, { title: "Error", variant: "danger" });
         })
         .catch((error) => console.error("Error:", error));
     });
@@ -37,11 +39,13 @@ document.addEventListener("DOMContentLoaded", function () {
         .then((response) => response.json())
         .then((data) => {
           if (data.status === "success") {
-            alert("IDP Project registered successfully!");
-            location.reload();
-          } else {
-            alert("Error: " + data.message);
+            return AppModal
+              .alert("IDP Project registered successfully!", { title: "Registered", variant: "success" })
+              .then(function () {
+                location.reload();
+              });
           }
+          return AppModal.alert("Error: " + data.message, { title: "Error", variant: "danger" });
         })
         .catch((error) => console.error("Error:", error));
     });
@@ -61,11 +65,13 @@ document.addEventListener("DOMContentLoaded", function () {
         .then((response) => response.json())
         .then((data) => {
           if (data.status === "success") {
-            alert("AFME Project registered successfully!");
-            location.reload();
-          } else {
-            alert("Error: " + data.message);
+            return AppModal
+              .alert("AFME Project registered successfully!", { title: "Registered", variant: "success" })
+              .then(function () {
+                location.reload();
+              });
           }
+          return AppModal.alert("Error: " + data.message, { title: "Error", variant: "danger" });
         })
         .catch((error) => console.error("Error:", error));
     });
@@ -85,11 +91,13 @@ document.addEventListener("DOMContentLoaded", function () {
         .then((response) => response.json())
         .then((data) => {
           if (data.status === "success") {
-            alert("Machinery added successfully!");
-            location.reload();
-          } else {
-            alert("Error: " + data.message);
+            return AppModal
+              .alert("Machinery added successfully!", { title: "Saved", variant: "success" })
+              .then(function () {
+                location.reload();
+              });
           }
+          return AppModal.alert("Error: " + data.message, { title: "Error", variant: "danger" });
         })
         .catch((error) => console.error("Error:", error));
     });

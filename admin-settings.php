@@ -142,8 +142,8 @@ renderAppLayout($page_title);
                                     <input type="hidden" name="action" value="toggle_user_active">
                                     <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
                                     <input type="hidden" name="is_active" value="<?php echo $u['is_active'] ? 0 : 1; ?>">
-                                    <button class="btn btn-sm btn-outline-<?php echo $u['is_active'] ? 'warning' : 'success'; ?>"
-                                            onclick="return confirm('<?php echo $u['is_active'] ? 'Deactivate' : 'Activate'; ?> this user?')">
+                                    <button type="submit" class="btn btn-sm btn-outline-<?php echo $u['is_active'] ? 'warning' : 'success'; ?>"
+                                            data-app-confirm="<?php echo htmlspecialchars(($u['is_active'] ? 'Deactivate' : 'Activate') . ' this user?', ENT_QUOTES, 'UTF-8'); ?>">
                                         <i class="fas fa-<?php echo $u['is_active'] ? 'user-slash' : 'user-check'; ?>"></i>
                                         <?php echo $u['is_active'] ? 'Deactivate' : 'Activate'; ?>
                                     </button>

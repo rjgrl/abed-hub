@@ -649,6 +649,7 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
     </div>
 
     <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/app-modal.js"></script>
     <script src="assets/js/form-validator.js"></script>
     <script>
         const projectType = '<?php echo htmlspecialchars($project_type); ?>';
@@ -703,14 +704,14 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
                     });
                     const data = await response.json().catch(function () { return {}; });
                     if (response.ok && data.status === 'success') {
-                        alert(data.message || 'Document uploaded successfully');
+                        await AppModal.alert(data.message || 'Document uploaded successfully', { title: 'Upload', variant: 'success' });
                         location.reload();
                     } else {
-                        alert(data.message || 'Upload failed');
+                        await AppModal.alert(data.message || 'Upload failed', { title: 'Upload failed', variant: 'danger' });
                     }
                 } catch (err) {
                     console.error(err);
-                    alert('Upload failed');
+                    await AppModal.alert('Upload failed', { title: 'Error', variant: 'danger' });
                 } finally {
                     if (submitBtn) {
                         submitBtn.disabled = false;
@@ -739,14 +740,14 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
                     });
                     const data = await response.json().catch(function () { return {}; });
                     if (response.ok && data.status === 'success') {
-                        alert(data.message || 'Financial record added successfully');
+                        await AppModal.alert(data.message || 'Financial record added successfully', { title: 'Financial', variant: 'success' });
                         location.reload();
                     } else {
-                        alert(data.message || 'Failed to add financial record');
+                        await AppModal.alert(data.message || 'Failed to add financial record', { title: 'Error', variant: 'danger' });
                     }
                 } catch (err) {
                     console.error(err);
-                    alert('Failed to add financial record');
+                    await AppModal.alert('Failed to add financial record', { title: 'Error', variant: 'danger' });
                 } finally {
                     if (submitBtn) {
                         submitBtn.disabled = false;
@@ -768,14 +769,14 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
                 });
                 const result = await response.json().catch(function () { return {}; });
                 if (response.ok && result.status === 'success') {
-                    alert(result.message || 'Project updated successfully');
+                    await AppModal.alert(result.message || 'Project updated successfully', { title: 'Saved', variant: 'success' });
                     location.reload();
                 } else {
-                    alert(result.message || 'Failed to update project');
+                    await AppModal.alert(result.message || 'Failed to update project', { title: 'Error', variant: 'danger' });
                 }
             } catch (err) {
                 console.error(err);
-                alert('Failed to update project');
+                await AppModal.alert('Failed to update project', { title: 'Error', variant: 'danger' });
             }
         });
     </script>
