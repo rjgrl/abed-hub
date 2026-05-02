@@ -108,9 +108,9 @@ session_start();
               </article>
               <article class="team-card">
                 <div class="team-card-image-wrap">
-                  <img
+                  <imggit
                     class="team-card-image"
-                    src="assets/img/team-photo-placeholder.svg"
+                    src="logos/glyn.jpg"
                     width="480"
                     height="560"
                     alt="Portrait of Glyn Yohann Pecson"
