@@ -148,16 +148,14 @@ $headers .= "From: noreply@abed.gov.ph" . "\r\n";
 
 mail($to, $subject, $message, $headers);
 
-// Return success
-die(json_encode([
-    'status' => 'success',
-    'message' => 'Password reset successfully'
-]));
-
 $token_stmt->close();
 $update_stmt->close();
 $mark_used_stmt->close();
 $user_stmt->close();
 $audit_stmt->close();
 $conn->close();
-?>
+
+die(json_encode([
+    'status' => 'success',
+    'message' => 'Password reset successfully'
+]));

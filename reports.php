@@ -409,7 +409,7 @@ renderAppLayout($page_title);
                                         <td><?php echo htmlspecialchars(($project['municipality'] ?? '') . ', ' . ($project['province'] ?? '')); ?></td>
                                         <td>
                                             <?php if (isset($project['physical_progress'])): ?>
-                                                <div class="progress" style="height: 20px;">
+                                                <div class="progress progress-sm-tall">
                                                     <div class="progress-bar" role="progressbar" 
                                                          style="width: <?php echo $project['physical_progress']; ?>%"
                                                          aria-valuenow="<?php echo $project['physical_progress']; ?>" 

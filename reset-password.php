@@ -80,33 +80,29 @@ if (isset($_SESSION['user_id'])) {
             <div class="small mb-4">
               <div class="mb-1">
                 <i
-                  class="fas fa-check-circle"
+                  class="fas fa-check-circle password-rule-check"
                   id="check-length"
-                  style="color: #ccc"
                 ></i>
                 At least 8 characters
               </div>
               <div class="mb-1">
                 <i
-                  class="fas fa-check-circle"
+                  class="fas fa-check-circle password-rule-check"
                   id="check-upper"
-                  style="color: #ccc"
                 ></i>
                 At least one uppercase letter
               </div>
               <div class="mb-1">
                 <i
-                  class="fas fa-check-circle"
+                  class="fas fa-check-circle password-rule-check"
                   id="check-number"
-                  style="color: #ccc"
                 ></i>
                 At least one number
               </div>
               <div>
                 <i
-                  class="fas fa-check-circle"
+                  class="fas fa-check-circle password-rule-check"
                   id="check-special"
-                  style="color: #ccc"
                 ></i>
                 At least one special character (!@#$%^&*)
               </div>

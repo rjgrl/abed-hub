@@ -53,9 +53,13 @@ try {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Resolve type → table, throw on invalid. */
+/** Resolve type → table. `all` targets the unified projects catalog (ids are global). */
 function batchTable(string $type): string {
-    return apiTableFor($type);
+    $t = strtolower(trim($type));
+    if ($t === 'all') {
+        return 'projects';
+    }
+    return apiTableFor($t);
 }
 
 // ─── Handlers ────────────────────────────────────────────────────────────────

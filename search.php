@@ -232,7 +232,7 @@ $locations_facet = $conn->query($locations_facet_query)->fetch_all(MYSQLI_ASSOC)
                             <h6 class="mb-0">Location</h6>
                         </div>
                         <div class="card-body">
-                            <div style="max-height: 300px; overflow-y: auto;">
+                            <div class="search-results-scroll">
                                 <?php foreach ($locations_facet as $loc): ?>
                                     <label class="form-check mb-2">
                                         <input type="checkbox" name="location" 
@@ -351,8 +351,8 @@ $locations_facet = $conn->query($locations_facet_query)->fetch_all(MYSQLI_ASSOC)
 
                                             <!-- Progress -->
                                             <div class="mb-3">
-                                                <div class="progress mb-1" style="height: 18px;">
-                                                    <div class="progress-bar bg-primary" 
+                                                <div class="progress progress-rail mb-1">
+                                                    <div class="progress-bar bg-primary"
                                                          style="width: <?php echo min($result['physical_progress'], 100); ?>%">
                                                         <small><?php echo round($result['physical_progress'], 1); ?>%</small>
                                                     </div>
@@ -440,14 +440,5 @@ $locations_facet = $conn->query($locations_facet_query)->fetch_all(MYSQLI_ASSOC)
             window.location.href = url;
         });
     </script>
-    <style>
-        .hover-lift {
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .hover-lift:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-        }
-    </style>
 </body>
 </html>

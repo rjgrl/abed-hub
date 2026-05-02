@@ -54,20 +54,15 @@ session_start();
 
     <main>
       <section class="team-showcase" aria-labelledby="team-hero-title">
-        <div class="container">
+        <div class="container position-relative team-showcase-container">
           <header class="team-showcase-header team-reveal" data-reveal>
-            <div class="team-showcase-header-copy">
-              <h1 id="team-hero-title" class="team-page-title">
-                <span class="team-title-index" aria-hidden="true">04</span>
-                <span class="team-title-text">Meet Our Team</span>
-              </h1>
-              <p class="team-lead text-muted mb-0">
+            <div class="team-showcase-intro">
+              <h1 id="team-hero-title" class="team-page-title">Meet Our Team</h1>
+              <p class="team-lead text-muted">
                 We are a small, multidisciplinary group focused on clarity, reliability, and inclusive collaboration.
                 Together we design, build, and document solutions that support transparent infrastructure and data stewardship for our community.
               </p>
-            </div>
-            <div class="team-showcase-header-action">
-              <a href="#about-project" class="btn btn-outline-primary team-read-more-btn text-nowrap">Read more</a>
+              <a href="#about-project" class="btn btn-outline-primary team-read-more-btn">Read More</a>
             </div>
           </header>
 
@@ -103,12 +98,12 @@ session_start();
                 </div>
                 <div class="team-card-body">
                   <h3 class="team-card-name h5 mb-1">Raymund John Gil Luzon</h3>
-                  <p class="team-card-role text-muted small mb-0">Co Team Leader &amp; Programmer</p>
+                  <p class="team-card-role text-muted small mb-0">Co-Team Leader &amp; Programmer</p>
                 </div>
               </article>
               <article class="team-card">
                 <div class="team-card-image-wrap">
-                  <imggit
+                  <img
                     class="team-card-image"
                     src="logos/glyn.jpg"
                     width="480"

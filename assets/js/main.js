@@ -48,7 +48,7 @@ function togglePassword(fieldId) {
 function updateCheckIcon(elementId, isValid) {
   const element = document.getElementById(elementId);
   if (!element) return;
-  element.style.color = isValid ? "#28a745" : "#ccc";
+  element.classList.toggle("is-valid-rule", isValid);
 }
 
 /**
