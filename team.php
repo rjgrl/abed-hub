@@ -14,7 +14,6 @@ session_start();
     <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="assets/css/style.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
   </head>
   <body class="public-home team-page">
     <header class="public-header">
@@ -59,13 +58,15 @@ session_start();
       <section class="team-showcase" aria-labelledby="team-hero-title">
         <div class="container position-relative team-showcase-container">
           <header class="team-showcase-header team-reveal" data-reveal>
-            <div class="team-showcase-header-copy">
-              <h1 id="team-hero-title" class="team-page-title">Meet Our Team</h1>
-              <p class="team-lead text-muted mb-0">
-                We are a small, multidisciplinary group focused on clarity, reliability, and inclusive collaboration.
-                Together we design, build, and document solutions that support transparent infrastructure and data stewardship for our community.
-              </p>
-              <a href="#about-project" class="btn btn-outline-primary team-read-more-btn">Read More</a>
+            <div class="row justify-content-center">
+              <div class="col-12 col-md-10 col-lg-8 col-xl-7 text-center">
+                <h1 id="team-hero-title" class="team-page-title text-center">Meet Our Team</h1>
+                <p id="team-hero-lead" class="team-lead text-muted mb-0 text-center">
+                  We are a small, multidisciplinary group focused on clarity, reliability, and inclusive collaboration.
+                  Together we design, build, and document solutions that support transparent infrastructure and data stewardship for our community.
+                </p>
+                <a href="#about-project" class="btn btn-outline-primary team-read-more-btn mt-3">Read More</a>
+              </div>
             </div>
           </header>
 
@@ -222,31 +223,7 @@ session_start();
       </div>
     </footer>
 
-    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script>
-      (function () {
-        var nodes = document.querySelectorAll(".team-reveal[data-reveal]");
-        if (!nodes.length || !("IntersectionObserver" in window)) {
-          nodes.forEach(function (el) {
-            el.classList.add("is-visible");
-          });
-          return;
-        }
-        var io = new IntersectionObserver(
-          function (entries) {
-            entries.forEach(function (entry) {
-              if (entry.isIntersecting) {
-                entry.target.classList.add("is-visible");
-                io.unobserve(entry.target);
-              }
-            });
-          },
-          { root: null, rootMargin: "0px 0px -8% 0px", threshold: 0.08 }
-        );
-        nodes.forEach(function (el) {
-          io.observe(el);
-        });
-      })();
-    </script>
+    <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
+    <script src="assets/js/team.js"></script>
   </body>
 </html>

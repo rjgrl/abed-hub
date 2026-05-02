@@ -609,7 +609,7 @@ renderAppLayout($page_title);
             </div>
         </div>
     </div>
-    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
     <script src="assets/js/afme-machinery-details.js"></script>
     <?php renderAppLayoutFooter(); ?>
 

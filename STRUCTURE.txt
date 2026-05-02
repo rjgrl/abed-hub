@@ -1,0 +1,43 @@
+ABED IDM Hub — where to look when something breaks
+================================================
+
+Root PHP pages
+  index.php, team.php, contact.php     — public site
+  login.php, signup.php, forgot-password.php, reset-password.php, verify-code.php — auth
+  dashboard.php, dashboard-enhanced.php  — main entry after login (prefer dashboard-enhanced when linked from marketing pages)
+  projects-advanced.php, project-detail-enhanced.php, search.php, reports.php
+  analytics-reports.php, scurve-monitoring.php, geomap.php
+  my-account.php, change-password.php
+  admin-*.php                          — super admin
+
+components/
+  layout.php        — renderAppLayout() shell (sidebar, topbar, navbar, CSS)
+  sidebar.php, topbar.php, navbar.php
+
+assets/css/style.css   — single source for app + public-page styling (semantic badges: .stage-badge, .variance-badge, etc.)
+
+assets/js/
+  main.js              — global shell behaviour
+  team.js              — Meet Our Team scroll reveals
+  login.js, signup.js  — auth forms (handlers under handlers/)
+
+config/
+  database.php         — DB connection, session, loads functions/helpers.php
+  email_styles.php     — CSS strings for transactional HTML emails (used by handlers)
+  recaptcha.php        — site keys for login/signup
+
+functions/helpers.php  — auth helpers, stage_badge_class(), variance_badge_class(), financial_record_badge_class()
+
+handlers/              — POST endpoints for forms (JSON). Paths use __DIR__.
+
+api/                   — JSON endpoints for SPA-style pages
+
+services/              — ProjectRepository, PDFService
+
+exports/               — PDF generators (inline HTML/CSS for PDF engines, not shared with style.css)
+
+Typical fixes
+  • Blank page / 500    — PHP error log; ensure config/database.php credentials match MySQL
+  • Session / redirect  — SESSION_NAME in config/database.php; login sets $_SESSION['user_id']
+  • Styles wrong        — Check link href paths (relative to page URL); clear browser cache
+  • Bootstrap JS missing — Only assets/bootstrap/js/bootstrap.bundle.js is shipped (not .min)

@@ -14,10 +14,18 @@ document.addEventListener("DOMContentLoaded", function () {
     const loginRole = document.querySelector('select[name="login_role"]').value;
     const alertContainer = document.getElementById("alertContainer");
 
+    const recaptchaResponse =
+      typeof grecaptcha !== "undefined" ? grecaptcha.getResponse() : "";
+    if (!recaptchaResponse) {
+      showAlert("Please verify that you are not a robot.", "warning");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("username", username);
     formData.append("password", password);
     formData.append("login_role", loginRole);
+    formData.append("g-recaptcha-response", recaptchaResponse);
 
     const submitBtn = this.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
@@ -41,6 +49,9 @@ document.addEventListener("DOMContentLoaded", function () {
           window.location.href = data.redirect_url || "dashboard.php";
         } else {
           showAlert(data.message, "danger");
+          if (typeof grecaptcha !== "undefined") {
+            grecaptcha.reset();
+          }
           submitBtn.disabled = false;
           submitBtn.innerHTML = originalText;
         }
@@ -48,6 +59,9 @@ document.addEventListener("DOMContentLoaded", function () {
       .catch((error) => {
         console.error("Error:", error);
         showAlert("An error occurred. Please try again.", "danger");
+        if (typeof grecaptcha !== "undefined") {
+          grecaptcha.reset();
+        }
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
       });

@@ -346,7 +346,7 @@ $conn->close();
                     </td>
                     <td>
                       <div class="progress progress-small">
-                        <div class="progress-bar" style="width: <?php echo $project['physical_progress']; ?>%"></div>
+                        <div class="progress-bar progress-bar-w" style="--w: <?php echo $project['physical_progress']; ?>%"></div>
                       </div>
                       <small><?php echo $project['physical_progress']; ?>%</small>
                     </td>
@@ -395,7 +395,7 @@ $conn->close();
                     </td>
                     <td>
                       <div class="progress progress-small">
-                        <div class="progress-bar bg-info" style="width: <?php echo $project['physical_progress']; ?>%"></div>
+                        <div class="progress-bar bg-info progress-bar-w" style="--w: <?php echo $project['physical_progress']; ?>%"></div>
                       </div>
                       <small><?php echo $project['physical_progress']; ?>%</small>
                     </td>
@@ -529,7 +529,7 @@ $conn->close();
       </div>
     </footer>
 
-    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
   </body>
 </html>
 

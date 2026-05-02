@@ -113,6 +113,6 @@ session_start();
       </div>
     </footer>
 
-    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
   </body>
 </html>
