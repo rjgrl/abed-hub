@@ -19,17 +19,20 @@ session_start();
   <body class="public-home team-page">
     <header class="public-header">
       <div class="container">
-        <nav class="navbar navbar-expand-lg py-3 public-navbar" aria-label="Public navigation">
-          <a class="navbar-brand d-flex align-items-center gap-2" href="index.php">
-            <img src="logos/abed_logo.png" alt="ABED IDM Hub" class="public-brand-logo" />
-            <span class="fw-bold d-none d-sm-inline">ABED IDM Hub</span>
+        <nav class="navbar navbar-expand-lg py-3 align-items-lg-center public-navbar" aria-label="Public navigation">
+          <a class="navbar-brand d-flex align-items-center gap-2 gap-sm-3 public-navbar-brand" href="index.php">
+            <img src="logos/abed_logo.png" alt="ABED IDM Hub" class="public-brand-logo flex-shrink-0" />
+            <span class="public-brand-text d-flex flex-column lh-sm text-start">
+              <span class="public-brand-title fw-bold text-white">ABED Integrated Data Management Hub</span>
+              <span class="public-brand-subtitle small text-white-50">Agricultural and Biosystems Engineering Division - LGU Malaybalay City</span>
+            </span>
           </a>
 
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#publicNav" aria-controls="publicNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
 
-          <div class="collapse navbar-collapse" id="publicNav">
+          <div class="collapse navbar-collapse align-items-lg-center" id="publicNav">
             <ul class="navbar-nav mx-auto mb-3 mb-lg-0">
               <li class="nav-item"><a class="nav-link" href="index.php#overview">Overview</a></li>
               <li class="nav-item"><a class="nav-link" href="index.php#projects">Projects</a></li>
@@ -37,15 +40,15 @@ session_start();
               <li class="nav-item"><a class="nav-link active" href="team.php">Meet Our Team</a></li>
               <li class="nav-item"><a class="nav-link" href="contact.php">Contact</a></li>
             </ul>
-            <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-2 gap-lg-3 public-nav-utils">
+            <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-2 public-nav-utils">
               <?php if (!isset($_SESSION['user_id'])): ?>
-              <a href="login.php" class="btn btn-outline-primary btn-sm">Login</a>
-              <a href="signup.php" class="btn btn-primary btn-sm">Sign Up</a>
+              <a href="login.php" class="btn btn-outline-primary btn-sm public-nav-btn">Login</a>
+              <a href="signup.php" class="btn btn-primary btn-sm public-nav-btn">Sign Up</a>
               <?php else: ?>
-              <a href="dashboard-enhanced.php" class="btn btn-primary btn-sm">Dashboard</a>
+              <a href="dashboard-enhanced.php" class="btn btn-primary btn-sm public-nav-btn">Dashboard</a>
               <?php endif; ?>
-              <a href="contact.php" class="nav-link p-0">Contact</a>
-              <button type="button" class="btn btn-light btn-sm px-3" aria-label="Current language">EN</button>
+              <a href="contact.php" class="nav-link py-0 public-nav-extra-link">Contact</a>
+              <button type="button" class="btn btn-light btn-sm px-3 public-nav-btn" aria-label="Current language">EN</button>
             </div>
           </div>
         </nav>
