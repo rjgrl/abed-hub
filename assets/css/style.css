@@ -442,8 +442,8 @@ main.app-main > .container-fluid.py-4 {
   overflow-y: auto !important;
 }
 
-/* fallback if manually styled pages still exist */
-main:not(.app-main) {
+/* Legacy app pages: offset for sidebar. Do not apply to public marketing pages (body.public-home). */
+body:not(.public-home) main:not(.app-main) {
   margin-left: var(--sidebar-width);
   margin-top: 0;
   padding-top: calc(var(--app-header-offset) + var(--app-content-gap));
@@ -1249,8 +1249,8 @@ body.public-home {
 }
 
 .public-feature-card--featured {
-  transform: translateY(-8px);
   box-shadow: var(--shadow-md);
+  border-color: rgba(91, 141, 239, 0.35);
 }
 
 .public-home .card-hover {
@@ -1307,10 +1307,6 @@ body.public-home {
     margin-top: 1rem;
   }
 
-  .public-feature-card--featured {
-    transform: none;
-  }
-
   .auth-split-row {
     min-height: 0;
   }
@@ -1335,10 +1331,12 @@ body.public-home {
 }
 
 .team-showcase {
-  --team-image-radius: 12px;
-  --team-header-gap-bottom: clamp(2.75rem, 6vw, 4.25rem);
-  padding-top: clamp(2.5rem, 5.5vw, 4rem);
-  padding-bottom: clamp(2.25rem, 4.5vw, 3.5rem);
+  --team-image-radius: 6px;
+  --team-grid-gap: clamp(1.25rem, 2.5vw, 2rem);
+  --team-header-gap-bottom: clamp(2.5rem, 5vw, 4rem);
+  padding-top: clamp(2.75rem, 6vw, 4.75rem);
+  padding-bottom: clamp(2rem, 4vw, 3.25rem);
+  background: var(--app-surface);
   width: 100%;
   max-width: 100%;
   background:
@@ -1349,8 +1347,20 @@ body.public-home {
     0 12px 40px rgba(15, 23, 42, 0.04);
 }
 
-.team-showcase-container {
-  z-index: 0;
+.team-showcase-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--team-grid-gap);
+  margin-bottom: var(--team-header-gap-bottom);
+  width: 100%;
+}
+
+.team-showcase-header-copy {
+  flex: 1 1 18rem;
+  max-width: min(100%, 44rem);
+  text-align: left;
 }
 
 .team-showcase-header {
@@ -1377,8 +1387,6 @@ body.public-home {
   line-height: 1.15;
   margin-bottom: clamp(1rem, 2vw, 1.35rem);
   color: var(--app-text);
-  text-align: center;
-  width: 100%;
 }
 
 .team-page .team-lead {
@@ -1406,8 +1414,10 @@ body.public-home {
 .team-member-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: clamp(1.25rem, 2.5vw, 2rem);
-  align-items: start;
+  column-gap: var(--team-grid-gap);
+  row-gap: var(--team-grid-gap);
+  align-items: stretch;
+  justify-content: stretch;
   width: 100%;
   max-width: 100%;
 }
@@ -1506,6 +1516,27 @@ body.public-home {
 .team-prose {
   font-size: 1rem;
   line-height: 1.7;
+}
+
+/* ========================================
+   CONTACT PAGE
+   ======================================== */
+
+.contact-page {
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.contact-page .public-section-surface {
+  background: var(--app-surface);
+}
+
+.contact-page-title {
+  font-family: "Poppins", "Inter", system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-size: clamp(1.85rem, 3.5vw, 2.65rem);
+  line-height: 1.15;
+  color: var(--app-text);
 }
 
 .team-about-icon {
