@@ -1,5 +1,6 @@
 /* ========================================
    ABED IDM Hub - Global Styles
+   Folder map & troubleshooting: STRUCTURE.txt (repo root)
    ======================================== */
 
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
@@ -66,10 +67,33 @@
   min-height: 100vh;
   margin: 0;
   padding: 2rem 1rem;
-  background:
-    radial-gradient(circle at top right, rgba(198, 148, 249, 0.2), transparent 42%),
-    radial-gradient(circle at bottom left, rgba(91, 141, 239, 0.2), transparent 46%),
-    var(--app-bg);
+  position: relative;
+  isolation: isolate;
+  /* logos/City.jpg — visible but muted so the card stays the visual focus */
+  background-color: var(--app-bg);
+  background-image:
+    radial-gradient(
+      ellipse 100% 70% at 50% 0%,
+      rgba(255, 255, 255, 0.65) 0%,
+      transparent 60%
+    ),
+    radial-gradient(circle at top right, rgba(198, 148, 249, 0.12), transparent 42%),
+    radial-gradient(circle at bottom left, rgba(91, 141, 239, 0.12), transparent 46%),
+    linear-gradient(
+      165deg,
+      rgba(255, 255, 255, 0.88) 0%,
+      rgba(248, 250, 252, 0.72) 45%,
+      rgba(241, 245, 249, 0.82) 100%
+    ),
+    url("../../logos/City.jpg");
+  background-position: center, top right, bottom left, center, center;
+  background-size: auto, auto, auto, auto, cover;
+  background-repeat: no-repeat;
+}
+
+.auth-body .auth-container {
+  position: relative;
+  z-index: 1;
 }
 
 .auth-container {
@@ -1183,7 +1207,15 @@ body:not(.public-home) main:not(.app-main) {
    ======================================== */
 
 body.public-home {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: var(--app-bg);
+}
+
+/* Sticky footer: pin public footer to viewport bottom when content is short */
+body.public-home > footer.public-footer {
+  margin-top: auto;
 }
 
 .public-header {
@@ -1253,11 +1285,24 @@ body.public-home {
 
   .public-navbar.navbar-expand-lg .navbar-nav {
     align-items: center;
+    column-gap: 1.05rem;
   }
 
   .public-navbar .navbar-nav .nav-link {
     white-space: nowrap;
   }
+}
+
+/* Public top nav: space between labels + tracking */
+.public-navbar .navbar-nav {
+  column-gap: 0.65rem;
+  row-gap: 0.35rem;
+}
+
+.public-navbar .navbar-nav .nav-link {
+  padding-left: 0.8rem;
+  padding-right: 0.8rem;
+  letter-spacing: 0.04em;
 }
 
 .public-nav-utils {
@@ -1357,6 +1402,51 @@ body.public-home {
   max-width: 560px;
 }
 
+/* Hero CTAs: slightly larger and easier to spot without dominating the layout */
+.public-hero-cta .btn {
+  padding: 0.72rem 1.75rem;
+  font-size: clamp(1rem, 0.25vw + 0.95rem, 1.125rem);
+  border-radius: 12px;
+  letter-spacing: 0.03em;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.public-hero-cta .btn-primary {
+  box-shadow:
+    0 4px 16px rgba(91, 141, 239, 0.42),
+    0 1px 0 rgba(255, 255, 255, 0.2) inset;
+}
+
+.public-hero-cta .btn-primary:hover,
+.public-hero-cta .btn-primary:focus-visible {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 22px rgba(91, 141, 239, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.25) inset;
+}
+
+.public-hero-cta .btn-outline-primary {
+  border-width: 2px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+}
+
+.public-hero-cta .btn-outline-primary:hover,
+.public-hero-cta .btn-outline-primary:focus-visible {
+  transform: translateY(-2px);
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(91, 141, 239, 0.2);
+}
+
+.public-hero-cta .btn:active {
+  transform: translateY(0);
+}
+
 .public-hero-visual {
   height: 100%;
   min-height: 420px;
@@ -1395,6 +1485,17 @@ body.public-home {
   background: rgba(91, 141, 239, 0.12);
   color: var(--accent-blue-deep);
   margin-bottom: 0.875rem;
+}
+
+.public-feature-icon--brand {
+  background: rgba(95, 212, 168, 0.14);
+}
+
+.public-feature-brand-logo {
+  display: block;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
 }
 
 .public-feature-card--featured {
@@ -1440,6 +1541,16 @@ body.public-home {
 
 .public-footer {
   background: #111827;
+  color: #fff;
+}
+
+/* Bootstrap sets heading/link colors; keep titles readable on the dark bar */
+.public-footer h1,
+.public-footer h2,
+.public-footer h3,
+.public-footer h4,
+.public-footer h5,
+.public-footer h6 {
   color: #fff;
 }
 
@@ -1497,22 +1608,7 @@ body.public-home {
 }
 
 .team-showcase-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--team-grid-gap);
-  margin-bottom: var(--team-header-gap-bottom);
   width: 100%;
-}
-
-.team-showcase-header-copy {
-  flex: 1 1 18rem;
-  max-width: min(100%, 44rem);
-  text-align: left;
-}
-
-.team-showcase-header {
   margin-bottom: var(--team-header-gap-bottom);
 }
 
@@ -1536,14 +1632,23 @@ body.public-home {
   line-height: 1.15;
   margin-bottom: clamp(1rem, 2vw, 1.35rem);
   color: var(--app-text);
+  text-align: center;
 }
 
 .team-page .team-lead {
   font-size: clamp(0.98rem, 1.35vw, 1.0625rem);
   line-height: 1.78;
-  max-width: min(100%, 40rem);
-  margin: 0 0 clamp(1.25rem, 2.5vw, 1.75rem);
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: clamp(1.25rem, 2.5vw, 1.75rem);
   text-align: center;
+}
+
+/* Hero blurb: force centered lines (body/start alignment must not win on this block) */
+#team-hero-lead {
+  text-align: center !important;
+  transform: translateX(-0.5rem);
 }
 
 .team-read-more-btn {
@@ -1551,12 +1656,15 @@ body.public-home {
   padding: 0.55rem 1.35rem;
   font-weight: 600;
   font-size: 0.9375rem;
-  align-self: center;
 }
 
 @media (max-width: 575.98px) {
   .team-read-more-btn {
+    display: block;
     width: 100%;
+    max-width: 20rem;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
@@ -2030,6 +2138,105 @@ body.public-home {
 
 .password-rule-check.is-valid-rule {
   color: #28a745;
+}
+
+/* --- Semantic badges (use stage_badge_class / variance_badge_class in functions/helpers.php) --- */
+
+.stage-badge {
+  color: #fff;
+  font-size: 0.75em;
+  font-weight: 600;
+}
+
+.stage-badge--proposal {
+  background-color: #9ca3af;
+}
+
+.stage-badge--pre-implementation {
+  background-color: #7eb8d9;
+}
+
+.stage-badge--procurement {
+  background-color: #f5c57a;
+  color: #111827;
+}
+
+.stage-badge--implementation {
+  background-color: #5b8def;
+}
+
+.stage-badge--done {
+  background-color: #5fd4a8;
+}
+
+.stage-badge--default {
+  background-color: #e3e3e3;
+  color: #374151;
+}
+
+.variance-badge {
+  display: inline-block;
+  padding: 0.35em 0.65em;
+  font-size: 0.75em;
+  font-weight: 600;
+  line-height: 1;
+  border-radius: 0.25rem;
+}
+
+.variance-badge--negative {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.variance-badge--warn {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.fin-record-badge {
+  font-size: 0.75em;
+  font-weight: 600;
+  color: #fff;
+}
+
+.fin-record--obligation {
+  background-color: #5b8def;
+}
+
+.fin-record--disbursement {
+  background-color: #5fd4a8;
+}
+
+.fin-record--liquidation {
+  background-color: #7eb8d9;
+}
+
+.fin-record--other {
+  background-color: #6c757d;
+}
+
+/* Dynamic width: set style="--w: 45%" on the bar (replaces inline width %) */
+
+.progress .progress-bar.progress-bar-w {
+  width: var(--w, 0%);
+}
+
+/* Dashboard “distribution” demo strips (fixed fractions, no inline width) */
+
+.progress-demo-p25 {
+  width: 25%;
+}
+
+.progress-demo-p50 {
+  width: 50%;
+}
+
+.progress-demo-p75 {
+  width: 75%;
+}
+
+.progress-demo-p100 {
+  width: 100%;
 }
 
 @media print {

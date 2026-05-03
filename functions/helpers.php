@@ -298,4 +298,44 @@ define('PROPOSAL_STATUS', ['For Validation', 'Proposal Validated', 'Not Feasible
 define('SCOPE_OF_WORK', ['Construction', 'Rehabilitation', 'Upgrading', 'Additional Work']);
 define('USER_ROLES', ['admin', 'operator', 'viewer']);
 
+/**
+ * CSS classes for project lifecycle stage badges (see .stage-badge in assets/css/style.css).
+ */
+function stage_badge_class(string $stage): string
+{
+    $kind = match ($stage) {
+        'Proposal' => 'stage-badge--proposal',
+        'Pre-Implementation' => 'stage-badge--pre-implementation',
+        'Procurement' => 'stage-badge--procurement',
+        'Implementation' => 'stage-badge--implementation',
+        'Completed', 'Turned-Over' => 'stage-badge--done',
+        default => 'stage-badge--default',
+    };
+
+    return 'stage-badge ' . $kind;
+}
+
+/**
+ * Variance pill: negative (physical behind financial) vs warning.
+ */
+function variance_badge_class(float $variance): string
+{
+    return 'variance-badge ' . ($variance < 0 ? 'variance-badge--negative' : 'variance-badge--warn');
+}
+
+/**
+ * Financial record type color coding on project detail.
+ */
+function financial_record_badge_class(string $recordType): string
+{
+    $kind = match ($recordType) {
+        'Obligation' => 'fin-record--obligation',
+        'Disbursement' => 'fin-record--disbursement',
+        'Liquidation' => 'fin-record--liquidation',
+        default => 'fin-record--other',
+    };
+
+    return 'fin-record-badge ' . $kind;
+}
+
 ?>

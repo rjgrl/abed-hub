@@ -217,8 +217,8 @@ if (!$project_id) {
                             </div>
                             <div class="card-body">
                                 <div class="progress progress-md mb-3">
-                                    <div class="progress-bar bg-primary" 
-                                         style="width: <?php echo $project['physical_progress']; ?>%"
+                                    <div class="progress-bar bg-primary progress-bar-w" 
+                                         style="--w: <?php echo $project['physical_progress']; ?>%"
                                          role="progressbar">
                                         <?php echo round($project['physical_progress'], 1); ?>%
                                     </div>
@@ -237,8 +237,8 @@ if (!$project_id) {
                             </div>
                             <div class="card-body">
                                 <div class="progress progress-md mb-3">
-                                    <div class="progress-bar bg-success" 
-                                         style="width: <?php echo $project['financial_progress']; ?>%"
+                                    <div class="progress-bar bg-success progress-bar-w" 
+                                         style="--w: <?php echo $project['financial_progress']; ?>%"
                                          role="progressbar">
                                         <?php echo round($project['financial_progress'], 1); ?>%
                                     </div>
@@ -335,14 +335,14 @@ if (!$project_id) {
                                                 <td><?php echo htmlspecialchars(substr($proj['project_title'], 0, 40)); ?></td>
                                                 <td>
                                                     <div class="progress progress-sm-tall">
-                                                        <div class="progress-bar bg-primary" style="width: <?php echo $phys_pct; ?>%">
+                                                        <div class="progress-bar bg-primary progress-bar-w" style="--w: <?php echo $phys_pct; ?>%">
                                                             <?php echo $phys_pct; ?>%
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td>
                                                     <div class="progress progress-sm-tall">
-                                                        <div class="progress-bar bg-success" style="width: <?php echo $fin_pct; ?>%">
+                                                        <div class="progress-bar bg-success progress-bar-w" style="--w: <?php echo $fin_pct; ?>%">
                                                             <?php echo $fin_pct; ?>%
                                                         </div>
                                                     </div>
@@ -362,7 +362,7 @@ if (!$project_id) {
         </div>
     </main>
 
-    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
     <script>
         <?php if ($project_id && $project): ?>
             // S-Curve Chart (Planned vs Actual)

@@ -2,6 +2,7 @@
 session_name('ABED_IDM_HUB');
 session_start();
 require_once '../config/database.php';
+require_once '../config/recaptcha.php';
 
 header('Content-Type: application/json');
 

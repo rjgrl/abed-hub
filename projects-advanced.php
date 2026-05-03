@@ -295,31 +295,20 @@ renderAppLayout($page_title, $page_extra_head);
                                             </span>
                                         </td>
                                         <td>
-                                            <span class="badge" style="background-color: 
-                                                <?php echo match($project['current_stage']) {
-                                                    'Proposal' => '#9ca3af',
-                                                    'Pre-Implementation' => '#7eb8d9',
-                                                    'Procurement' => '#f5c57a',
-                                                    'Implementation' => '#5b8def',
-                                                    'Completed', 'Turned-Over' => '#5fd4a8',
-                                                    default => '#e3e3e3'
-                                                }; ?>; color: <?php echo match($project['current_stage']) {
-                                                    'Procurement' => 'black',
-                                                    default => 'white'
-                                                }; ?>">
+                                            <span class="badge <?php echo htmlspecialchars(stage_badge_class((string) $project['current_stage']), ENT_QUOTES, 'UTF-8'); ?>">
                                                 <?php echo htmlspecialchars($project['current_stage']); ?>
                                             </span>
                                         </td>
                                         <td>
                                             <div class="progress progress-table-compact">
-                                                <div class="progress-bar progress-bar-physical" style="width: <?php echo $project['physical_progress']; ?>%;">
+                                                <div class="progress-bar progress-bar-physical progress-bar-w" style="--w: <?php echo $project['physical_progress']; ?>%;">
                                                     <small><?php echo round($project['physical_progress'], 0); ?>%</small>
                                                 </div>
                                             </div>
                                         </td>
                                         <td>
                                             <div class="progress progress-table-compact">
-                                                <div class="progress-bar bg-success" style="width: <?php echo $project['financial_progress']; ?>%;">
+                                                <div class="progress-bar bg-success progress-bar-w" style="--w: <?php echo $project['financial_progress']; ?>%;">
                                                     <small><?php echo round($project['financial_progress'], 0); ?>%</small>
                                                 </div>
                                             </div>

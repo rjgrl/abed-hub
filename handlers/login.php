@@ -2,6 +2,7 @@
 session_name('ABED_IDM_HUB');
 session_start();
 require_once '../config/database.php';
+require_once '../config/recaptcha.php';
 
 header('Content-Type: application/json');
 
@@ -12,9 +13,26 @@ if (isset($_SESSION['user_id'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $recaptchaToken = $_POST['g-recaptcha-response'] ?? '';
+    $recaptcha = verify_recaptcha_v2(
+        is_string($recaptchaToken) ? $recaptchaToken : null,
+        $_SERVER['REMOTE_ADDR'] ?? null
+    );
+    if (!$recaptcha['success']) {
+        $codes = $recaptcha['error_codes'] ?? [];
+        $msg = in_array('recaptcha-not-reachable', $codes, true)
+            ? 'Could not reach reCAPTCHA verification. Please try again in a moment.'
+            : 'Please verify that you are not a robot.';
+        echo json_encode(['status' => 'error', 'message' => $msg]);
+        exit;
+    }
+
     $username = trim($_POST['username'] ?? '');
     $password = trim($_POST['password'] ?? '');
     $loginRole = trim($_POST['login_role'] ?? 'employee');
+    if (!in_array($loginRole, ['employee', 'admin'], true)) {
+        $loginRole = 'employee';
+    }
 
     // Validate input
     if (empty($username) || empty($password)) {
@@ -67,6 +85,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $_SESSION['full_name'] = user_display_name($user['first_name'], $user['last_name']);
     $_SESSION['role'] = $user['role'];
     $_SESSION['login_time'] = time();
+    $pic = $user['profile_picture'] ?? null;
+    $_SESSION['profile_picture'] = is_string($pic) ? trim($pic) : '';
 
     // Log login activity
     $ip_address = $_SERVER['REMOTE_ADDR'];

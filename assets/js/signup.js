@@ -114,6 +114,9 @@ function handleSignupSubmit(e) {
         }, 2000);
       } else {
         showAlert(data.message, "danger");
+        if (typeof grecaptcha !== "undefined") {
+          grecaptcha.reset();
+        }
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
       }
@@ -121,6 +124,9 @@ function handleSignupSubmit(e) {
     .catch((error) => {
       console.error("Error:", error);
       showAlert("An error occurred. Please try again.", "danger");
+      if (typeof grecaptcha !== "undefined") {
+        grecaptcha.reset();
+      }
       submitBtn.disabled = false;
       submitBtn.innerHTML = originalText;
     });

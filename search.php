@@ -352,8 +352,8 @@ $locations_facet = $conn->query($locations_facet_query)->fetch_all(MYSQLI_ASSOC)
                                             <!-- Progress -->
                                             <div class="mb-3">
                                                 <div class="progress progress-rail mb-1">
-                                                    <div class="progress-bar bg-primary"
-                                                         style="width: <?php echo min($result['physical_progress'], 100); ?>%">
+                                                    <div class="progress-bar bg-primary progress-bar-w"
+                                                         style="--w: <?php echo min($result['physical_progress'], 100); ?>%">
                                                         <small><?php echo round($result['physical_progress'], 1); ?>%</small>
                                                     </div>
                                                 </div>
@@ -400,7 +400,7 @@ $locations_facet = $conn->query($locations_facet_query)->fetch_all(MYSQLI_ASSOC)
         </div>
     </main>
 
-    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
     <script>
         // Budget range sliders
         document.getElementById('budgetMin').addEventListener('change', function() {

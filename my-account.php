@@ -146,6 +146,9 @@ $user = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 $conn->close();
 
+// Keep navbar avatar in sync with DB (e.g. after login from an older build that omitted session key)
+$_SESSION['profile_picture'] = trim((string) ($user['profile_picture'] ?? ''));
+
 $dashboard_link = ($user['role'] ?? '') === 'admin' ? 'admin-dashboard.php' : 'dashboard.php';
 $profile_picture = $user['profile_picture'] ?? '';
 ?>
@@ -273,6 +276,6 @@ renderAppLayout($page_title);
 </div>
 </main>
 
-<script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
 <?php renderAppLayoutFooter(); ?>
 

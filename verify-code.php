@@ -74,7 +74,7 @@ if (isset($_SESSION['user_id'])) {
       </div>
     </div>
 
-    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
     <script src="assets/js/main.js"></script>
     <script src="assets/js/verify-code.js"></script>
   </body>

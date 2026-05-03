@@ -250,7 +250,7 @@ if (!empty($pending_projects)) {
                                         </small>
                                     </div>
                                     <div class="progress progress-xs">
-                                        <div class="progress-bar bg-danger" style="width: 25%;"></div>
+                                        <div class="progress-bar bg-danger progress-demo-p25"></div>
                                     </div>
                                 </div>
                                 <div class="mb-3">
@@ -261,7 +261,7 @@ if (!empty($pending_projects)) {
                                         </small>
                                     </div>
                                     <div class="progress progress-xs">
-                                        <div class="progress-bar bg-warning" style="width: 50%;"></div>
+                                        <div class="progress-bar bg-warning progress-demo-p50"></div>
                                     </div>
                                 </div>
                                 <div class="mb-3">
@@ -272,7 +272,7 @@ if (!empty($pending_projects)) {
                                         </small>
                                     </div>
                                     <div class="progress progress-xs">
-                                        <div class="progress-bar bg-info" style="width: 75%;"></div>
+                                        <div class="progress-bar bg-info progress-demo-p75"></div>
                                     </div>
                                 </div>
                                 <div class="mb-3">
@@ -283,7 +283,7 @@ if (!empty($pending_projects)) {
                                         </small>
                                     </div>
                                     <div class="progress progress-xs">
-                                        <div class="progress-bar bg-success" style="width: 100%;"></div>
+                                        <div class="progress-bar bg-success progress-demo-p100"></div>
                                     </div>
                                 </div>
                             </div>
@@ -426,8 +426,11 @@ if (!empty($pending_projects)) {
         </div>
     </main>
 
+    <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
+=========
     <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/app-modal.js"></script>
+>>>>>>>>> Temporary merge branch 2
     <script>
         // Type Chart
         new Chart(document.getElementById('typeChart'), {

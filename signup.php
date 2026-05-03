@@ -1,6 +1,7 @@
 <?php
 session_name('ABED_IDM_HUB');
 session_start();
+require_once __DIR__ . '/config/recaptcha.php';
 if (isset($_SESSION['user_id'])) {
     header('Location: dashboard.php');
     exit;
@@ -18,6 +19,11 @@ if (isset($_SESSION['user_id'])) {
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
+    <script
+      src="https://www.google.com/recaptcha/api.js"
+      async
+      defer
+    ></script>
   </head>
   <body class="auth-body">
     <div class="auth-container">
@@ -200,7 +206,7 @@ if (isset($_SESSION['user_id'])) {
       </div>
     </div>
 
-    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
     <script src="assets/js/main.js"></script>
     <script src="assets/js/signup.js"></script>
   </body>
