@@ -2131,6 +2131,44 @@ body.public-home > footer.public-footer {
   max-width: 250px;
 }
 
+/* Projects advanced filters: same vertical size as Filter (.btn — 1rem / 0.375rem padding) */
+.projects-adv-filter-form input[name="search"].form-control,
+.projects-adv-filter-form select.form-select,
+.projects-adv-filter-form #savedViewsSelect {
+  font-size: 1rem;
+  line-height: 1.5;
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  padding-left: 0.75rem;
+  border-width: var(--bs-border-width, 1px);
+  min-height: calc(1.5em + 0.75rem + 2 * var(--bs-border-width, 1px));
+}
+
+.projects-adv-filter-form input[name="search"].form-control {
+  padding-right: 0.75rem;
+}
+
+.projects-adv-filter-form select.form-select,
+.projects-adv-filter-form #savedViewsSelect {
+  padding-right: 2.25rem;
+}
+
+/* Save/Delete (projects advanced) + detail header actions: same height as Filter row */
+.projects-adv-filter-form #saveViewBtn,
+.projects-adv-filter-form #deleteViewBtn,
+.project-detail-header-actions > .btn {
+  min-height: calc(1.5em + 0.75rem + 2 * var(--bs-border-width, 1px));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Icon + label are flex items; explicit gap matches inline spacing on Export / Select All */
+  gap: 0.35rem;
+}
+
+.project-detail-header-actions > .btn i {
+  line-height: 1;
+}
+
 .search-results-scroll {
   max-height: 300px;
   overflow-y: auto;
@@ -2139,6 +2177,53 @@ body.public-home > footer.public-footer {
 .location-filter-panel {
   max-width: 100%;
   min-width: 280px;
+}
+
+/* Register project — Location: match Project Title (white field, normal weight, no gray “disabled” fill on cascade selects) */
+#locationDropdownBtn.btn-outline-secondary {
+  background-color: #fff;
+  border: 2px solid #e0e0e0;
+  border-radius: 0.5rem;
+  font-weight: 400;
+  font-size: 0.875rem;
+  color: #212529;
+  padding: 0.75rem 0.9375rem;
+  min-height: calc(1.5em + 0.75rem + 4px);
+  box-shadow: none;
+}
+
+#locationDropdownBtn.btn-outline-secondary:hover,
+#locationDropdownBtn.btn-outline-secondary:focus,
+#locationDropdownBtn.btn-outline-secondary:active,
+#locationDropdownBtn.btn-outline-secondary.show {
+  background-color: #fff !important;
+  border-color: #e0e0e0;
+  color: #212529;
+  box-shadow: none;
+}
+
+#locationDropdownBtn.btn-outline-secondary:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+}
+
+#locationSummaryText {
+  font-weight: 400;
+}
+
+#locationSummaryText.text-muted {
+  color: #adb5bd;
+}
+
+.location-filter-panel .form-label {
+  font-weight: 400;
+}
+
+.location-filter-panel .form-select:disabled {
+  background-color: #fff;
+  opacity: 1;
+  color: #6c757d;
+  cursor: not-allowed;
 }
 
 .badge-fs-md {
