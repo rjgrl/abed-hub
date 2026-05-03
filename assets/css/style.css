@@ -67,10 +67,33 @@
   min-height: 100vh;
   margin: 0;
   padding: 2rem 1rem;
-  background:
-    radial-gradient(circle at top right, rgba(198, 148, 249, 0.2), transparent 42%),
-    radial-gradient(circle at bottom left, rgba(91, 141, 239, 0.2), transparent 46%),
-    var(--app-bg);
+  position: relative;
+  isolation: isolate;
+  /* logos/City.jpg — visible but muted so the card stays the visual focus */
+  background-color: var(--app-bg);
+  background-image:
+    radial-gradient(
+      ellipse 100% 70% at 50% 0%,
+      rgba(255, 255, 255, 0.65) 0%,
+      transparent 60%
+    ),
+    radial-gradient(circle at top right, rgba(198, 148, 249, 0.12), transparent 42%),
+    radial-gradient(circle at bottom left, rgba(91, 141, 239, 0.12), transparent 46%),
+    linear-gradient(
+      165deg,
+      rgba(255, 255, 255, 0.88) 0%,
+      rgba(248, 250, 252, 0.72) 45%,
+      rgba(241, 245, 249, 0.82) 100%
+    ),
+    url("../../logos/City.jpg");
+  background-position: center, top right, bottom left, center, center;
+  background-size: auto, auto, auto, auto, cover;
+  background-repeat: no-repeat;
+}
+
+.auth-body .auth-container {
+  position: relative;
+  z-index: 1;
 }
 
 .auth-container {
@@ -1126,7 +1149,15 @@ body:not(.public-home) main:not(.app-main) {
    ======================================== */
 
 body.public-home {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: var(--app-bg);
+}
+
+/* Sticky footer: pin public footer to viewport bottom when content is short */
+body.public-home > footer.public-footer {
+  margin-top: auto;
 }
 
 .public-header {
@@ -1196,11 +1227,24 @@ body.public-home {
 
   .public-navbar.navbar-expand-lg .navbar-nav {
     align-items: center;
+    column-gap: 1.05rem;
   }
 
   .public-navbar .navbar-nav .nav-link {
     white-space: nowrap;
   }
+}
+
+/* Public top nav: space between labels + tracking */
+.public-navbar .navbar-nav {
+  column-gap: 0.65rem;
+  row-gap: 0.35rem;
+}
+
+.public-navbar .navbar-nav .nav-link {
+  padding-left: 0.8rem;
+  padding-right: 0.8rem;
+  letter-spacing: 0.04em;
 }
 
 .public-nav-utils {
@@ -1300,6 +1344,51 @@ body.public-home {
   max-width: 560px;
 }
 
+/* Hero CTAs: slightly larger and easier to spot without dominating the layout */
+.public-hero-cta .btn {
+  padding: 0.72rem 1.75rem;
+  font-size: clamp(1rem, 0.25vw + 0.95rem, 1.125rem);
+  border-radius: 12px;
+  letter-spacing: 0.03em;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.public-hero-cta .btn-primary {
+  box-shadow:
+    0 4px 16px rgba(91, 141, 239, 0.42),
+    0 1px 0 rgba(255, 255, 255, 0.2) inset;
+}
+
+.public-hero-cta .btn-primary:hover,
+.public-hero-cta .btn-primary:focus-visible {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 22px rgba(91, 141, 239, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.25) inset;
+}
+
+.public-hero-cta .btn-outline-primary {
+  border-width: 2px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+}
+
+.public-hero-cta .btn-outline-primary:hover,
+.public-hero-cta .btn-outline-primary:focus-visible {
+  transform: translateY(-2px);
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(91, 141, 239, 0.2);
+}
+
+.public-hero-cta .btn:active {
+  transform: translateY(0);
+}
+
 .public-hero-visual {
   height: 100%;
   min-height: 420px;
@@ -1338,6 +1427,17 @@ body.public-home {
   background: rgba(91, 141, 239, 0.12);
   color: var(--accent-blue-deep);
   margin-bottom: 0.875rem;
+}
+
+.public-feature-icon--brand {
+  background: rgba(95, 212, 168, 0.14);
+}
+
+.public-feature-brand-logo {
+  display: block;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
 }
 
 .public-feature-card--featured {
@@ -1383,6 +1483,16 @@ body.public-home {
 
 .public-footer {
   background: #111827;
+  color: #fff;
+}
+
+/* Bootstrap sets heading/link colors; keep titles readable on the dark bar */
+.public-footer h1,
+.public-footer h2,
+.public-footer h3,
+.public-footer h4,
+.public-footer h5,
+.public-footer h6 {
   color: #fff;
 }
 

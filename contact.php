@@ -32,23 +32,18 @@ session_start();
           </button>
 
           <div class="collapse navbar-collapse align-items-lg-center" id="publicNav">
-            <ul class="navbar-nav mx-auto mb-3 mb-lg-0">
+            <ul class="navbar-nav ms-auto me-lg-2 mb-3 mb-lg-0 public-navbar-main-nav">
               <li class="nav-item"><a class="nav-link" href="index.php#overview">Overview</a></li>
               <li class="nav-item"><a class="nav-link" href="index.php#projects">Projects</a></li>
               <li class="nav-item"><a class="nav-link" href="index.php#uploads">Uploads</a></li>
               <li class="nav-item"><a class="nav-link" href="team.php">Meet Our Team</a></li>
               <li class="nav-item"><a class="nav-link active" href="contact.php" aria-current="page">Contact</a></li>
             </ul>
+            <?php if (isset($_SESSION['user_id'])): ?>
             <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-2 public-nav-utils">
-              <?php if (!isset($_SESSION['user_id'])): ?>
-              <a href="login.php" class="btn btn-outline-primary btn-sm public-nav-btn">Login</a>
-              <a href="signup.php" class="btn btn-primary btn-sm public-nav-btn">Sign Up</a>
-              <?php else: ?>
               <a href="dashboard-enhanced.php" class="btn btn-primary btn-sm public-nav-btn">Dashboard</a>
-              <?php endif; ?>
-              <a href="contact.php" class="nav-link py-0 public-nav-extra-link">Contact</a>
-              <button type="button" class="btn btn-light btn-sm px-3 public-nav-btn" aria-label="Current language">EN</button>
             </div>
+            <?php endif; ?>
           </div>
         </nav>
       </div>
@@ -83,7 +78,7 @@ session_start();
       </section>
     </main>
 
-    <footer class="public-footer py-4 mt-5">
+    <footer class="public-footer py-4">
       <div class="container">
         <div class="row">
           <div class="col-md-4">

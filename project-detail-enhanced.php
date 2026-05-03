@@ -639,6 +639,10 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
     </div>
 
     <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
+=========
+    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/app-modal.js"></script>
+>>>>>>>>> Temporary merge branch 2
     <script src="assets/js/form-validator.js"></script>
     <script>
         const projectType = '<?php echo htmlspecialchars($project_type); ?>';
