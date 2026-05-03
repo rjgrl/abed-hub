@@ -150,7 +150,16 @@ if ($approvedAfmeDocs) {
 usort($approved_uploads, static function (array $a, array $b): int {
     return strcmp((string) ($b['upload_date'] ?? ''), (string) ($a['upload_date'] ?? ''));
 });
-$approved_uploads = array_slice($approved_uploads, 0, 12);
+$uploads_all = array_slice($approved_uploads, 0, 12);
+$uploads_fspf = array_slice(array_values(array_filter($approved_uploads, static function (array $u): bool {
+    return strtoupper((string) ($u['module'] ?? '')) === 'FSPF';
+})), 0, 12);
+$uploads_idp = array_slice(array_values(array_filter($approved_uploads, static function (array $u): bool {
+    return strtoupper((string) ($u['module'] ?? '')) === 'IDP';
+})), 0, 12);
+$uploads_afme = array_slice(array_values(array_filter($approved_uploads, static function (array $u): bool {
+    return strtoupper((string) ($u['module'] ?? '')) === 'AFME';
+})), 0, 12);
 
 // Get stage breakdown
 $stage_breakdown = $conn->query("
@@ -251,7 +260,7 @@ $conn->close();
             <article class="card h-100 card-hover public-feature-card">
               <div class="card-body">
                 <div class="public-feature-icon public-feature-icon--brand">
-                  <img src="logos/verified-records.svg" alt="Verified Records" class="public-feature-brand-logo" width="44" height="44" />
+                  <img src="logos/verified-records.svg" alt="Verified Records" class="public-feature-brand-logo" width="40" height="40" />
                 </div>
                 <h3 class="h5 mb-2">Verified Records</h3>
                 <p class="mb-0 text-muted">Browse uploads that have been reviewed and approved by administrators.</p>
@@ -583,42 +592,159 @@ $conn->close();
       </div>
     </section>
 
-    <section class="py-5" id="uploads">
+    <section class="py-5 bg-white public-section-surface" id="uploads">
       <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <h2 class="mb-0">Verified Uploads</h2>
-          <small class="text-muted">Only admin-approved documents are shown</small>
-        </div>
-        <div class="table-responsive">
-          <table class="table table-hover">
-            <thead class="table-light">
-              <tr>
-                <th>Module</th>
-                <th>Project Reference</th>
-                <th>Title</th>
-                <th>Document Type</th>
-                <th>File</th>
-                <th>Uploaded</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php foreach ($approved_uploads as $upload): ?>
-              <tr>
-                <td><span class="badge bg-secondary"><?php echo htmlspecialchars($upload['module']); ?></span></td>
-                <td><?php echo htmlspecialchars($upload['project_ref']); ?></td>
-                <td><?php echo htmlspecialchars($upload['project_title']); ?></td>
-                <td><?php echo htmlspecialchars($upload['doc_type']); ?></td>
-                <td><?php echo htmlspecialchars($upload['file_name']); ?></td>
-                <td><?php echo htmlspecialchars($upload['upload_date'] !== '' ? date('M j, Y', strtotime($upload['upload_date'])) : '—'); ?></td>
-              </tr>
-              <?php endforeach; ?>
-              <?php if (empty($approved_uploads)): ?>
-              <tr>
-                <td colspan="6" class="text-center text-muted py-4">No verified uploads available yet.</td>
-              </tr>
-              <?php endif; ?>
-            </tbody>
-          </table>
+        <h2 class="mb-2">Verified Uploads</h2>
+        <p class="text-muted mb-4">Only admin-approved documents are listed below. The <strong>All uploads</strong> tab opens by default.</p>
+
+        <ul class="nav nav-tabs mb-4" role="tablist">
+          <li class="nav-item">
+            <a class="nav-link active" data-bs-toggle="tab" href="#all-uploads">All uploads</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#fspf-uploads">FSPF Projects</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#idp-uploads">IDP Projects</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#afme-uploads">AFME Machinery</a>
+          </li>
+        </ul>
+
+        <div class="tab-content">
+          <div id="all-uploads" class="tab-pane fade show active">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>Module</th>
+                    <th>Project Reference</th>
+                    <th>Title</th>
+                    <th>Document Type</th>
+                    <th>File</th>
+                    <th>Uploaded</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php foreach ($uploads_all as $upload): ?>
+                  <tr>
+                    <td><span class="badge bg-secondary"><?php echo htmlspecialchars($upload['module']); ?></span></td>
+                    <td><?php echo htmlspecialchars($upload['project_ref']); ?></td>
+                    <td><?php echo htmlspecialchars($upload['project_title']); ?></td>
+                    <td><?php echo htmlspecialchars($upload['doc_type']); ?></td>
+                    <td><?php echo htmlspecialchars($upload['file_name']); ?></td>
+                    <td><?php echo htmlspecialchars($upload['upload_date'] !== '' ? date('M j, Y', strtotime($upload['upload_date'])) : '—'); ?></td>
+                  </tr>
+                  <?php endforeach; ?>
+                  <?php if (empty($uploads_all)): ?>
+                  <tr>
+                    <td colspan="6" class="text-center text-muted py-4">No verified uploads available yet.</td>
+                  </tr>
+                  <?php endif; ?>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div id="fspf-uploads" class="tab-pane fade">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>Module</th>
+                    <th>Project Reference</th>
+                    <th>Title</th>
+                    <th>Document Type</th>
+                    <th>File</th>
+                    <th>Uploaded</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php foreach ($uploads_fspf as $upload): ?>
+                  <tr>
+                    <td><span class="badge bg-success"><?php echo htmlspecialchars($upload['module']); ?></span></td>
+                    <td><?php echo htmlspecialchars($upload['project_ref']); ?></td>
+                    <td><?php echo htmlspecialchars($upload['project_title']); ?></td>
+                    <td><?php echo htmlspecialchars($upload['doc_type']); ?></td>
+                    <td><?php echo htmlspecialchars($upload['file_name']); ?></td>
+                    <td><?php echo htmlspecialchars($upload['upload_date'] !== '' ? date('M j, Y', strtotime($upload['upload_date'])) : '—'); ?></td>
+                  </tr>
+                  <?php endforeach; ?>
+                  <?php if (empty($uploads_fspf)): ?>
+                  <tr>
+                    <td colspan="6" class="text-center text-muted py-4">No FSPF verified uploads yet.</td>
+                  </tr>
+                  <?php endif; ?>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div id="idp-uploads" class="tab-pane fade">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>Module</th>
+                    <th>Project Reference</th>
+                    <th>Title</th>
+                    <th>Document Type</th>
+                    <th>File</th>
+                    <th>Uploaded</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php foreach ($uploads_idp as $upload): ?>
+                  <tr>
+                    <td><span class="badge bg-info"><?php echo htmlspecialchars($upload['module']); ?></span></td>
+                    <td><?php echo htmlspecialchars($upload['project_ref']); ?></td>
+                    <td><?php echo htmlspecialchars($upload['project_title']); ?></td>
+                    <td><?php echo htmlspecialchars($upload['doc_type']); ?></td>
+                    <td><?php echo htmlspecialchars($upload['file_name']); ?></td>
+                    <td><?php echo htmlspecialchars($upload['upload_date'] !== '' ? date('M j, Y', strtotime($upload['upload_date'])) : '—'); ?></td>
+                  </tr>
+                  <?php endforeach; ?>
+                  <?php if (empty($uploads_idp)): ?>
+                  <tr>
+                    <td colspan="6" class="text-center text-muted py-4">No IDP verified uploads yet.</td>
+                  </tr>
+                  <?php endif; ?>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div id="afme-uploads" class="tab-pane fade">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>Module</th>
+                    <th>Project Reference</th>
+                    <th>Title</th>
+                    <th>Document Type</th>
+                    <th>File</th>
+                    <th>Uploaded</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php foreach ($uploads_afme as $upload): ?>
+                  <tr>
+                    <td><span class="badge bg-warning text-dark"><?php echo htmlspecialchars($upload['module']); ?></span></td>
+                    <td><?php echo htmlspecialchars($upload['project_ref']); ?></td>
+                    <td><?php echo htmlspecialchars($upload['project_title']); ?></td>
+                    <td><?php echo htmlspecialchars($upload['doc_type']); ?></td>
+                    <td><?php echo htmlspecialchars($upload['file_name']); ?></td>
+                    <td><?php echo htmlspecialchars($upload['upload_date'] !== '' ? date('M j, Y', strtotime($upload['upload_date'])) : '—'); ?></td>
+                  </tr>
+                  <?php endforeach; ?>
+                  <?php if (empty($uploads_afme)): ?>
+                  <tr>
+                    <td colspan="6" class="text-center text-muted py-4">No AFME verified uploads yet.</td>
+                  </tr>
+                  <?php endif; ?>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </section>

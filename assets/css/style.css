@@ -60,16 +60,12 @@
    AUTH PAGES BODY & CONTAINER
    ======================================== */
 
-.auth-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  margin: 0;
-  padding: 2rem 1rem;
+/* Shared with body.public-home — City.jpg + same overlays / opacity as login & signup */
+.auth-body,
+body.public-home {
   position: relative;
   isolation: isolate;
-  /* logos/City.jpg — visible but muted so the card stays the visual focus */
+  margin: 0;
   background-color: var(--app-bg);
   background-image:
     radial-gradient(
@@ -89,6 +85,14 @@
   background-position: center, top right, bottom left, center, center;
   background-size: auto, auto, auto, auto, cover;
   background-repeat: no-repeat;
+}
+
+.auth-body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem 1rem;
 }
 
 .auth-body .auth-container {
@@ -1152,7 +1156,6 @@ body.public-home {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--app-bg);
 }
 
 /* Sticky footer: pin public footer to viewport bottom when content is short */
@@ -1303,7 +1306,7 @@ body.public-home > footer.public-footer {
 }
 
 .public-hero-layout {
-  padding: 2.5rem 0 0;
+  padding: 2.5rem 0 2rem;
 }
 
 .public-hero-row {
@@ -1402,10 +1405,10 @@ body.public-home > footer.public-footer {
   object-fit: contain;
 }
 
+/* Space below the white hero card — keep feature cards on the page background, not overlapping */
 .public-feature-cards {
-  margin-top: -2rem;
+  margin-top: clamp(1.5rem, 4vw, 2.5rem);
   position: relative;
-  z-index: 2;
 }
 
 .public-feature-card {
@@ -1503,10 +1506,11 @@ body.public-home > footer.public-footer {
 @media (max-width: 991.98px) {
   .public-hero-layout {
     padding-top: 1rem;
+    padding-bottom: 1.5rem;
   }
 
   .public-feature-cards {
-    margin-top: 1rem;
+    margin-top: 1.25rem;
   }
 
   .auth-split-row {
