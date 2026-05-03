@@ -85,15 +85,9 @@ function handleSignupSubmit(e) {
 
   const passwordInput = document.getElementById("password");
   const confirmPasswordInput = document.getElementById("confirmPassword");
-  const termsCheck = document.getElementById("termsCheck");
 
   if (passwordInput.value !== confirmPasswordInput.value) {
     showAlert("Passwords do not match. Please try again.", "danger");
-    return;
-  }
-
-  if (!termsCheck.checked) {
-    showAlert("Please agree to the Terms and Conditions.", "warning");
     return;
   }
 

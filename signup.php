@@ -36,26 +36,28 @@ if (isset($_SESSION['user_id'])) {
                   <div class="row">
                     <div class="col-md-6 mb-3">
                       <label class="form-label">
-                        <i class="fas fa-user"></i> Full Name
+                        <i class="fas fa-user"></i> First Name
                       </label>
                       <input
                         type="text"
                         class="form-control"
-                        name="fullName"
-                        placeholder="Juan dela Cruz"
+                        name="firstName"
+                        placeholder="Juan"
                         required
+                        autocomplete="given-name"
                       />
                     </div>
                     <div class="col-md-6 mb-3">
                       <label class="form-label">
-                        <i class="fas fa-id-card"></i> Employee ID
+                        <i class="fas fa-user-tag"></i> Last Name
                       </label>
                       <input
                         type="text"
                         class="form-control"
-                        name="employeeId"
-                        placeholder="EMP-2026-001"
+                        name="lastName"
+                        placeholder="dela Cruz"
                         required
+                        autocomplete="family-name"
                       />
                     </div>
                   </div>
@@ -168,19 +170,6 @@ if (isset($_SESSION['user_id'])) {
                       <i class="fas fa-check-circle password-rule-check" id="check-special"></i>
                       At least one special character (!@#$%^&*)
                     </div>
-                  </div>
-
-                  <div class="form-check mb-4 small">
-                    <input
-                      type="checkbox"
-                      class="form-check-input"
-                      id="termsCheck"
-                      name="agreeTerms"
-                      required
-                    />
-                    <label class="form-check-label" for="termsCheck">
-                      I agree to the Terms and Conditions and Privacy Policy
-                    </label>
                   </div>
 
                   <button type="submit" class="btn btn-auth-submit w-100">

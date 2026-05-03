@@ -42,13 +42,14 @@ function ensureProfileColumns(mysqli $conn): void
 ensureProfileColumns($conn);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $full_name = trim($_POST['full_name'] ?? '');
+    $first_name = trim($_POST['first_name'] ?? '');
+    $last_name = trim($_POST['last_name'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $address = trim($_POST['address'] ?? '');
     $contact_number = trim($_POST['contact_number'] ?? '');
 
-    if ($full_name === '') {
-        $errors[] = 'Full name is required.';
+    if ($first_name === '' || $last_name === '') {
+        $errors[] = 'First name and last name are required.';
     }
 
     if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -110,21 +111,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($profile_picture_path !== null) {
                 $update_stmt = $conn->prepare("
                     UPDATE users
-                    SET full_name = ?, email = ?, address = ?, contact_number = ?, profile_picture = ?
+                    SET first_name = ?, last_name = ?, email = ?, address = ?, contact_number = ?, profile_picture = ?
                     WHERE id = ?
                 ");
-                $update_stmt->bind_param("sssssi", $full_name, $email, $address, $contact_number, $profile_picture_path, $user_id);
+                $update_stmt->bind_param("ssssssi", $first_name, $last_name, $email, $address, $contact_number, $profile_picture_path, $user_id);
             } else {
                 $update_stmt = $conn->prepare("
                     UPDATE users
-                    SET full_name = ?, email = ?, address = ?, contact_number = ?
+                    SET first_name = ?, last_name = ?, email = ?, address = ?, contact_number = ?
                     WHERE id = ?
                 ");
-                $update_stmt->bind_param("ssssi", $full_name, $email, $address, $contact_number, $user_id);
+                $update_stmt->bind_param("sssssi", $first_name, $last_name, $email, $address, $contact_number, $user_id);
             }
 
             if ($update_stmt->execute()) {
-                $_SESSION['full_name'] = $full_name;
+                $_SESSION['full_name'] = user_display_name($first_name, $last_name);
                 $_SESSION['email'] = $email;
                 if ($profile_picture_path !== null) {
                     $_SESSION['profile_picture'] = $profile_picture_path;
@@ -181,7 +182,7 @@ renderAppLayout($page_title);
                                     <img src="<?php echo htmlspecialchars($profile_picture); ?>" alt="Profile picture">
                                 <?php else: ?>
                                     <span class="fw-bold text-secondary account-avatar-initials">
-                                        <?php echo htmlspecialchars(strtoupper(substr((string) ($user['full_name'] ?? 'U'), 0, 2))); ?>
+                                        <?php echo htmlspecialchars(user_initials($user['first_name'] ?? '', $user['last_name'] ?? '')); ?>
                                     </span>
                                 <?php endif; ?>
                             </div>
@@ -195,10 +196,19 @@ renderAppLayout($page_title);
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="full_name" class="form-label fw-semibold">Full Name</label>
-                                    <input type="text" class="form-control" id="full_name" name="full_name" required value="<?php echo htmlspecialchars($user['full_name'] ?? ''); ?>">
+                                    <label for="first_name" class="form-label fw-semibold">First Name</label>
+                                    <input type="text" class="form-control" id="first_name" name="first_name" required value="<?php echo htmlspecialchars($user['first_name'] ?? ''); ?>" autocomplete="given-name">
                                 </div>
                             </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="last_name" class="form-label fw-semibold">Last Name</label>
+                                    <input type="text" class="form-control" id="last_name" name="last_name" required value="<?php echo htmlspecialchars($user['last_name'] ?? ''); ?>" autocomplete="family-name">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Username</label>

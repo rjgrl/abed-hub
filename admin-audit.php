@@ -44,7 +44,7 @@ $total      = $countStmt ? (int) $countStmt->get_result()->fetch_assoc()['total'
 $total_pages = (int) ceil($total / $per_page);
 
 $stmt = $conn->prepare(
-    "SELECT a.*, u.full_name, u.username
+    "SELECT a.*, TRIM(CONCAT_WS(' ', NULLIF(TRIM(u.first_name),''), NULLIF(TRIM(u.last_name),''))) AS full_name, u.username
      FROM audit_log a
      LEFT JOIN users u ON a.user_id = u.id
      $whereClause
@@ -61,7 +61,7 @@ if ($stmt) {
     $logs = [];
 }
 
-$users = $conn->query("SELECT id, full_name, username FROM users ORDER BY full_name")->fetch_all(MYSQLI_ASSOC);
+$users = $conn->query("SELECT id, first_name, last_name, username FROM users ORDER BY last_name, first_name")->fetch_all(MYSQLI_ASSOC);
 
 renderAppLayout($page_title);
 ?>
@@ -83,7 +83,7 @@ renderAppLayout($page_title);
                         <option value="">All Users</option>
                         <?php foreach ($users as $u): ?>
                             <option value="<?php echo $u['id']; ?>" <?php echo $filter_user == $u['id'] ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($u['full_name'] . ' (' . $u['username'] . ')'); ?>
+                                <?php echo htmlspecialchars(user_display_name($u['first_name'] ?? '', $u['last_name'] ?? '') . ' (' . $u['username'] . ')'); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
