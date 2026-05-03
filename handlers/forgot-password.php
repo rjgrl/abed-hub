@@ -2,7 +2,8 @@
 session_name('ABED_IDM_HUB');
 session_start();
 header('Content-Type: application/json');
-require_once '../config/database.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/email_styles.php';
 
 // Only accept POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -68,19 +69,11 @@ if (!$insert_stmt->execute()) {
 // Note: Configure your email settings accordingly
 $to = $email;
 $subject = "ABED IDM Hub - Password Recovery Code";
+$recoveryCss = email_transactional_css_recovery();
 $message = "
 <html>
 <head>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        .container { max-width: 600px; margin: 0 auto; background: #f5f7fa; padding: 20px; border-radius: 10px; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }
-        .content { background: white; padding: 30px; border-radius: 0 0 10px 10px; }
-        .code-box { background: #f0f2f5; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0; }
-        .code { font-size: 32px; font-weight: bold; color: #667eea; letter-spacing: 5px; }
-        .warning { color: #dc3545; font-size: 12px; margin-top: 10px; }
-        .footer { text-align: center; color: #999; font-size: 12px; margin-top: 20px; }
-    </style>
+    <style>{$recoveryCss}</style>
 </head>
 <body>
     <div class='container'>

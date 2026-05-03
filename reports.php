@@ -410,8 +410,8 @@ renderAppLayout($page_title);
                                         <td>
                                             <?php if (isset($project['physical_progress'])): ?>
                                                 <div class="progress progress-sm-tall">
-                                                    <div class="progress-bar" role="progressbar" 
-                                                         style="width: <?php echo $project['physical_progress']; ?>%"
+                                                    <div class="progress-bar progress-bar-w" role="progressbar" 
+                                                         style="--w: <?php echo $project['physical_progress']; ?>%"
                                                          aria-valuenow="<?php echo $project['physical_progress']; ?>" 
                                                          aria-valuemin="0" aria-valuemax="100">
                                                         <?php echo $project['physical_progress']; ?>%
@@ -438,7 +438,7 @@ renderAppLayout($page_title);
     </div>
   </main>
 
-    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
     <script>
         function openPdfReport() {
             const year = encodeURIComponent('<?php echo htmlspecialchars((string) $year); ?>');

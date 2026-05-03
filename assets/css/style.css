@@ -1,5 +1,6 @@
 /* ========================================
    ABED IDM Hub - Global Styles
+   Folder map & troubleshooting: STRUCTURE.txt (repo root)
    ======================================== */
 
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
@@ -1439,22 +1440,7 @@ body.public-home {
 }
 
 .team-showcase-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--team-grid-gap);
-  margin-bottom: var(--team-header-gap-bottom);
   width: 100%;
-}
-
-.team-showcase-header-copy {
-  flex: 1 1 18rem;
-  max-width: min(100%, 44rem);
-  text-align: left;
-}
-
-.team-showcase-header {
   margin-bottom: var(--team-header-gap-bottom);
 }
 
@@ -1478,14 +1464,23 @@ body.public-home {
   line-height: 1.15;
   margin-bottom: clamp(1rem, 2vw, 1.35rem);
   color: var(--app-text);
+  text-align: center;
 }
 
 .team-page .team-lead {
   font-size: clamp(0.98rem, 1.35vw, 1.0625rem);
   line-height: 1.78;
-  max-width: min(100%, 40rem);
-  margin: 0 0 clamp(1.25rem, 2.5vw, 1.75rem);
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: clamp(1.25rem, 2.5vw, 1.75rem);
   text-align: center;
+}
+
+/* Hero blurb: force centered lines (body/start alignment must not win on this block) */
+#team-hero-lead {
+  text-align: center !important;
+  transform: translateX(-0.5rem);
 }
 
 .team-read-more-btn {
@@ -1493,12 +1488,15 @@ body.public-home {
   padding: 0.55rem 1.35rem;
   font-weight: 600;
   font-size: 0.9375rem;
-  align-self: center;
 }
 
 @media (max-width: 575.98px) {
   .team-read-more-btn {
+    display: block;
     width: 100%;
+    max-width: 20rem;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
@@ -1961,6 +1959,105 @@ body.public-home {
 
 .password-rule-check.is-valid-rule {
   color: #28a745;
+}
+
+/* --- Semantic badges (use stage_badge_class / variance_badge_class in functions/helpers.php) --- */
+
+.stage-badge {
+  color: #fff;
+  font-size: 0.75em;
+  font-weight: 600;
+}
+
+.stage-badge--proposal {
+  background-color: #9ca3af;
+}
+
+.stage-badge--pre-implementation {
+  background-color: #7eb8d9;
+}
+
+.stage-badge--procurement {
+  background-color: #f5c57a;
+  color: #111827;
+}
+
+.stage-badge--implementation {
+  background-color: #5b8def;
+}
+
+.stage-badge--done {
+  background-color: #5fd4a8;
+}
+
+.stage-badge--default {
+  background-color: #e3e3e3;
+  color: #374151;
+}
+
+.variance-badge {
+  display: inline-block;
+  padding: 0.35em 0.65em;
+  font-size: 0.75em;
+  font-weight: 600;
+  line-height: 1;
+  border-radius: 0.25rem;
+}
+
+.variance-badge--negative {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.variance-badge--warn {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.fin-record-badge {
+  font-size: 0.75em;
+  font-weight: 600;
+  color: #fff;
+}
+
+.fin-record--obligation {
+  background-color: #5b8def;
+}
+
+.fin-record--disbursement {
+  background-color: #5fd4a8;
+}
+
+.fin-record--liquidation {
+  background-color: #7eb8d9;
+}
+
+.fin-record--other {
+  background-color: #6c757d;
+}
+
+/* Dynamic width: set style="--w: 45%" on the bar (replaces inline width %) */
+
+.progress .progress-bar.progress-bar-w {
+  width: var(--w, 0%);
+}
+
+/* Dashboard “distribution” demo strips (fixed fractions, no inline width) */
+
+.progress-demo-p25 {
+  width: 25%;
+}
+
+.progress-demo-p50 {
+  width: 50%;
+}
+
+.progress-demo-p75 {
+  width: 75%;
+}
+
+.progress-demo-p100 {
+  width: 100%;
 }
 
 @media print {

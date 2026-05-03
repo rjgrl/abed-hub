@@ -175,7 +175,7 @@ renderAppLayout($page_title, $extra_head);
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const PH_BOUNDS = L.latLngBounds([4.2, 116.0], [21.7, 127.6]);

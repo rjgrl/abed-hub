@@ -2,10 +2,25 @@
 session_name('ABED_IDM_HUB');
 session_start();
 require_once '../config/database.php';
+require_once '../config/recaptcha.php';
 
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $recaptchaToken = $_POST['g-recaptcha-response'] ?? '';
+    $recaptcha = verify_recaptcha_v2(
+        is_string($recaptchaToken) ? $recaptchaToken : null,
+        $_SERVER['REMOTE_ADDR'] ?? null
+    );
+    if (!$recaptcha['success']) {
+        $codes = $recaptcha['error_codes'] ?? [];
+        $msg = in_array('recaptcha-not-reachable', $codes, true)
+            ? 'Could not reach reCAPTCHA verification. Please try again in a moment.'
+            : 'Please verify that you are not a robot.';
+        echo json_encode(['status' => 'error', 'message' => $msg]);
+        exit;
+    }
+
     $full_name = trim($_POST['fullName'] ?? '');
     $employee_id = trim($_POST['employeeId'] ?? '');
     $email = trim($_POST['email'] ?? '');

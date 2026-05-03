@@ -325,7 +325,7 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                                                 </td>
                                                 <td>
                                                     <div class="progress progress-inline-metric">
-                                                        <div class="progress-bar bg-success" style="width: <?php echo min(100, (float) $proj['physical_progress']); ?>%;">
+                                                        <div class="progress-bar bg-success progress-bar-w" style="--w: <?php echo min(100, (float) $proj['physical_progress']); ?>%;">
                                                             <small><?php echo round($proj['physical_progress'], 0); ?>%</small>
                                                         </div>
                                                     </div>
@@ -369,7 +369,7 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                                                     </small>
                                                 </td>
                                                 <td>
-                                                    <span class="badge" style="background-color: <?php echo $proj['variance'] < 0 ? '#dc3545' : '#ffc107'; ?>">
+                                                    <span class="badge <?php echo htmlspecialchars(variance_badge_class((float) $proj['variance']), ENT_QUOTES, 'UTF-8'); ?>">
                                                         <?php echo $proj['variance'] > 0 ? '+' : ''; ?><?php echo round($proj['variance'], 1); ?>%
                                                     </span>
                                                 </td>
@@ -406,18 +406,7 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                                         <?php foreach ($stage_yearly as $stage): ?>
                                             <tr>
                                                 <td>
-                                                    <span class="badge" style="background-color: 
-                                                        <?php echo match($stage['current_stage']) {
-                                                            'Proposal' => '#6c757d',
-                                                            'Pre-Implementation' => '#7eb8d9',
-                                                            'Procurement' => '#ffc107',
-                                                            'Implementation' => '#5b8def',
-                                                            'Completed', 'Turned-Over' => '#5fd4a8',
-                                                            default => '#e3e3e3'
-                                                        }; ?>;  color: <?php echo match($stage['current_stage']) {
-                                                            'Procurement' => 'black',
-                                                            default => 'white'
-                                                        }; ?>">
+                                                    <span class="badge <?php echo htmlspecialchars(stage_badge_class((string) $stage['current_stage']), ENT_QUOTES, 'UTF-8'); ?>">
                                                         <?php echo htmlspecialchars($stage['current_stage']); ?>
                                                     </span>
                                                 </td>
@@ -637,7 +626,7 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                                                     <span class="text-muted"><?php echo htmlspecialchars(substr($proj['project_title'], 0, 26)); ?><?php echo strlen($proj['project_title']) > 26 ? '…' : ''; ?></span></small>
                                                 </td>
                                                 <td class="text-end">
-                                                    <span class="badge" style="background-color: <?php echo $proj['variance'] < 0 ? '#dc3545' : '#ffc107'; ?>">
+                                                    <span class="badge <?php echo htmlspecialchars(variance_badge_class((float) $proj['variance']), ENT_QUOTES, 'UTF-8'); ?>">
                                                         <?php echo $proj['variance'] > 0 ? '+' : ''; ?><?php echo round($proj['variance'], 1); ?>%
                                                     </span>
                                                 </td>
@@ -666,7 +655,7 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
         </div>
     </main>
 
-    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
     <script>
         function openAnalyticsPdf() {
             const year = encodeURIComponent('<?php echo htmlspecialchars((string) $year); ?>');

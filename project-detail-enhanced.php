@@ -159,18 +159,7 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
                             <span class="badge bg-primary badge-fs-md">
                                 <?php echo strtoupper($project_type); ?>
                             </span>
-                            <span class="badge badge-fs-md" style="background-color: 
-                                <?php echo match($project['current_stage']) {
-                                    'Proposal' => '#9ca3af',
-                                    'Pre-Implementation' => '#7eb8d9',
-                                    'Procurement' => '#f5c57a',
-                                    'Implementation' => '#5b8def',
-                                    'Completed', 'Turned-Over' => '#5fd4a8',
-                                    default => '#e3e3e3'
-                                }; ?>; color: <?php echo match($project['current_stage']) {
-                                    'Procurement' => 'black',
-                                    default => 'white'
-                                }; ?>">
+                            <span class="badge badge-fs-md <?php echo htmlspecialchars(stage_badge_class((string) $project['current_stage']), ENT_QUOTES, 'UTF-8'); ?>">
                                 <?php echo htmlspecialchars($project['current_stage']); ?>
                             </span>
                         </div>
@@ -258,6 +247,13 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
                                             <strong>Barangay:</strong>
                                             <p><?php echo htmlspecialchars($project['barangay'] ?? 'N/A'); ?></p>
                                         </div>
+                                        <div class="col-md-6">
+                                            <strong>Purok:</strong>
+                                            <p><?php
+                                                $purok = trim((string) ($project['district'] ?? ''));
+                                                echo htmlspecialchars($purok !== '' ? $purok : 'N/A');
+                                            ?></p>
+                                        </div>
                                         <div class="col-12">
                                             <strong>Description:</strong>
                                             <p><?php echo htmlspecialchars($project['description'] ?? 'No description'); ?></p>
@@ -275,7 +271,7 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
                                     <div class="mb-4">
                                         <label class="form-label">Physical Progress: <strong><?php echo $physicalProgressDisplay; ?>%</strong></label>
                                         <div class="progress progress-lg">
-                                            <div class="progress-bar progress-bar-physical" style="width: <?php echo $physicalProgressWidth; ?>%;">
+                                            <div class="progress-bar progress-bar-physical progress-bar-w" style="--w: <?php echo $physicalProgressWidth; ?>%;">
                                                 <?php echo $physicalProgressDisplay; ?>%
                                             </div>
                                         </div>
@@ -283,7 +279,7 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
                                     <div class="mb-4">
                                         <label class="form-label">Financial Progress: <strong><?php echo $financialProgressDisplay; ?>%</strong></label>
                                         <div class="progress progress-lg">
-                                            <div class="progress-bar bg-success" style="width: <?php echo $financialProgressWidth; ?>%;">
+                                            <div class="progress-bar bg-success progress-bar-w" style="--w: <?php echo $financialProgressWidth; ?>%;">
                                                 <?php echo $financialProgressDisplay; ?>%
                                             </div>
                                         </div>
@@ -366,13 +362,7 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
                                             <?php foreach ($financial_records as $record): ?>
                                                 <tr>
                                                     <td>
-                                                        <span class="badge" style="background-color: 
-                                                            <?php echo match($record['record_type']) {
-                                                                'Obligation' => '#5b8def',
-                                                                'Disbursement' => '#5fd4a8',
-                                                                'Liquidation' => '#7eb8d9',
-                                                                default => '#6c757d'
-                                                            }; ?>">
+                                                        <span class="badge <?php echo htmlspecialchars(financial_record_badge_class((string) $record['record_type']), ENT_QUOTES, 'UTF-8'); ?>">
                                                             <?php echo htmlspecialchars($record['record_type']); ?>
                                                         </span>
                                                     </td>
@@ -648,8 +638,7 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
         </div>
     </div>
 
-    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/app-modal.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
     <script src="assets/js/form-validator.js"></script>
     <script>
         const projectType = '<?php echo htmlspecialchars($project_type); ?>';

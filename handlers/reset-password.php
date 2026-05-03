@@ -2,7 +2,8 @@
 session_name('ABED_IDM_HUB');
 session_start();
 header('Content-Type: application/json');
-require_once '../config/database.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/email_styles.php';
 
 // Only accept POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -106,17 +107,11 @@ $conn->query("DELETE FROM password_reset_tokens WHERE user_id = $user_id");
 // Send confirmation email
 $to = $user['email'];
 $subject = "ABED IDM Hub - Password Changed Successfully";
+$changedCss = email_transactional_css_password_changed();
 $message = "
 <html>
 <head>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        .container { max-width: 600px; margin: 0 auto; background: #f5f7fa; padding: 20px; border-radius: 10px; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }
-        .content { background: white; padding: 30px; border-radius: 0 0 10px 10px; }
-        .success-message { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 15px; border-radius: 8px; margin: 20px 0; }
-        .footer { text-align: center; color: #999; font-size: 12px; margin-top: 20px; }
-    </style>
+    <style>{$changedCss}</style>
 </head>
 <body>
     <div class='container'>

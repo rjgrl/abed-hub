@@ -249,7 +249,7 @@ if (!empty($pending_projects)) {
                                         </small>
                                     </div>
                                     <div class="progress progress-xs">
-                                        <div class="progress-bar bg-danger" style="width: 25%;"></div>
+                                        <div class="progress-bar bg-danger progress-demo-p25"></div>
                                     </div>
                                 </div>
                                 <div class="mb-3">
@@ -260,7 +260,7 @@ if (!empty($pending_projects)) {
                                         </small>
                                     </div>
                                     <div class="progress progress-xs">
-                                        <div class="progress-bar bg-warning" style="width: 50%;"></div>
+                                        <div class="progress-bar bg-warning progress-demo-p50"></div>
                                     </div>
                                 </div>
                                 <div class="mb-3">
@@ -271,7 +271,7 @@ if (!empty($pending_projects)) {
                                         </small>
                                     </div>
                                     <div class="progress progress-xs">
-                                        <div class="progress-bar bg-info" style="width: 75%;"></div>
+                                        <div class="progress-bar bg-info progress-demo-p75"></div>
                                     </div>
                                 </div>
                                 <div class="mb-3">
@@ -282,7 +282,7 @@ if (!empty($pending_projects)) {
                                         </small>
                                     </div>
                                     <div class="progress progress-xs">
-                                        <div class="progress-bar bg-success" style="width: 100%;"></div>
+                                        <div class="progress-bar bg-success progress-demo-p100"></div>
                                     </div>
                                 </div>
                             </div>
@@ -323,18 +323,7 @@ if (!empty($pending_projects)) {
                                                     <span class="badge bg-primary"><?php echo strtoupper($project['type']); ?></span>
                                                 </td>
                                                 <td>
-                                                    <span class="badge" style="background-color: 
-                                                        <?php echo match($project['current_stage']) {
-                                                            'Proposal' => '#6c757d',
-                                                            'Pre-Implementation' => '#7eb8d9',
-                                                            'Procurement' => '#ffc107',
-                                                            'Implementation' => '#5b8def',
-                                                            'Completed', 'Turned-Over' => '#5fd4a8',
-                                                            default => '#e3e3e3'
-                                                        }; ?>; color: <?php echo match($project['current_stage']) {
-                                                            'Procurement' => 'black',
-                                                            default => 'white'
-                                                        }; ?>">
+                                                    <span class="badge <?php echo htmlspecialchars(stage_badge_class((string) $project['current_stage']), ENT_QUOTES, 'UTF-8'); ?>">
                                                         <?php echo htmlspecialchars($project['current_stage']); ?>
                                                     </span>
                                                 </td>
@@ -389,8 +378,7 @@ if (!empty($pending_projects)) {
         </div>
     </main>
 
-    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/app-modal.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
     <script>
         // Type Chart
         new Chart(document.getElementById('typeChart'), {

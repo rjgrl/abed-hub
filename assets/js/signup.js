@@ -97,6 +97,13 @@ function handleSignupSubmit(e) {
     return;
   }
 
+  const recaptchaResponse =
+    typeof grecaptcha !== "undefined" ? grecaptcha.getResponse() : "";
+  if (!recaptchaResponse) {
+    showAlert("Please verify that you are not a robot.", "warning");
+    return;
+  }
+
   const formData = new FormData(this);
   const submitBtn = this.querySelector('button[type="submit"]');
   const originalText = submitBtn.innerHTML;
@@ -120,6 +127,9 @@ function handleSignupSubmit(e) {
         }, 2000);
       } else {
         showAlert(data.message, "danger");
+        if (typeof grecaptcha !== "undefined") {
+          grecaptcha.reset();
+        }
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
       }
@@ -127,6 +137,9 @@ function handleSignupSubmit(e) {
     .catch((error) => {
       console.error("Error:", error);
       showAlert("An error occurred. Please try again.", "danger");
+      if (typeof grecaptcha !== "undefined") {
+        grecaptcha.reset();
+      }
       submitBtn.disabled = false;
       submitBtn.innerHTML = originalText;
     });
