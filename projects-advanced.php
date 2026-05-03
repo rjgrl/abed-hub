@@ -125,14 +125,14 @@ renderAppLayout($page_title, $page_extra_head);
                         <i class="fas fa-plus"></i> New Project
                     </button>
                     <div class="btn-group" role="group">
-                        <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#exportModal">
+                        <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#exportModal">
                             <i class="fas fa-download"></i> Export
                         </button>
-                        <button class="btn btn-outline-secondary" id="selectAllBtn">
+                        <button class="btn btn-outline-primary" type="button" id="selectAllBtn">
                             <i class="fas fa-check-square"></i> Select All
                         </button>
                         <div class="btn-group" role="group">
-                            <button type="button" class="btn btn-outline-warning dropdown-toggle batch-actions-toggle batch-actions-locked" data-bs-toggle="dropdown" id="batchActionsBtn" aria-expanded="false" aria-haspopup="true" aria-disabled="true" title="Select one or more projects first">
+                            <button type="button" class="btn btn-outline-primary dropdown-toggle batch-actions-toggle batch-actions-locked" data-bs-toggle="dropdown" id="batchActionsBtn" aria-expanded="false" aria-haspopup="true" aria-disabled="true" title="Select one or more projects first">
                                 <i class="fas fa-tasks"></i> Batch Actions
                             </button>
                             <ul class="dropdown-menu">
@@ -230,7 +230,7 @@ renderAppLayout($page_title, $page_extra_head);
 
                         <!-- Submit -->
                         <div class="col-md-3">
-                            <button type="submit" class="btn btn-primary w-100">
+                            <button type="submit" class="btn btn-outline-primary w-100">
                                 <i class="fas fa-search"></i> Filter
                             </button>
                         </div>
@@ -322,18 +322,18 @@ renderAppLayout($page_title, $page_extra_head);
                                             </small>
                                         </td>
                                         <td>
-                                            <div class="btn-group btn-group-sm">
+                                            <div class="btn-group project-row-action-btns" role="group">
                                                 <a href="project-detail-enhanced.php?type=<?php echo htmlspecialchars($row_project_type); ?>&id=<?php echo $project['id']; ?>" 
-                                                   class="btn btn-info" title="View Details">
-                                                    <i class="fas fa-eye"></i>
+                                                   class="btn btn-outline-primary" title="View Details">
+                                                    <i class="fas fa-eye" aria-hidden="true"></i>
                                                 </a>
                                                 <a href="scurve-monitoring.php?type=<?php echo htmlspecialchars($row_project_type); ?>&id=<?php echo $project['id']; ?>" 
-                                                   class="btn btn-secondary" title="S-Curve">
-                                                    <i class="fas fa-chart-line"></i>
+                                                   class="btn btn-outline-secondary" title="S-Curve">
+                                                    <i class="fas fa-chart-line" aria-hidden="true"></i>
                                                 </a>
                                                 <?php if ($canDeleteProjects): ?>
                                                 <button type="button"
-                                                        class="btn btn-danger single-delete-btn"
+                                                        class="btn btn-outline-danger single-delete-btn"
                                                         data-project-id="<?php echo (int) $project['id']; ?>"
                                                         data-project-code="<?php echo htmlspecialchars($project['project_code'], ENT_QUOTES); ?>"
                                                         title="Delete Project">

@@ -229,8 +229,8 @@
   color: var(--app-muted);
 }
 
-.auth-header-note {
-  font-size: 0.85rem;
+.auth-header .auth-header-note {
+  font-size: 1.25rem;
   color: var(--accent-blue-deep) !important;
   font-weight: 600;
 }
@@ -917,7 +917,7 @@ body:not(.public-home) main:not(.app-main) {
 }
 
 .app-topbar-brand {
-  gap: 0.65rem;
+  gap: 1.25rem;
   min-width: 0;
   flex: 1;
 }
@@ -927,6 +927,8 @@ body:not(.public-home) main:not(.app-main) {
   height: 42px;
   object-fit: contain;
   flex-shrink: 0;
+  transform: translateX(-0.6rem) scale(1.8);
+  transform-origin: left center;
 }
 
 .app-topbar-titles {
@@ -1247,6 +1249,7 @@ body.public-home > footer.public-footer {
 /* Logo + stacked title (structure only; colors via Bootstrap utilities on markup) */
 .public-navbar-brand {
   max-width: 100%;
+  gap: 1.25rem !important;
   /* Slightly larger logo + title visually without changing navbar padding/flow */
   transform: scale(1.07);
   transform-origin: left center;
@@ -2111,6 +2114,17 @@ body.public-home > footer.public-footer {
   /* Same vertical size as .btn-sm / .form-control-sm */
   height: calc(1.5em + 0.5rem + calc(var(--bs-border-width) * 2));
   min-height: unset;
+}
+
+/* Projects table: icon-only row actions (outline, slightly larger) */
+.project-row-action-btns .btn {
+  padding: 0.45rem 0.65rem;
+  min-width: 2.65rem;
+}
+
+.project-row-action-btns .btn i {
+  font-size: 1.0625rem;
+  line-height: 1;
 }
 
 .form-select-saved-views {
