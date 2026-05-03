@@ -533,7 +533,7 @@ renderAppLayout($page_title, $page_extra_head);
 
                                 <!-- Location (Philippines) — PSGC-backed cascade -->
                                 <div class="col-12">
-                                    <label class="form-label" for="locationDropdownBtn">Location <span class="text-muted fw-normal">(Philippines)</span></label>
+                                    <label class="form-label" for="locationDropdownBtn">Location<span class="text-muted fw-normal"> (Philippines)</span></label>
                                     <div class="dropdown w-100">
                                         <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button"
                                             id="locationDropdownBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-display="static"
@@ -570,7 +570,7 @@ renderAppLayout($page_title, $page_extra_head);
 
                                 <!-- Geo Map: pin inside Philippines (saved with project) -->
                                 <div class="col-12">
-                                    <label class="form-label">Map location <span class="text-danger">*</span> <span class="text-muted fw-normal">(Geo Map / legend)</span></label>
+                                    <label class="form-label">Map location <span class="text-danger">*</span><span class="text-muted fw-normal"> (Geo Map / Legend)</span></label>
                                     <p class="small text-muted mb-2">Click the map to drop a pin. It is stored as latitude and longitude and shown on <a href="geomap.php" target="_blank" rel="noopener">Geo Map</a> by project type.</p>
                                     <input type="hidden" name="latitude" id="newProjectLatitude" value="">
                                     <input type="hidden" name="longitude" id="newProjectLongitude" value="">

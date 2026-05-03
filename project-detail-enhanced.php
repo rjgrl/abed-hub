@@ -154,33 +154,47 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
             <!-- Project Header -->
             <div class="row align-items-center mb-4">
                 <div class="col">
-                    <div class="d-flex align-items-center gap-3">
-                        <div>
-                            <span class="badge bg-primary badge-fs-md">
-                                <?php echo strtoupper($project_type); ?>
-                            </span>
-                            <span class="badge badge-fs-md <?php echo htmlspecialchars(stage_badge_class((string) $project['current_stage']), ENT_QUOTES, 'UTF-8'); ?>">
-                                <?php echo htmlspecialchars($project['current_stage']); ?>
-                            </span>
-                        </div>
-                        <div>
-                            <h1 class="h3 mb-1"><?php echo htmlspecialchars($project['project_code']); ?></h1>
-                            <p class="text-muted mb-0"><?php echo htmlspecialchars($project['project_title']); ?></p>
+                    <div class="project-detail-header-meta">
+                        <div class="row g-2 g-sm-3 row-cols-1 row-cols-sm-2">
+                            <div class="col">
+                                <div class="text-muted small fw-semibold mb-1">Name:</div>
+                                <div class="h4 mb-0 fw-bold text-body"><?php echo htmlspecialchars($project['project_title']); ?></div>
+                            </div>
+                            <div class="col">
+                                <div class="text-muted small fw-semibold mb-1">Code:</div>
+                                <div class="h4 mb-0 fw-bold text-body"><?php echo htmlspecialchars($project['project_code']); ?></div>
+                            </div>
+                            <div class="col">
+                                <div class="text-muted small fw-semibold mb-1">Type:</div>
+                                <div>
+                                    <span class="badge bg-primary">
+                                        <?php echo strtoupper($project_type); ?>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="text-muted small fw-semibold mb-1">Status:</div>
+                                <div>
+                                    <span class="badge badge-fs-md <?php echo htmlspecialchars(stage_badge_class((string) $project['current_stage']), ENT_QUOTES, 'UTF-8'); ?>">
+                                        <?php echo htmlspecialchars($project['current_stage']); ?>
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-auto">
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-outline-primary btn-sm" id="editBtn">
+                    <div class="btn-group project-detail-header-actions" role="group" aria-label="Project actions">
+                        <button type="button" class="btn btn-outline-primary" id="editBtn">
                             <i class="fas fa-edit"></i> Edit
                         </button>
-                        <button type="button" class="btn btn-outline-dark btn-sm" id="printBtn">
+                        <button type="button" class="btn btn-outline-primary" id="printBtn">
                             <i class="fas fa-print"></i> Print
                         </button>
-                        <a href="scurve-monitoring.php?type=<?php echo $project_type; ?>&id=<?php echo $project_id; ?>" class="btn btn-outline-info btn-sm">
+                        <a href="scurve-monitoring.php?type=<?php echo $project_type; ?>&id=<?php echo $project_id; ?>" class="btn btn-outline-primary">
                             <i class="fas fa-chart-line"></i> S-Curve
                         </a>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#shareModal">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#shareModal">
                             <i class="fas fa-share"></i> Share
                         </button>
                     </div>
