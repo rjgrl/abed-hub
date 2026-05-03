@@ -67,10 +67,33 @@
   min-height: 100vh;
   margin: 0;
   padding: 2rem 1rem;
-  background:
-    radial-gradient(circle at top right, rgba(198, 148, 249, 0.2), transparent 42%),
-    radial-gradient(circle at bottom left, rgba(91, 141, 239, 0.2), transparent 46%),
-    var(--app-bg);
+  position: relative;
+  isolation: isolate;
+  /* logos/City.jpg — visible but muted so the card stays the visual focus */
+  background-color: var(--app-bg);
+  background-image:
+    radial-gradient(
+      ellipse 100% 70% at 50% 0%,
+      rgba(255, 255, 255, 0.65) 0%,
+      transparent 60%
+    ),
+    radial-gradient(circle at top right, rgba(198, 148, 249, 0.12), transparent 42%),
+    radial-gradient(circle at bottom left, rgba(91, 141, 239, 0.12), transparent 46%),
+    linear-gradient(
+      165deg,
+      rgba(255, 255, 255, 0.88) 0%,
+      rgba(248, 250, 252, 0.72) 45%,
+      rgba(241, 245, 249, 0.82) 100%
+    ),
+    url("../../logos/City.jpg");
+  background-position: center, top right, bottom left, center, center;
+  background-size: auto, auto, auto, auto, cover;
+  background-repeat: no-repeat;
+}
+
+.auth-body .auth-container {
+  position: relative;
+  z-index: 1;
 }
 
 .auth-container {
@@ -1340,6 +1363,17 @@ body.public-home {
   margin-bottom: 0.875rem;
 }
 
+.public-feature-icon--brand {
+  background: rgba(95, 212, 168, 0.14);
+}
+
+.public-feature-brand-logo {
+  display: block;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
 .public-feature-card--featured {
   box-shadow: var(--shadow-md);
   border-color: rgba(91, 141, 239, 0.35);
@@ -2104,5 +2138,121 @@ body.public-home {
 
   canvas {
     max-width: 100% !important;
+  }
+}
+
+/* ========================================
+   App modal (replaces browser alert/confirm)
+   ======================================== */
+
+.app-modal-app {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.app-modal-app--open {
+  pointer-events: auto;
+  opacity: 1;
+  visibility: visible;
+}
+
+.app-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  cursor: pointer;
+}
+
+.app-modal__panel {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: min(90vh, 520px);
+}
+
+.app-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1rem 0.5rem 1.25rem;
+  border-bottom: 1px solid var(--app-border);
+  background: linear-gradient(180deg, #fff 0%, #fafbfc 100%);
+}
+
+.app-modal__title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--app-text);
+  margin: 0;
+  line-height: 1.35;
+  padding-top: 0.15rem;
+}
+
+.app-modal__close {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: var(--app-muted);
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 0 0.15rem;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: var(--transition);
+}
+
+.app-modal__close:hover {
+  color: var(--app-text);
+  background: var(--app-border);
+}
+
+.app-modal__body {
+  padding: 1.1rem 1.25rem;
+  color: var(--app-text);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.app-modal__body--danger {
+  color: #b91c1c;
+}
+
+.app-modal__body--success {
+  color: #047857;
+}
+
+.app-modal__footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem 1.1rem;
+  border-top: 1px solid var(--app-border);
+  background: var(--app-bg);
+}
+
+@media print {
+  .app-modal-app {
+    display: none !important;
   }
 }

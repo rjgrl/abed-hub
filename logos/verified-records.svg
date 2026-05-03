@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title desc">
+  <title id="title">Verified Records</title>
+  <desc id="desc">Shield with checkmark representing verified documentation</desc>
+  <defs>
+    <linearGradient id="vrGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5b8def"/>
+      <stop offset="100%" style="stop-color:#5fd4a8"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#vrGrad)" d="M60 8 L104 28 V56 C104 84 84 104 60 112 C36 104 16 84 16 56 V28 Z"/>
+  <path fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" d="M38 58 L54 74 L86 42"/>
+</svg>

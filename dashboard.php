@@ -427,6 +427,7 @@ if (!empty($pending_projects)) {
     </main>
 
     <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
+    <script src="assets/js/app-modal.js"></script>
     <script>
         // Type Chart
         new Chart(document.getElementById('typeChart'), {
@@ -571,13 +572,11 @@ if (!empty($pending_projects)) {
         }
 
         function showAllNotifications() {
-            // Could redirect to a notifications page or open a modal
-            alert('Notifications page coming soon!');
+            AppModal.alert('Notifications page coming soon!', { title: 'Notifications' });
         }
 
         function showAllAlerts() {
-            // Could redirect to an alerts page or open a modal
-            alert('Alerts management page coming soon!');
+            AppModal.alert('Alerts management page coming soon!', { title: 'Alerts' });
         }
 
         // Load data when page loads
