@@ -1,0 +1,71 @@
+flowchart TB
+  IN1[/Input: browser HTTP request URL, cookies/]
+  IN2[/Input: form POST, uploads, API JSON body/]
+
+  P1[Process: Apache runs PHP entry script]
+
+  D1{Decision: route is public marketing or auth page?}
+
+  P2[Process: render public PHP HTML]
+  OUT1[/Output: HTML, CSS, JS, static assets/]
+
+  P3[Process: load session and DB config]
+  D2{Decision: user authenticated and session not timed out?}
+
+  P4[Process: redirect to login with message]
+  OUT2[/Output: HTML login or signup page/]
+
+  P5[Process: apply layout shell load app page logic]
+  D3{Decision: needs JSON data from api layer?}
+
+  P6[Process: query and mutate via mysqli repositories]
+  P7[Process: build JSON from api scripts]
+
+  D4{Decision: response type}
+
+  P8[Process: render full HTML page]
+  P9[Process: render or stream PDF export]
+  P10[Process: write read files in uploads]
+
+  OUT3[/Output: HTML app page/]
+  OUT4[/Output: JSON for charts tables forms/]
+  OUT5[/Output: PDF file download/]
+  OUT6[/Output: stored files and download links/]
+
+  C1((1))
+
+  OF1((A))
+  OF2((B))
+
+  IN1 --> P1
+  IN2 --> P1
+  P1 --> D1
+
+  D1 -->|Yes| P2
+  P2 --> OUT1
+
+  D1 -->|No| P3
+  P3 --> D2
+  D2 -->|No| P4
+  P4 --> OUT2
+
+  D2 -->|Yes| P5
+  P5 --> D3
+  D3 -->|No| C1
+  D3 -->|Yes| P6
+  P6 --> P7
+  P7 --> C1
+  C1 --> D4
+
+  D4 -->|HTML| P8
+  D4 -->|JSON| P8
+  D4 -->|PDF| P9
+  D4 -->|Files| P10
+
+  P8 --> OUT3
+  P8 --> OUT4
+  P9 --> OUT5
+  P10 --> OUT6
+
+  P6 --> OF1
+  P9 --> OF2

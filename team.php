@@ -127,7 +127,7 @@ session_start();
                 </div>
                 <div class="team-card-body">
                   <h3 class="team-card-name h5 mb-1">Vincent Capacio</h3>
-                  <p class="team-card-role text-muted small mb-0">Documenter</p>
+                  <p class="team-card-role text-muted small mb-0">Documentator</p>
                 </div>
               </article>
           </div>
