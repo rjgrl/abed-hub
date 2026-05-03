@@ -58,10 +58,10 @@ if (is_array($rawDocs)) {
         $ids = array_filter($ids, static fn ($id) => $id > 0);
         if (!empty($ids)) {
             $inList = implode(',', $ids);
-            $uq = $conn->query("SELECT id, full_name FROM users WHERE id IN ($inList)");
+            $uq = $conn->query("SELECT id, first_name, last_name FROM users WHERE id IN ($inList)");
             if ($uq) {
                 foreach ($uq->fetch_all(MYSQLI_ASSOC) as $ur) {
-                    $uploadUserNames[(int) $ur['id']] = (string) $ur['full_name'];
+                    $uploadUserNames[(int) $ur['id']] = user_display_name($ur['first_name'] ?? '', $ur['last_name'] ?? '');
                 }
             }
         }

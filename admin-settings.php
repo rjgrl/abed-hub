@@ -58,8 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 }
 
 $users = $conn->query(
-    "SELECT id, username, full_name, email, role, office_unit, is_active, created_at
-     FROM users ORDER BY full_name"
+    "SELECT id, username, first_name, last_name, email, role, office_unit, is_active, created_at
+     FROM users ORDER BY last_name, first_name"
 )->fetch_all(MYSQLI_ASSOC);
 
 renderAppLayout($page_title);
@@ -108,7 +108,7 @@ renderAppLayout($page_title);
                     <tbody>
                         <?php foreach ($users as $u): ?>
                         <tr>
-                            <td class="fw-semibold"><?php echo htmlspecialchars($u['full_name']); ?></td>
+                            <td class="fw-semibold"><?php echo htmlspecialchars(user_display_name($u['first_name'] ?? '', $u['last_name'] ?? '')); ?></td>
                             <td><small class="text-muted">@<?php echo htmlspecialchars($u['username']); ?></small></td>
                             <td><small><?php echo htmlspecialchars($u['email']); ?></small></td>
                             <td><small><?php echo htmlspecialchars($u['office_unit'] ?? '—'); ?></small></td>

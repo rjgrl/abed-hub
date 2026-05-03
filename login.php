@@ -48,33 +48,37 @@ if (isset($_SESSION['user_id'])) {
 
                   <div class="mb-3">
                     <label class="form-label">Username</label>
-                    <div class="input-group">
-                      <span class="input-group-text">
-                        <i class="fas fa-user"></i>
-                      </span>
-                      <input
-                        type="text"
-                        class="form-control"
-                        name="username"
-                        placeholder="Enter your username"
-                        required
-                      />
-                    </div>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="username"
+                      placeholder="Enter your username"
+                      autocomplete="username"
+                      required
+                    />
                   </div>
 
                   <div class="mb-3">
                     <label class="form-label">Password</label>
-                    <div class="input-group">
-                      <span class="input-group-text">
-                        <i class="fas fa-lock"></i>
-                      </span>
+                    <div class="input-password-wrap">
                       <input
                         type="password"
                         class="form-control"
+                        id="loginPassword"
                         name="password"
                         placeholder="Enter your password"
+                        autocomplete="current-password"
                         required
                       />
+                      <button
+                        type="button"
+                        class="btn-password-toggle"
+                        id="toggleLoginPassword"
+                        aria-label="Show password"
+                        aria-pressed="false"
+                      >
+                        <i class="fas fa-eye" aria-hidden="true"></i>
+                      </button>
                     </div>
                   </div>
 
@@ -135,9 +139,10 @@ if (isset($_SESSION['user_id'])) {
       </div>
     </div>
 
-    <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/main.js"></script>
-    <script src="assets/js/login.js"></script>
+    <script src="assets/js/login.js?v=20260503"></script>
   </body>
 </html>
 
