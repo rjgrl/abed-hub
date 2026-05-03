@@ -87,6 +87,72 @@ function isValidEmail($email) {
 }
 
 /**
+ * Display name from separate first and last name fields.
+ */
+function user_display_name($first_name, $last_name) {
+    $first = trim((string) $first_name);
+    $last = trim((string) $last_name);
+    if ($first === '' && $last === '') {
+        return '';
+    }
+    return trim($first . ' ' . $last);
+}
+
+/**
+ * Two-letter avatar initials from first and last name.
+ */
+function user_initials($first_name, $last_name) {
+    $f = trim((string) $first_name);
+    $l = trim((string) $last_name);
+    if ($f !== '' && $l !== '') {
+        return strtoupper(substr($f, 0, 1) . substr($l, 0, 1));
+    }
+    if ($f !== '') {
+        return strtoupper(substr($f, 0, 2));
+    }
+    if ($l !== '') {
+        return strtoupper(substr($l, 0, 2));
+    }
+    return 'U';
+}
+
+/**
+ * Migrate legacy users.full_name to first_name / last_name once; no-op when already migrated.
+ */
+function ensure_users_first_last_name_schema(mysqli $conn): void {
+    if (!defined('DB_NAME')) {
+        return;
+    }
+    $db = $conn->real_escape_string(DB_NAME);
+    $q = "SELECT COUNT(*) AS c FROM information_schema.COLUMNS
+          WHERE TABLE_SCHEMA = '{$db}' AND TABLE_NAME = 'users' AND COLUMN_NAME = 'first_name'";
+    $r = $conn->query($q);
+    if ($r && ($row = $r->fetch_assoc()) && (int) $row['c'] > 0) {
+        return;
+    }
+
+    $q2 = "SELECT COUNT(*) AS c FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA = '{$db}' AND TABLE_NAME = 'users' AND COLUMN_NAME = 'full_name'";
+    $r2 = $conn->query($q2);
+    $has_full = $r2 && ($row2 = $r2->fetch_assoc()) && (int) $row2['c'] > 0;
+
+    if ($has_full) {
+        $conn->query("ALTER TABLE users ADD COLUMN first_name VARCHAR(255) NOT NULL DEFAULT '' AFTER email");
+        $conn->query("ALTER TABLE users ADD COLUMN last_name VARCHAR(255) NOT NULL DEFAULT '' AFTER first_name");
+        $conn->query("UPDATE users SET
+            first_name = SUBSTRING_INDEX(TRIM(full_name), ' ', 1),
+            last_name = TRIM(CASE WHEN LOCATE(' ', TRIM(full_name)) > 0
+                THEN SUBSTRING(TRIM(full_name), LOCATE(' ', TRIM(full_name)) + 1)
+                ELSE '' END)");
+        $conn->query("ALTER TABLE users DROP COLUMN full_name");
+        return;
+    }
+
+    $conn->query("ALTER TABLE users ADD COLUMN first_name VARCHAR(255) NOT NULL DEFAULT '' AFTER email");
+    $conn->query("ALTER TABLE users ADD COLUMN last_name VARCHAR(255) NOT NULL DEFAULT '' AFTER first_name");
+}
+
+/**
  * Log audit trail for tracking changes
  */
 function logAudit($action, $projectType = null, $projectId = null, $oldValues = null, $newValues = null) {

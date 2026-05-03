@@ -2,6 +2,25 @@
 // Login Page JavaScript
 // ========================================
 
+(function ($) {
+  $(function () {
+    const $btn = $("#toggleLoginPassword");
+    const $input = $("#loginPassword");
+    if (!$btn.length || !$input.length) return;
+
+    $btn.on("click", function () {
+      const show = $input.attr("type") === "password";
+      $input.attr("type", show ? "text" : "password");
+      $(this).find("i").toggleClass("fa-eye fa-eye-slash");
+      $(this).attr("aria-pressed", show ? "true" : "false");
+      $(this).attr(
+        "aria-label",
+        show ? "Hide password" : "Show password"
+      );
+    });
+  });
+})(jQuery);
+
 document.addEventListener("DOMContentLoaded", function () {
   const loginForm = document.getElementById("loginForm");
   if (!loginForm) return;

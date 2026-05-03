@@ -12,7 +12,7 @@ $error_msg = '';
 $uploadStatusFilter = (string) ($_GET['upload_status'] ?? 'all');
 $uploadSourceFilter = (string) ($_GET['upload_source'] ?? 'all');
 $allowedUploadStatus = ['all', 'Pending', 'Approved', 'Rejected'];
-$allowedUploadSource = ['all', 'project', 'afme'];
+$allowedUploadSource = ['all', 'fspf', 'idp', 'afme'];
 if (!in_array($uploadStatusFilter, $allowedUploadStatus, true)) {
     $uploadStatusFilter = 'all';
 }
@@ -118,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'revie
 }
 
 $pendingUsers = $conn->query("
-    SELECT id, full_name, username, email, office_unit, created_at
+    SELECT id, first_name, last_name, email, office_unit, created_at
     FROM users
     WHERE is_active = 0
     ORDER BY created_at ASC
@@ -128,10 +128,10 @@ $pendingUsers = $conn->query("
 $recentUploads = [];
 $allUploads = [];
 $userNames = [];
-$uRes = $conn->query("SELECT id, full_name FROM users");
+$uRes = $conn->query("SELECT id, first_name, last_name FROM users");
 if ($uRes) {
     foreach ($uRes->fetch_all(MYSQLI_ASSOC) as $u) {
-        $userNames[(int) $u['id']] = (string) $u['full_name'];
+        $userNames[(int) $u['id']] = user_display_name($u['first_name'] ?? '', $u['last_name'] ?? '');
     }
 }
 
@@ -157,7 +157,7 @@ if ($projectRegs) {
             'doc_id' => 0,
             'project_type' => strtoupper((string) ($row['project_type'] ?? '')),
             'project_id' => (int) $row['id'],
-            'doc_type' => 'New project registration',
+            'doc_type' => 'New Project',
             'file_name' => (string) ($row['title'] ?? 'Untitled'),
             'upload_date' => $row['created_at'] ?? $row['updated_at'],
             'uploaded_by_name' => $userNames[$uploaderId] ?? 'Unknown',
@@ -250,16 +250,13 @@ if (!empty($allUploads)) {
 
 foreach ($allUploads as $upload) {
     $status = (string) ($upload['review_status'] ?? 'Pending');
-    $source = (string) ($upload['source'] ?? 'project');
     if ($uploadStatusFilter !== 'all' && $status !== $uploadStatusFilter) {
         continue;
     }
     if ($uploadSourceFilter !== 'all') {
-        if ($uploadSourceFilter === 'project') {
-            if (!in_array($source, ['project', 'project_registration'], true)) {
-                continue;
-            }
-        } elseif ($source !== $uploadSourceFilter) {
+        $wantType = strtolower($uploadSourceFilter);
+        $rowType = strtolower((string) ($upload['project_type'] ?? ''));
+        if ($rowType !== $wantType) {
             continue;
         }
     }
@@ -332,22 +329,24 @@ renderAppLayout($page_title);
                                 <?php foreach ($pendingUsers as $user): ?>
                                     <tr>
                                         <td>
-                                            <strong><?php echo htmlspecialchars($user['full_name']); ?></strong><br>
-                                            <small class="text-muted"><?php echo htmlspecialchars($user['username']); ?></small>
+                                            <strong><?php echo htmlspecialchars(user_display_name($user['first_name'] ?? '', $user['last_name'] ?? '')); ?></strong><br>
+                                            <small class="text-muted">New Account</small>
                                         </td>
                                         <td><?php echo htmlspecialchars($user['office_unit'] ?? 'N/A'); ?></td>
                                         <td><?php echo htmlspecialchars(date('Y-m-d', strtotime($user['created_at']))); ?></td>
-                                        <td>
-                                            <form method="POST" action="handlers/admin-user-approval.php" class="d-inline">
-                                                <input type="hidden" name="user_id" value="<?php echo (int) $user['id']; ?>">
-                                                <input type="hidden" name="decision" value="approve">
-                                                <button class="btn btn-sm btn-success" type="submit">Approve</button>
-                                            </form>
-                                            <form method="POST" action="handlers/admin-user-approval.php" class="d-inline">
-                                                <input type="hidden" name="user_id" value="<?php echo (int) $user['id']; ?>">
-                                                <input type="hidden" name="decision" value="reject">
-                                                <button class="btn btn-sm btn-outline-danger" type="submit">Reject</button>
-                                            </form>
+                                        <td class="text-nowrap">
+                                            <div class="d-flex align-items-center gap-2 flex-nowrap">
+                                                <form method="POST" action="handlers/admin-user-approval.php" class="d-inline mb-0">
+                                                    <input type="hidden" name="user_id" value="<?php echo (int) $user['id']; ?>">
+                                                    <input type="hidden" name="decision" value="approve">
+                                                    <button class="btn btn-sm btn-success" type="submit">Approve</button>
+                                                </form>
+                                                <form method="POST" action="handlers/admin-user-approval.php" class="d-inline mb-0">
+                                                    <input type="hidden" name="user_id" value="<?php echo (int) $user['id']; ?>">
+                                                    <input type="hidden" name="decision" value="reject">
+                                                    <button class="btn btn-sm btn-outline-danger" type="submit">Reject</button>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -375,7 +374,8 @@ renderAppLayout($page_title);
                             </select>
                             <select name="upload_source" class="form-select form-select-sm form-select-width-upload-source">
                                 <option value="all" <?php echo $uploadSourceFilter === 'all' ? 'selected' : ''; ?>>All Sources</option>
-                                <option value="project" <?php echo $uploadSourceFilter === 'project' ? 'selected' : ''; ?>>Project</option>
+                                <option value="fspf" <?php echo $uploadSourceFilter === 'fspf' ? 'selected' : ''; ?>>FSPF</option>
+                                <option value="idp" <?php echo $uploadSourceFilter === 'idp' ? 'selected' : ''; ?>>IDP</option>
                                 <option value="afme" <?php echo $uploadSourceFilter === 'afme' ? 'selected' : ''; ?>>AFME</option>
                             </select>
                             <button type="submit" class="btn btn-sm btn-primary">Filter</button>
@@ -409,46 +409,47 @@ renderAppLayout($page_title);
                                         </td>
                                         <td><?php echo htmlspecialchars($projLabel); ?></td>
                                         <td><?php echo htmlspecialchars($upload['uploaded_by_name'] ?? 'Unknown'); ?></td>
-                                        <td>
+                                        <td class="<?php echo ($upload['review_status'] ?? 'Pending') === 'Pending' ? 'text-nowrap' : ''; ?>">
                                             <?php $reviewStatus = (string) ($upload['review_status'] ?? 'Pending'); ?>
-                                            <div class="d-flex flex-column align-items-start gap-2">
-                                            <span class="badge <?php echo $reviewStatus === 'Approved' ? 'bg-success' : ($reviewStatus === 'Rejected' ? 'bg-danger' : 'bg-warning text-dark'); ?>">
-                                                <?php echo htmlspecialchars($reviewStatus); ?>
-                                            </span>
-                                            <div class="d-flex align-items-center gap-3 flex-wrap">
-                                                <?php if ($isRegistration && $reviewStatus === 'Pending'): ?>
-                                                    <form method="POST" class="d-inline">
-                                                        <input type="hidden" name="action" value="review_pending_project">
-                                                        <input type="hidden" name="record_id" value="<?php echo (int) $upload['record_id']; ?>">
-                                                        <input type="hidden" name="decision" value="Approved">
-                                                        <button type="submit" class="btn btn-outline-success" title="Approve project"><i class="fas fa-check"></i></button>
-                                                    </form>
-                                                    <form method="POST" class="d-inline">
-                                                        <input type="hidden" name="action" value="review_pending_project">
-                                                        <input type="hidden" name="record_id" value="<?php echo (int) $upload['record_id']; ?>">
-                                                        <input type="hidden" name="decision" value="Rejected">
-                                                        <button type="submit" class="btn btn-outline-danger" title="Reject registration"><i class="fas fa-times"></i></button>
-                                                    </form>
-                                                <?php elseif (!$isRegistration): ?>
-                                                    <form method="POST" class="d-inline">
-                                                        <input type="hidden" name="action" value="review_upload">
-                                                        <input type="hidden" name="source" value="<?php echo htmlspecialchars((string) $upload['source']); ?>">
-                                                        <input type="hidden" name="record_id" value="<?php echo (int) $upload['record_id']; ?>">
-                                                        <input type="hidden" name="doc_id" value="<?php echo (int) $upload['doc_id']; ?>">
-                                                        <input type="hidden" name="decision" value="Approved">
-                                                        <button type="submit" class="btn btn-outline-success" title="Approve"><i class="fas fa-check"></i></button>
-                                                    </form>
-                                                    <form method="POST" class="d-inline">
-                                                        <input type="hidden" name="action" value="review_upload">
-                                                        <input type="hidden" name="source" value="<?php echo htmlspecialchars((string) $upload['source']); ?>">
-                                                        <input type="hidden" name="record_id" value="<?php echo (int) $upload['record_id']; ?>">
-                                                        <input type="hidden" name="doc_id" value="<?php echo (int) $upload['doc_id']; ?>">
-                                                        <input type="hidden" name="decision" value="Rejected">
-                                                        <button type="submit" class="btn btn-outline-danger" title="Reject"><i class="fas fa-times"></i></button>
-                                                    </form>
-                                                <?php endif; ?>
-                                            </div>
-                                            </div>
+                                            <?php if ($reviewStatus === 'Pending'): ?>
+                                                <div class="d-flex align-items-center gap-2 flex-nowrap">
+                                                    <?php if ($isRegistration): ?>
+                                                        <form method="POST" class="d-inline mb-0">
+                                                            <input type="hidden" name="action" value="review_pending_project">
+                                                            <input type="hidden" name="record_id" value="<?php echo (int) $upload['record_id']; ?>">
+                                                            <input type="hidden" name="decision" value="Approved">
+                                                            <button type="submit" class="btn btn-sm btn-success" title="Approve project registration">Approve</button>
+                                                        </form>
+                                                        <form method="POST" class="d-inline mb-0">
+                                                            <input type="hidden" name="action" value="review_pending_project">
+                                                            <input type="hidden" name="record_id" value="<?php echo (int) $upload['record_id']; ?>">
+                                                            <input type="hidden" name="decision" value="Rejected">
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Reject project registration">Reject</button>
+                                                        </form>
+                                                    <?php else: ?>
+                                                        <form method="POST" class="d-inline mb-0">
+                                                            <input type="hidden" name="action" value="review_upload">
+                                                            <input type="hidden" name="source" value="<?php echo htmlspecialchars((string) $upload['source']); ?>">
+                                                            <input type="hidden" name="record_id" value="<?php echo (int) $upload['record_id']; ?>">
+                                                            <input type="hidden" name="doc_id" value="<?php echo (int) $upload['doc_id']; ?>">
+                                                            <input type="hidden" name="decision" value="Approved">
+                                                            <button type="submit" class="btn btn-sm btn-success" title="Approve upload">Approve</button>
+                                                        </form>
+                                                        <form method="POST" class="d-inline mb-0">
+                                                            <input type="hidden" name="action" value="review_upload">
+                                                            <input type="hidden" name="source" value="<?php echo htmlspecialchars((string) $upload['source']); ?>">
+                                                            <input type="hidden" name="record_id" value="<?php echo (int) $upload['record_id']; ?>">
+                                                            <input type="hidden" name="doc_id" value="<?php echo (int) $upload['doc_id']; ?>">
+                                                            <input type="hidden" name="decision" value="Rejected">
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Reject upload">Reject</button>
+                                                        </form>
+                                                    <?php endif; ?>
+                                                </div>
+                                            <?php else: ?>
+                                                <span class="badge <?php echo $reviewStatus === 'Approved' ? 'bg-success' : 'bg-danger'; ?>">
+                                                    <?php echo htmlspecialchars($reviewStatus); ?>
+                                                </span>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>

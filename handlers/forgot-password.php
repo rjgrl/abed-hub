@@ -21,7 +21,7 @@ if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
 }
 
 // Check if email exists in database
-$stmt = $conn->prepare("SELECT id, username, email, full_name FROM users WHERE email = ?");
+$stmt = $conn->prepare("SELECT id, username, email, first_name, last_name FROM users WHERE email = ?");
 if (!$stmt) {
     die(json_encode(['status' => 'error', 'message' => 'Database error']));
 }
@@ -81,7 +81,7 @@ $message = "
             <h2>Password Recovery</h2>
         </div>
         <div class='content'>
-            <p>Hello " . htmlspecialchars($user['full_name']) . ",</p>
+            <p>Hello " . htmlspecialchars(user_display_name($user['first_name'], $user['last_name'])) . ",</p>
             <p>We received a request to reset your password. Use the code below to proceed:</p>
             
             <div class='code-box'>

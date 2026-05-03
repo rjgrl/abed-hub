@@ -295,6 +295,64 @@
   border-color: var(--primary-color);
 }
 
+/* Password field: full-width input with toggle inside */
+.input-password-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.input-password-wrap > .form-control {
+  padding-right: 2.75rem;
+}
+
+.input-password-wrap > .form-control:focus {
+  z-index: 5;
+}
+
+.input-password-wrap .btn-password-toggle {
+  position: absolute;
+  right: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0.2rem;
+  min-width: unset;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--app-muted);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.input-password-wrap .btn-password-toggle:hover,
+.input-password-wrap .btn-password-toggle:active {
+  color: #5c6370;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.input-password-wrap .btn-password-toggle:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.input-password-wrap .btn-password-toggle:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.input-password-wrap .btn-password-toggle i {
+  color: inherit;
+}
+
 /* ========================================
    PASSWORD STRENGTH
    ======================================== */
@@ -2042,6 +2100,17 @@ body.public-home > footer.public-footer {
 
 .form-select-width-upload-source {
   min-width: 130px;
+}
+
+.form-select.form-select-sm.form-select-width-upload-status,
+.form-select.form-select-sm.form-select-width-upload-source {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  /* Same vertical size as .btn-sm / .form-control-sm */
+  height: calc(1.5em + 0.5rem + calc(var(--bs-border-width) * 2));
+  min-height: unset;
 }
 
 .form-select-saved-views {

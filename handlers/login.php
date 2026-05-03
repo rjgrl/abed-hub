@@ -40,8 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Query user from database (profile_picture drives navbar avatar; must match My Account)
-    $stmt = $conn->prepare("SELECT id, username, email, full_name, password, role, is_active, profile_picture FROM users WHERE username = ?");
+    // Query user from database
+    $stmt = $conn->prepare("SELECT id, username, email, first_name, last_name, password, role, is_active FROM users WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['username'] = $user['username'];
     $_SESSION['email'] = $user['email'];
-    $_SESSION['full_name'] = $user['full_name'];
+    $_SESSION['full_name'] = user_display_name($user['first_name'], $user['last_name']);
     $_SESSION['role'] = $user['role'];
     $_SESSION['login_time'] = time();
     $pic = $user['profile_picture'] ?? null;

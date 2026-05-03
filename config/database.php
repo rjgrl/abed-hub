@@ -71,4 +71,6 @@ $_SESSION['last_activity'] = time();
 
 // Load helper functions
 require_once __DIR__ . '/../functions/helpers.php';
+
+ensure_users_first_last_name_schema($conn);
 ?>
