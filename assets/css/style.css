@@ -3,7 +3,7 @@
    Folder map & troubleshooting: STRUCTURE.txt (repo root)
    ======================================== */
 
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
 
 :root {
   /* Reference-aligned SaaS palette */
@@ -1205,6 +1205,8 @@ body.public-home > footer.public-footer {
   display: block;
   font-size: clamp(0.76rem, 1.2vw, 0.88rem);
   line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: 0.02em;
 }
 
 .public-brand-subtitle {
@@ -1336,15 +1338,29 @@ body.public-home > footer.public-footer {
 
 .public-hero-title {
   font-size: clamp(2rem, 3.4vw, 3.4rem);
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
   margin-bottom: 1rem;
+  font-weight: 900;
+  color: var(--app-text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 .public-hero-description {
   font-size: 1.02rem;
   color: var(--app-muted);
   max-width: 560px;
+}
+
+/* Homepage section titles: heavier than default Bootstrap headings */
+body.public-home h2 {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+body.public-home .public-feature-card h3 {
+  font-weight: 700;
 }
 
 /* Hero CTAs: slightly larger and easier to spot without dominating the layout */
@@ -1469,6 +1485,13 @@ body.public-home > footer.public-footer {
 
 .public-home .stat-card.afme {
   border-left-color: #f5c57a;
+}
+
+/* System Overview: make FSPF / IDP / AFME labels read as strong titles */
+.public-home .stat-card .card-title {
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #374151;
 }
 
 .public-home .stat-icon {
