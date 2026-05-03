@@ -139,7 +139,7 @@ $locations_facet = $conn->query($locations_facet_query)->fetch_all(MYSQLI_ASSOC)
         <div class="container-fluid py-4">
             <!-- Page Header -->
             <div class="mb-4">
-                <h1 class="h2"><i class="fas fa-search"></i> Advanced Search</h1>
+                <h1 class="h2">Advanced Search</h1>
             </div>
 
             <div class="row g-3">

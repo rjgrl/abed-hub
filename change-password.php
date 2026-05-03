@@ -54,7 +54,7 @@ renderAppLayout($page_title);
         <a href="my-account.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i>
         </a>
-        <h1 class="h4 mb-0"><i class="fas fa-lock me-2"></i>Change Password</h1>
+        <h1 class="h4 mb-0">Change Password</h1>
     </div>
 
     <?php if ($success_msg): ?>

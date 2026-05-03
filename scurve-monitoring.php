@@ -148,9 +148,7 @@ if (!$project_id) {
             <!-- Page Header -->
             <div class="row align-items-center mb-4">
                 <div class="col">
-                    <h1 class="h2">
-                        <i class="fas fa-chart-line"></i> S-Curve Monitoring
-                    </h1>
+                    <h1 class="h2">S-Curve Monitoring</h1>
                     <p class="text-muted">Track project progress against planned timeline</p>
                 </div>
             </div>
