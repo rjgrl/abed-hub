@@ -160,7 +160,7 @@ if ($code === '') {
         </div>
     </main>
 
-    <footer class="public-footer py-4 mt-5">
+    <footer class="public-footer py-4">
       <div class="container text-center text-muted small">
         <p class="mb-0">&copy; <?php echo date('Y'); ?> ABED IDM Hub</p>
       </div>

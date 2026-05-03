@@ -345,9 +345,34 @@ $stageShort = (string) ($project['current_stage'] ?? '');
         </div>
     </main>
 
-    <footer class="public-footer py-4 mt-5">
-      <div class="container text-center text-muted small">
-        <p class="mb-0">&copy; <?php echo date('Y'); ?> ABED IDM Hub · <a href="index.php" class="text-muted">Home</a></p>
+    <footer class="public-footer py-4">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4">
+            <h6 class="fw-bold mb-3">ABED IDM Hub</h6>
+            <p class="small text-muted">Infrastructure Development Management System</p>
+          </div>
+          <div class="col-md-4">
+            <h6 class="fw-bold mb-3">Quick Links</h6>
+            <ul class="list-unstyled small">
+              <li><a href="index.php#projects" class="text-muted text-decoration-none">Projects</a></li>
+              <li><a href="team.php" class="text-muted text-decoration-none">Meet Our Team</a></li>
+              <li><a href="contact.php" class="text-muted text-decoration-none">Contact</a></li>
+              <li><a href="#" class="text-muted text-decoration-none">Privacy Policy</a></li>
+            </ul>
+          </div>
+          <div class="col-md-4">
+            <h6 class="fw-bold mb-3">Contact</h6>
+            <p class="small text-muted">
+              Malaybalay City, Bukidnon<br>
+              Email: <a href="mailto:placeholder.abed.idm@example.com" class="text-muted">placeholder.abed.idm@example.com</a>
+            </p>
+          </div>
+        </div>
+        <hr class="my-3 border-secondary border-opacity-25" />
+        <div class="text-center text-muted small">
+          <p class="mb-0">&copy; <?php echo date('Y'); ?> ABED IDM Hub. All rights reserved.</p>
+        </div>
       </div>
     </footer>
 

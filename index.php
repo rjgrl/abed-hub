@@ -190,23 +190,18 @@ $conn->close();
           </button>
 
           <div class="collapse navbar-collapse align-items-lg-center" id="publicNav">
-            <ul class="navbar-nav mx-auto mb-3 mb-lg-0">
+            <ul class="navbar-nav ms-auto me-lg-2 mb-3 mb-lg-0 public-navbar-main-nav">
               <li class="nav-item"><a class="nav-link" href="#overview">Overview</a></li>
               <li class="nav-item"><a class="nav-link" href="#projects">Projects</a></li>
               <li class="nav-item"><a class="nav-link" href="#uploads">Uploads</a></li>
               <li class="nav-item"><a class="nav-link" href="team.php">Meet Our Team</a></li>
               <li class="nav-item"><a class="nav-link" href="contact.php">Contact</a></li>
             </ul>
+            <?php if (isset($_SESSION['user_id'])): ?>
             <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-2 public-nav-utils">
-              <?php if (!isset($_SESSION['user_id'])): ?>
-              <a href="login.php" class="btn btn-outline-primary btn-sm public-nav-btn">Login</a>
-              <a href="signup.php" class="btn btn-primary btn-sm public-nav-btn">Sign Up</a>
-              <?php else: ?>
               <a href="dashboard-enhanced.php" class="btn btn-primary btn-sm public-nav-btn">Dashboard</a>
-              <?php endif; ?>
-              <a href="contact.php" class="nav-link py-0 public-nav-extra-link">Contact</a>
-              <button type="button" class="btn btn-light btn-sm px-3 public-nav-btn" aria-label="Current language">EN</button>
             </div>
+            <?php endif; ?>
           </div>
         </nav>
       </div>
@@ -223,14 +218,14 @@ $conn->close();
                 Track project performance, monitor infrastructure progress, and access verified public records through the ABED IDM Hub.
               </p>
               <?php if (!isset($_SESSION['user_id'])): ?>
-              <div class="d-flex flex-wrap gap-2 mt-4">
-                <a href="login.php" class="btn btn-primary px-4">Login</a>
-                <a href="signup.php" class="btn btn-outline-primary px-4">Create Account</a>
+              <div class="public-hero-cta d-flex flex-wrap gap-3 mt-4">
+                <a href="login.php" class="btn btn-primary">Login</a>
+                <a href="signup.php" class="btn btn-outline-primary">Create Account</a>
               </div>
               <?php else: ?>
-              <div class="mt-4">
-                <p class="mb-2">Welcome back, <strong><?php echo htmlspecialchars($_SESSION['full_name']); ?></strong></p>
-                <a href="dashboard-enhanced.php" class="btn btn-primary px-4">Go to Dashboard</a>
+              <div class="public-hero-cta mt-4">
+                <p class="mb-3">Welcome back, <strong><?php echo htmlspecialchars($_SESSION['full_name']); ?></strong></p>
+                <a href="dashboard-enhanced.php" class="btn btn-primary">Go to Dashboard</a>
               </div>
               <?php endif; ?>
             </div>
@@ -629,7 +624,7 @@ $conn->close();
     </section>
 
     <!-- Footer -->
-    <footer class="public-footer py-4 mt-5">
+    <footer class="public-footer py-4">
       <div class="container">
         <div class="row">
           <div class="col-md-4">

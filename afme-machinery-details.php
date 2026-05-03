@@ -610,7 +610,10 @@ renderAppLayout($page_title);
         </div>
     </div>
     <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
+<<<<<<< HEAD
     <script src="assets/js/app-modal.js"></script>
+=======
+>>>>>>> 3f1c0e8f0aa70dc176f1abf35007e71912fff389
     <script src="assets/js/afme-machinery-details.js"></script>
     <?php renderAppLayoutFooter(); ?>
 
