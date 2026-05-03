@@ -769,7 +769,7 @@ $conn->close();
             <h6 class="fw-bold mb-3">Contact</h6>
             <p class="small text-muted">
               Malaybalay City, Bukidnon<br>
-              Email: <a href="mailto:placeholder.abed.idm@example.com" class="text-muted">placeholder.abed.idm@example.com</a>
+              Email: <a href="mailto:abed.idm@gmail.com" class="text-muted">placeholder.abed.idm@example.com</a>
             </p>
           </div>
         </div>

@@ -116,16 +116,12 @@ renderAppLayout($page_title);
                                 <form method="POST" class="d-inline-flex gap-1 align-items-center">
                                     <input type="hidden" name="action" value="update_user_role">
                                     <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
-                                    <select name="role" class="form-select form-select-sm form-select-width-role">
+                                    <select name="role" class="form-select form-select-sm form-select-width-role"
+                                            <?php echo $u['id'] === (int) $_SESSION['user_id'] ? 'disabled' : 'onchange="this.form.submit()"'; ?>>
                                         <?php foreach (['admin','coordinator','operator','viewer'] as $r): ?>
                                             <option value="<?php echo $r; ?>" <?php echo $u['role'] === $r ? 'selected' : ''; ?>><?php echo ucfirst($r); ?></option>
                                         <?php endforeach; ?>
                                     </select>
-                                    <?php if ($u['id'] !== (int)$_SESSION['user_id']): ?>
-                                    <button class="btn btn-sm btn-outline-primary" title="Save role">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                    <?php endif; ?>
                                 </form>
                             </td>
                             <td>
