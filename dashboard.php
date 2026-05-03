@@ -427,10 +427,8 @@ if (!empty($pending_projects)) {
     </main>
 
     <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
-=========
-    <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/app-modal.js"></script>
->>>>>>>>> Temporary merge branch 2
+    <script src="assets/js/main.js"></script>
     <script>
         // Type Chart
         new Chart(document.getElementById('typeChart'), {

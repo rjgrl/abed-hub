@@ -14,10 +14,10 @@ $page_title = 'Projects - ABED IDM Hub';
 $page_extra_head = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />';
 
 // Get filter parameters
-$project_type = strtolower((string) ($_GET['type'] ?? 'fspf'));
+$project_type = strtolower((string) ($_GET['type'] ?? 'all'));
 $allowed_types = ['fspf', 'idp', 'afme', 'all'];
 if (!in_array($project_type, $allowed_types, true)) {
-    $project_type = 'fspf';
+    $project_type = 'all';
 }
 $stage_filter = $_GET['stage'] ?? '';
 $search = $_GET['search'] ?? '';
@@ -164,6 +164,9 @@ renderAppLayout($page_title, $page_extra_head);
                         <!-- Type Tabs -->
                         <div class="col-12">
                             <div class="btn-group" role="group">
+                                <input type="radio" class="btn-check" name="type" id="type_all" value="all" <?php echo $project_type === 'all' ? 'checked' : ''; ?> onchange="this.form.submit()">
+                                <label class="btn btn-outline-primary" for="type_all">All Projects</label>
+
                                 <input type="radio" class="btn-check" name="type" id="type_fspf" value="fspf" <?php echo $project_type === 'fspf' ? 'checked' : ''; ?> onchange="this.form.submit()">
                                 <label class="btn btn-outline-primary" for="type_fspf">FSPF</label>
 
@@ -172,9 +175,6 @@ renderAppLayout($page_title, $page_extra_head);
 
                                 <input type="radio" class="btn-check" name="type" id="type_afme" value="afme" <?php echo $project_type === 'afme' ? 'checked' : ''; ?> onchange="this.form.submit()">
                                 <label class="btn btn-outline-primary" for="type_afme">AFME</label>
-
-                                <input type="radio" class="btn-check" name="type" id="type_all" value="all" <?php echo $project_type === 'all' ? 'checked' : ''; ?> onchange="this.form.submit()">
-                                <label class="btn btn-outline-primary" for="type_all">All Projects</label>
                             </div>
                         </div>
 
@@ -726,10 +726,11 @@ renderAppLayout($page_title, $page_extra_head);
                     maxBounds: PH_REG_BOUNDS.pad(0.1),
                     minZoom: 5,
                     maxZoom: 18,
-                    maxBoundsViscosity: 0.9
+                    maxBoundsViscosity: 0.9,
+                    attributionControl: false
                 }).setView(PH_REG_CENTER, 6);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap'
+                    attribution: ''
                 }).addTo(newProjectRegMap);
                 newProjectRegMap.on('click', function (e) {
                     const ll = e.latlng;
@@ -768,7 +769,7 @@ renderAppLayout($page_title, $page_extra_head);
             }
 
             function syncNewProjectTypeWithActiveTab() {
-                const current = (new URLSearchParams(window.location.search).get('type') || currentProjectType || 'fspf').toLowerCase();
+                const current = (new URLSearchParams(window.location.search).get('type') || currentProjectType || 'all').toLowerCase();
                 const formType = current === 'all' ? 'fspf' : current;
                 const radio = document.querySelector('input[name="project_type"][value="' + formType + '"]');
                 if (radio) {

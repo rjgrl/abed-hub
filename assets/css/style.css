@@ -233,10 +233,12 @@ body.public-home {
   color: var(--app-muted);
 }
 
-.auth-header-note {
-  font-size: 0.85rem;
-  color: var(--accent-blue-deep) !important;
-  font-weight: 600;
+.auth-header .auth-header-note {
+  font-size: 1.35rem;
+  line-height: 1.3;
+  color: var(--app-text);
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .auth-icon {
@@ -437,6 +439,9 @@ main.app-main {
   min-height: calc(100vh - var(--app-header-offset) - var(--app-content-gap));
   background: var(--app-bg);
   box-sizing: border-box;
+  /* Slightly larger default copy in the workspace (inherits to paragraphs, lists, etc.) */
+  font-size: 1.0625rem;
+  line-height: 1.55;
 }
 
 /* Normalize top spacing across all modules; avoid stacked top padding gaps */
@@ -939,14 +944,16 @@ body:not(.public-home) main:not(.app-main) {
 }
 
 .app-topbar-title {
-  font-size: 1.05rem;
-  color: var(--app-text);
-  letter-spacing: -0.01em;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.03em;
+  line-height: 1.25;
 }
 
 .app-topbar-subtitle {
-  font-size: 0.75rem;
-  line-height: 1.25;
+  font-size: 0.8125rem;
+  line-height: 1.3;
   color: var(--app-muted);
 }
 
@@ -967,9 +974,10 @@ body:not(.public-home) main:not(.app-main) {
 }
 
 .app-subnav-heading {
-  font-size: 0.9rem;
-  color: var(--app-text);
-  letter-spacing: -0.01em;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.02em;
 }
 
 .app-subnav-breadcrumb {
@@ -977,12 +985,58 @@ body:not(.public-home) main:not(.app-main) {
   padding-left: 0.75rem !important;
 }
 
+/* Page titles: many templates use h1.h3 / h1.h4 — keep semantic h1 but restore visual impact */
 .app-main h1,
-.app-main .h1,
+.app-main .h1 {
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+}
+
+.app-main h1.h2,
+.app-main h1.h3,
+.app-main h1.h4 {
+  font-weight: 800;
+}
+
+/* Bootstrap utility classes on h1 shrink type — override so dashboard/page titles stay dominant */
+.app-main h1.h4 {
+  font-size: clamp(1.5rem, 1.25rem + 0.85vw, 1.75rem) !important;
+}
+
+.app-main h1.h3 {
+  font-size: clamp(2rem, 1.6rem + 1.25vw, 2.375rem) !important;
+}
+
+.app-main h1.h2 {
+  font-size: clamp(2.125rem, 1.65rem + 1.35vw, 2.5rem) !important;
+}
+
 .app-main h2,
 .app-main .h2 {
-  color: var(--app-text);
+  font-weight: 700;
+  font-size: clamp(1.375rem, 1.2rem + 0.65vw, 1.625rem);
+  color: #0f172a;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.app-main h3,
+.app-main .h3:not(h1) {
+  font-weight: 700;
+  font-size: clamp(1.125rem, 1.05rem + 0.35vw, 1.3125rem);
+  color: #111827;
   letter-spacing: -0.02em;
+}
+
+/* Lead line under page title — slightly stronger than default muted */
+.app-main h1 + p.text-muted,
+.app-main h1 + .text-muted {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #4b5563 !important;
+  line-height: 1.5;
 }
 
 .app-main .card {
@@ -1005,9 +1059,10 @@ body:not(.public-home) main:not(.app-main) {
   background: var(--app-surface);
   border-bottom: 1px solid var(--app-border-subtle);
   padding: 1rem 1.25rem;
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: var(--app-text);
+  font-weight: 700;
+  font-size: 1.0625rem;
+  color: #0f172a;
+  letter-spacing: -0.02em;
 }
 
 .app-main .card-header.bg-light {
@@ -1029,7 +1084,7 @@ body:not(.public-home) main:not(.app-main) {
 }
 
 .app-main .table thead th {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-weight: 600;
@@ -1043,6 +1098,10 @@ body:not(.public-home) main:not(.app-main) {
   padding: 0.75rem 1rem;
   vertical-align: middle;
   border-color: rgba(15, 23, 42, 0.06);
+}
+
+.app-main .table tbody td {
+  font-size: 1rem;
 }
 
 .app-main .table tbody tr:hover {
@@ -1623,15 +1682,10 @@ body.public-home .public-feature-card h3 {
   --team-header-gap-bottom: clamp(2.5rem, 5vw, 4rem);
   padding-top: clamp(2.75rem, 6vw, 4.75rem);
   padding-bottom: clamp(2rem, 4vw, 3.25rem);
-  background: var(--app-surface);
+  background: transparent;
   width: 100%;
   max-width: 100%;
-  background:
-    linear-gradient(180deg, rgba(17, 24, 39, 0.07) 0%, rgba(248, 249, 250, 0.96) 48px, #f8f9fa 100%);
   border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.75),
-    0 12px 40px rgba(15, 23, 42, 0.04);
 }
 
 .team-showcase-header {
@@ -1800,6 +1854,10 @@ body.public-home .public-feature-card h3 {
 .team-prose {
   font-size: 1rem;
   line-height: 1.7;
+}
+
+.team-about-us {
+  background: var(--app-surface);
 }
 
 /* ========================================

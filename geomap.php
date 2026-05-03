@@ -27,23 +27,21 @@ require_once __DIR__ . '/components/layout.php';
 $extra_head = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />';
 renderAppLayout($page_title, $extra_head);
 ?>
-        <div class="container-fluid">
-        <!-- Map Header -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header bg-info text-white">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h4 class="mb-0"><i class="fas fa-map-marked-alt me-2"></i><?php echo htmlspecialchars($page_title ?? 'Geo Map'); ?></h4>
-                                <small>Philippines only — markers use coordinates saved when registering FSPF, IDP, or AFME projects</small>
-                            </div>
-                            <div>
-                                <span class="badge bg-light text-dark"><?php echo count($projects); ?> Projects Mapped</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
+        <div class="container-fluid py-4">
+            <div class="row mb-4 align-items-start">
+                <div class="col">
+                    <h1 class="h3 mb-0"><?php echo htmlspecialchars($page_title ?? 'Geo Map'); ?></h1>
+                    <p class="text-muted mb-0">Philippines only — markers use coordinates saved when registering FSPF, IDP, or AFME projects</p>
+                </div>
+                <div class="col-auto pt-1">
+                    <span class="badge rounded-pill text-bg-light border"><?php echo count($projects); ?> projects mapped</span>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
                         <!-- Map Filters -->
                         <div class="row mb-3">
                             <div class="col-md-3">
@@ -87,15 +85,15 @@ renderAppLayout($page_title, $extra_head);
 
                         <!-- Map Container -->
                         <div id="map"></div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
         <!-- Project List -->
         <div class="row">
             <div class="col-12">
-                <div class="card">
+                <div class="card border-0 shadow-sm">
                     <div class="card-header">
                         <h5 class="mb-0">Mapped Projects</h5>
                     </div>
@@ -175,7 +173,6 @@ renderAppLayout($page_title, $extra_head);
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const PH_BOUNDS = L.latLngBounds([4.2, 116.0], [21.7, 127.6]);
@@ -185,12 +182,12 @@ renderAppLayout($page_title, $extra_head);
                 maxBounds: PH_BOUNDS.pad(0.12),
                 minZoom: 5,
                 maxZoom: 18,
-                maxBoundsViscosity: 0.85
+                maxBoundsViscosity: 0.85,
+                attributionControl: false
             }).setView(PH_CENTER, 6);
 
-            // Add OpenStreetMap tiles
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
+                attribution: ''
             }).addTo(map);
 
             // Project data from PHP

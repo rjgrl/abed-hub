@@ -16,6 +16,9 @@ components/
 
 assets/css/style.css   — single source for app + public-page styling (semantic badges: .stage-badge, .variance-badge, etc.)
 
+logos/                 — brand images (abed_logo.png, Agri.png), team photos, agriblack.png, verified-records.svg,
+                         City.jpg (used as auth + public home background in style.css)
+
 assets/js/
   main.js              — global shell behaviour
   team.js              — Meet Our Team scroll reveals
@@ -35,6 +38,8 @@ api/                   — JSON endpoints for SPA-style pages
 services/              — ProjectRepository, PDFService
 
 exports/               — PDF generators (inline HTML/CSS for PDF engines, not shared with style.css)
+
+PHP dependencies        — run `composer install` at repo root (writes vendor/; mpdf for PDFs)
 
 Typical fixes
   • Blank page / 500    — PHP error log; ensure config/database.php credentials match MySQL

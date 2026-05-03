@@ -68,7 +68,7 @@ renderAppLayout($page_title);
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h3 mb-0"><i class="fas fa-history me-2"></i>Audit Log</h1>
+            <h1 class="h3 mb-0">Audit Log</h1>
             <p class="text-muted mb-0">Track all user actions across the system (<?php echo number_format($total); ?> entries)</p>
         </div>
     </div>

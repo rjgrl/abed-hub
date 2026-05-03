@@ -80,7 +80,7 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
             <!-- Header -->
             <div class="row align-items-center mb-4">
                 <div class="col">
-                    <h1 class="h3 mb-0"><i class="fas fa-chart-bar"></i> Analytics & Reports</h1>
+                    <h1 class="h3 mb-0">Analytics & Reports</h1>
                     <?php if ($report_type === 'summary'): ?>
                         <p class="text-muted mb-0">Executive snapshot — headline portfolio metrics and a single visual overview.</p>
                     <?php elseif ($report_type === 'detailed'): ?>
@@ -653,9 +653,7 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
             <?php endif; ?>
 
         </div>
-    </main>
 
-    <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
     <script>
         function openAnalyticsPdf() {
             const year = encodeURIComponent('<?php echo htmlspecialchars((string) $year); ?>');
