@@ -136,23 +136,9 @@ if ($code === '') {
                         </div>
                     </div>
                     <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white"><h6 class="mb-0">Verified documents</h6></div>
+                        <div class="card-header bg-white"><h6 class="mb-0">Document privacy</h6></div>
                         <div class="card-body">
-                            <?php if (empty($documents)): ?>
-                            <p class="text-muted small mb-0">No verified machinery documents yet.</p>
-                            <?php else: ?>
-                            <ul class="list-group list-group-flush">
-                                <?php foreach ($documents as $doc): ?>
-                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <div class="small fw-medium"><?php echo htmlspecialchars($doc['file_name']); ?></div>
-                                        <div class="small text-muted"><?php echo htmlspecialchars($doc['doc_type']); ?></div>
-                                    </div>
-                                    <a class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener" href="api/public-machinery-document.php?action=preview&amp;machinery_id=<?php echo $id; ?>&amp;id=<?php echo (int) $doc['id']; ?>">View</a>
-                                </li>
-                                <?php endforeach; ?>
-                            </ul>
-                            <?php endif; ?>
+                            <p class="text-muted small mb-0">Supporting documents are private and available only to authorized internal staff.</p>
                         </div>
                     </div>
                 </div>

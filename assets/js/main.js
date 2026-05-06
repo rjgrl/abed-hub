@@ -197,7 +197,18 @@ window.addEventListener("load", adjustAppMainMargins);
 window.addEventListener("resize", adjustAppMainMargins);
 
 document.addEventListener("click", async (event) => {
-  const logoutLink = event.target.closest('a[href="logout.php"]');
+  const clickedAnchor = event.target.closest("a");
+  if (!clickedAnchor) return;
+
+  const hrefAttr = clickedAnchor.getAttribute("href") || "";
+  const isMarkedLogoutLink =
+    clickedAnchor.classList.contains("js-logout-link") ||
+    clickedAnchor.getAttribute("data-logout-link") === "1";
+  const isLogoutPath =
+    /(^|\/)logout\.php(\?|#|$)/i.test(hrefAttr) ||
+    /(^|\/)logout\.php(\?|#|$)/i.test(clickedAnchor.pathname || "");
+
+  const logoutLink = isMarkedLogoutLink || isLogoutPath ? clickedAnchor : null;
   if (!logoutLink) return;
   event.preventDefault();
 
