@@ -60,26 +60,26 @@
    AUTH PAGES BODY & CONTAINER
    ======================================== */
 
-/* Shared with body.public-home — City.jpg + same overlays / opacity as login & signup */
+/* Shared backdrop — login / signup / forgot / reset / verify + marketing homepage (dark wash over City.jpg) */
 .auth-body,
 body.public-home {
   position: relative;
   isolation: isolate;
   margin: 0;
-  background-color: var(--app-bg);
+  background-color: #0f172a;
   background-image:
     radial-gradient(
-      ellipse 100% 70% at 50% 0%,
-      rgba(255, 255, 255, 0.65) 0%,
-      transparent 60%
+      ellipse 110% 78% at 50% 0%,
+      rgba(15, 23, 42, 0.55) 0%,
+      transparent 58%
     ),
-    radial-gradient(circle at top right, rgba(198, 148, 249, 0.12), transparent 42%),
-    radial-gradient(circle at bottom left, rgba(91, 141, 239, 0.12), transparent 46%),
+    radial-gradient(circle at top right, rgba(91, 141, 239, 0.14), transparent 44%),
+    radial-gradient(circle at bottom left, rgba(91, 141, 239, 0.11), transparent 48%),
     linear-gradient(
       165deg,
-      rgba(255, 255, 255, 0.88) 0%,
-      rgba(248, 250, 252, 0.72) 45%,
-      rgba(241, 245, 249, 0.82) 100%
+      rgba(17, 24, 39, 0.84) 0%,
+      rgba(30, 41, 59, 0.7) 45%,
+      rgba(15, 23, 42, 0.9) 100%
     ),
     url("../../logos/City.jpg");
   background-position: center, top right, bottom left, center, center;
@@ -650,6 +650,27 @@ body:not(.public-home) main:not(.app-main) {
   box-shadow: 0 2px 8px rgba(91, 141, 239, 0.35);
 }
 
+.btn-google {
+  background: #fff;
+  border: 1px solid #dadce0;
+  color: #3c4043;
+  font-weight: 600;
+  padding: 0.75rem;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  transition: var(--transition);
+  text-align: center;
+  text-decoration: none;
+  display: block;
+}
+
+.btn-google:hover {
+  background: #f8f9fa;
+  border-color: #c6c6c6;
+  color: #3c4043;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
 .btn-auth-back {
   background-color: #f8f9fa;
   border: 2px solid #e0e0e0;
@@ -777,7 +798,7 @@ body:not(.public-home) main:not(.app-main) {
 .auth-footer {
   text-align: center;
   margin-top: 1.875rem;
-  color: var(--app-muted);
+  color: rgba(248, 250, 252, 0.68);
   font-size: 0.75rem;
 }
 
@@ -1273,6 +1294,7 @@ body.public-home {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-attachment: scroll;
 }
 
 /* Sticky footer: pin public footer to viewport bottom when content is short */
@@ -1475,6 +1497,12 @@ body.public-home > footer.public-footer {
 body.public-home h2 {
   font-weight: 800;
   letter-spacing: -0.02em;
+}
+
+/* System Overview sits on the dark photo — title must stay light for contrast */
+body.public-home .public-home-overview-title {
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
 }
 
 body.public-home .public-feature-card h3 {
@@ -1717,6 +1745,12 @@ body.public-home .public-feature-card h3 {
   text-align: center;
 }
 
+/* Meet Our Team hero sits on the dark City.jpg surface — use light type */
+.team-page .team-showcase .team-page-title {
+  color: #f8fafc;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+
 .team-page .team-lead {
   font-size: clamp(0.98rem, 1.35vw, 1.0625rem);
   line-height: 1.78;
@@ -1725,6 +1759,24 @@ body.public-home .public-feature-card h3 {
   margin-right: auto;
   margin-bottom: clamp(1.25rem, 2.5vw, 1.75rem);
   text-align: center;
+}
+
+.team-page .team-showcase .team-lead,
+.team-page .team-showcase #team-hero-lead {
+  color: rgba(248, 250, 252, 0.94) !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.team-page .team-showcase .team-read-more-btn {
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.65) !important;
+  background: rgba(15, 23, 42, 0.25);
+}
+
+.team-page .team-showcase .team-read-more-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: #fff !important;
+  color: #fff !important;
 }
 
 /* Hero blurb: force centered lines (body/start alignment must not win on this block) */
@@ -1767,80 +1819,88 @@ body.public-home .public-feature-card h3 {
   }
 }
 
-@media (min-width: 992px) {
+/* Four columns only at xl — avoids cramped cards / horizontal bleed on typical laptops */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .team-member-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
   .team-member-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
-.team-card {
+/* Member tiles: one white card per person (photo + name block), readable text */
+.team-page .team-member-grid .team-card {
   display: flex;
   flex-direction: column;
   align-items: stretch;
   min-width: 0;
   height: 100%;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  overflow: visible;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
   transition:
-    transform 0.25s ease,
-    filter 0.25s ease;
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
 }
 
-.team-card:hover {
-  transform: translateY(-3px);
+.team-page .team-member-grid .team-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
 }
 
-.team-card:hover .team-card-image-wrap {
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
-}
-
-.team-card-image-wrap {
+.team-page .team-member-grid .team-card-image-wrap {
   aspect-ratio: 4 / 5;
   width: 100%;
   min-height: 0;
   background: var(--app-bg);
-  border-radius: var(--team-image-radius, 6px);
+  border-radius: 0;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
-  border: 1px solid var(--app-border-subtle);
-  transition: box-shadow 0.25s ease;
+  box-shadow: none;
+  border: none;
+  border-bottom: 1px solid var(--app-border-subtle);
 }
 
-.team-card-image {
+.team-page .team-member-grid .team-card-image {
   width: 100%;
   height: 100%;
   max-width: 100%;
   object-fit: cover;
   object-position: center 42%;
   display: block;
-  filter: grayscale(18%) brightness(0.97);
+  filter: grayscale(12%) brightness(0.98);
   transition: filter 0.25s ease;
 }
 
-.team-card:hover .team-card-image {
-  filter: grayscale(8%) brightness(1);
+.team-page .team-member-grid .team-card:hover .team-card-image {
+  filter: grayscale(4%) brightness(1);
 }
 
-
-.team-card-body {
-  flex: 0 0 auto;
-  padding: clamp(0.75rem, 1.5vw, 1rem) 0 0;
+.team-page .team-member-grid .team-card-body {
+  flex: 1 1 auto;
+  padding: 1rem 1.125rem 1.25rem;
   text-align: left;
+  background: var(--app-surface);
 }
 
-.team-card-name {
+.team-page .team-member-grid .team-card-name {
   font-family: "Poppins", "Inter", system-ui, sans-serif;
   font-weight: 600;
   color: var(--app-text);
-  line-height: 1.3;
+  line-height: 1.35;
+  font-size: 1.05rem;
 }
 
-.team-card-role {
-  margin-top: 0.2rem;
-  line-height: 1.4;
+.team-page .team-member-grid .team-card-role {
+  margin-top: 0.35rem;
+  line-height: 1.45;
+  color: var(--app-muted) !important;
+  font-size: 0.875rem;
 }
 
 #about-project {
@@ -1869,8 +1929,29 @@ body.public-home .public-feature-card h3 {
   font-family: "Inter", system-ui, sans-serif;
 }
 
-.contact-page .public-section-surface {
+/* Section stays on the dark body photo — only the card is white */
+.contact-page .contact-page-section {
+  background: transparent;
+}
+
+.contact-page-card-wrap {
+  width: 100%;
+  max-width: 26rem;
+}
+
+.contact-page-card {
+  border-radius: var(--radius-card);
+  border: 1px solid var(--app-border-subtle) !important;
+  box-shadow: var(--shadow-lg);
   background: var(--app-surface);
+}
+
+.contact-page-dl dt {
+  font-weight: 600;
+}
+
+.contact-page-dl dd {
+  color: var(--app-text);
 }
 
 .contact-page-title {
@@ -1880,6 +1961,48 @@ body.public-home .public-feature-card h3 {
   font-size: clamp(1.85rem, 3.5vw, 2.65rem);
   line-height: 1.15;
   color: var(--app-text);
+}
+
+/* ========================================
+   PUBLIC CATALOG DETAIL (read-only project / machinery — text over dark body bg)
+   ======================================== */
+
+.public-catalog-detail .public-catalog-detail-title {
+  color: #f8fafc;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.42);
+}
+
+.public-catalog-detail .public-catalog-detail-subtitle {
+  color: rgba(248, 250, 252, 0.92) !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.public-catalog-detail .public-catalog-detail-subtitle strong {
+  color: #fff;
+  font-weight: 700;
+}
+
+.public-catalog-detail .public-catalog-nav-tabs {
+  border-bottom-color: rgba(255, 255, 255, 0.22);
+}
+
+.public-catalog-detail .public-catalog-nav-tabs .nav-link {
+  color: rgba(255, 255, 255, 0.9);
+  border-color: transparent;
+  margin-bottom: -1px;
+}
+
+.public-catalog-detail .public-catalog-nav-tabs .nav-link:hover,
+.public-catalog-detail .public-catalog-nav-tabs .nav-link:focus {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.public-catalog-detail .public-catalog-nav-tabs .nav-link.active {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  border-color: #ffffff #ffffff transparent !important;
+  font-weight: 600;
 }
 
 .team-about-icon {
@@ -2116,6 +2239,26 @@ body.public-home .public-feature-card h3 {
 .progress-table-compact {
   height: 20px;
   width: 100px;
+  position: relative;
+}
+
+.progress-table-compact .progress-bar {
+  position: relative;
+}
+
+.progress-table-compact .progress-table-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  color: #000;
+  font-weight: 600;
+  font-size: 0.7rem;
+  line-height: 1;
+  margin: 0;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .progress-bar-physical {
@@ -2140,6 +2283,42 @@ body.public-home .public-feature-card h3 {
 
 .app-user-avatar img {
   object-fit: cover;
+}
+
+.app-topbar-notif-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-topbar-notif-badge {
+  font-size: 0.65rem;
+}
+
+.app-topbar-notif-menu {
+  width: min(92vw, 380px);
+}
+
+.app-topbar-notif-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.app-topbar-notif-item {
+  border-bottom: 1px solid var(--app-border-subtle);
+  white-space: normal;
+  padding: 0.65rem 0.85rem;
+}
+
+.app-topbar-notif-item:last-child {
+  border-bottom: 0;
+}
+
+.app-topbar-notif-item--unread {
+  background: rgba(91, 141, 239, 0.08);
 }
 
 .analytics-chart-card-body {
@@ -2401,6 +2580,30 @@ body.public-home .public-feature-card h3 {
 
 .progress .progress-bar.progress-bar-w {
   width: var(--w, 0%);
+}
+
+/* Progress labels must be centered against the full bar width, not the fill segment. */
+.progress.progress-with-centered-label {
+  position: relative;
+  overflow: hidden;
+}
+
+.progress.progress-with-centered-label .progress-bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+}
+
+.progress.progress-with-centered-label .progress-centered-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  font-weight: 600;
+  line-height: 1;
+  pointer-events: none;
+  color: var(--progress-label-color, #111827);
 }
 
 /* Dashboard “distribution” demo strips (fixed fractions, no inline width) */

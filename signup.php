@@ -2,6 +2,26 @@
 session_name('ABED_IDM_HUB');
 session_start();
 require_once __DIR__ . '/config/recaptcha.php';
+require_once __DIR__ . '/config/google-oauth.php';
+
+$oauthErrorMessages = [
+    'config' => 'Google Sign-In is not configured yet. Ask your administrator to add OAuth credentials.',
+    'denied' => 'Google sign-in was cancelled.',
+    'invalid' => 'Sign-in session expired or was invalid. Please try again.',
+    'token' => 'Could not complete Google sign-in. Please try again.',
+    'email_unverified' => 'Your Google account email must be verified.',
+    'office_required' => 'Select your Office Unit before continuing with Google.',
+    'duplicate' => 'That email or username is already registered. Try signing in instead.',
+    'server' => 'Could not create your account. Please try again later.',
+];
+
+$oauth_err_key = preg_replace('/[^a-z0-9_]/', '', (string) ($_GET['oauth_error'] ?? ''));
+$oauth_alert_message = $oauth_err_key !== ''
+    ? ($oauthErrorMessages[$oauth_err_key] ?? 'Something went wrong. Please try again.')
+    : null;
+
+$google_oauth_ready = google_oauth_is_configured();
+
 if (isset($_SESSION['user_id'])) {
     header('Location: dashboard.php');
     exit;
@@ -37,6 +57,9 @@ if (isset($_SESSION['user_id'])) {
 
               <div class="card-body auth-card-body">
                 <div id="alertContainer"></div>
+                <?php if ($oauth_alert_message): ?>
+                <div class="alert alert-danger" role="alert"><?php echo htmlspecialchars($oauth_alert_message, ENT_QUOTES, 'UTF-8'); ?></div>
+                <?php endif; ?>
 
                 <form id="signupForm">
                   <div class="row">
@@ -182,6 +205,22 @@ if (isset($_SESSION['user_id'])) {
                     <i class="fas fa-user-check me-2"></i>Create Account
                   </button>
                 </form>
+
+                <div class="divider-text mt-3">
+                  <span>or</span>
+                </div>
+                <?php if ($google_oauth_ready): ?>
+                <form method="post" action="handlers/google-oauth-start.php" id="googleSignupForm" class="mb-2">
+                  <input type="hidden" name="intent" value="signup" />
+                  <input type="hidden" name="officeUnit" id="googleSignupOfficeUnit" value="" />
+                  <button type="button" class="btn btn-google w-100" id="googleSignupBtn">
+                    <i class="fab fa-google me-2" aria-hidden="true"></i>Continue with Google
+                  </button>
+                </form>
+                <p class="text-muted small text-center mb-0">Select <strong>Office Unit</strong> above first — it is required for Google registration.</p>
+                <?php else: ?>
+                <p class="text-muted small text-center mb-0">Google Sign-Up is available after OAuth credentials are added in <code>config/google-oauth.php</code>.</p>
+                <?php endif; ?>
 
                 <div class="divider-text mt-4">
                   <span>Already have an account?</span>

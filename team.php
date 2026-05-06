@@ -82,7 +82,7 @@ session_start();
                 </div>
                 <div class="team-card-body">
                   <h3 class="team-card-name h5 mb-1">Fritz Carl Jan Gamot</h3>
-                  <p class="team-card-role text-muted small mb-0">Team Leader</p>
+                  <p class="team-card-role small mb-0">Team Leader</p>
                 </div>
               </article>
               <article class="team-card">
@@ -97,7 +97,7 @@ session_start();
                 </div>
                 <div class="team-card-body">
                   <h3 class="team-card-name h5 mb-1">Raymund John Gil Luzon</h3>
-                  <p class="team-card-role text-muted small mb-0">Co-Team Leader &amp; Programmer</p>
+                  <p class="team-card-role small mb-0">Co-Team Leader &amp; Programmer</p>
                 </div>
               </article>
               <article class="team-card">
@@ -112,7 +112,7 @@ session_start();
                 </div>
                 <div class="team-card-body">
                   <h3 class="team-card-name h5 mb-1">Glyn Yohann Pecson</h3>
-                  <p class="team-card-role text-muted small mb-0">UI/UX Designer</p>
+                  <p class="team-card-role small mb-0">UI/UX Designer</p>
                 </div>
               </article>
               <article class="team-card">
@@ -127,7 +127,7 @@ session_start();
                 </div>
                 <div class="team-card-body">
                   <h3 class="team-card-name h5 mb-1">Vincent Capacio</h3>
-                  <p class="team-card-role text-muted small mb-0">Documentator</p>
+                  <p class="team-card-role small mb-0">Documentator</p>
                 </div>
               </article>
           </div>
@@ -207,7 +207,7 @@ session_start();
             <h6 class="fw-bold mb-3">Contact</h6>
             <p class="small text-muted">
               Malaybalay City, Bukidnon<br>
-              Email: <a href="mailto:placeholder.abed.idm@example.com" class="text-muted">placeholder.abed.idm@example.com</a>
+              Email: <a href="mailto:example.abed.idm@example.com" class="text-muted">example.abed.idm@example.com</a>
             </p>
           </div>
         </div>

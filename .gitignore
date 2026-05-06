@@ -5,6 +5,7 @@ tmp/
 # Editor / MCP debug output (regenerated locally)
 .playwright-mcp/
 .env
+config/database.deploy.php
 .env.local
 .env.development.local
 .env.test.local

@@ -214,12 +214,12 @@ if (!$project_id) {
                                 <h6 class="mb-0">Physical Progress Breakdown</h6>
                             </div>
                             <div class="card-body">
-                                <div class="progress progress-md mb-3">
+                                <div class="progress progress-md progress-with-centered-label mb-3" style="--progress-label-color: <?php echo (float) $project['physical_progress'] >= 55 ? '#fff' : '#111827'; ?>;">
                                     <div class="progress-bar bg-primary progress-bar-w" 
                                          style="--w: <?php echo $project['physical_progress']; ?>%"
                                          role="progressbar">
-                                        <?php echo round($project['physical_progress'], 1); ?>%
                                     </div>
+                                    <span class="progress-centered-label"><?php echo round($project['physical_progress'], 1); ?>%</span>
                                 </div>
                                 <div class="scurve-breakdown-host">
                                     <canvas id="physicalBreakdownChart"></canvas>
@@ -234,12 +234,12 @@ if (!$project_id) {
                                 <h6 class="mb-0">Financial Progress Breakdown</h6>
                             </div>
                             <div class="card-body">
-                                <div class="progress progress-md mb-3">
+                                <div class="progress progress-md progress-with-centered-label mb-3" style="--progress-label-color: <?php echo (float) $project['financial_progress'] >= 55 ? '#fff' : '#111827'; ?>;">
                                     <div class="progress-bar bg-success progress-bar-w" 
                                          style="--w: <?php echo $project['financial_progress']; ?>%"
                                          role="progressbar">
-                                        <?php echo round($project['financial_progress'], 1); ?>%
                                     </div>
+                                    <span class="progress-centered-label"><?php echo round($project['financial_progress'], 1); ?>%</span>
                                 </div>
                                 <div class="row g-2 text-center small">
                                     <div class="col-4">
@@ -332,17 +332,17 @@ if (!$project_id) {
                                                 <td><code><?php echo htmlspecialchars($proj['project_code']); ?></code></td>
                                                 <td><?php echo htmlspecialchars(substr($proj['project_title'], 0, 40)); ?></td>
                                                 <td>
-                                                    <div class="progress progress-sm-tall">
+                                                    <div class="progress progress-sm-tall progress-with-centered-label" style="--progress-label-color: <?php echo $phys_pct >= 55 ? '#fff' : '#111827'; ?>;">
                                                         <div class="progress-bar bg-primary progress-bar-w" style="--w: <?php echo $phys_pct; ?>%">
-                                                            <?php echo $phys_pct; ?>%
                                                         </div>
+                                                        <span class="progress-centered-label"><?php echo $phys_pct; ?>%</span>
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <div class="progress progress-sm-tall">
+                                                    <div class="progress progress-sm-tall progress-with-centered-label" style="--progress-label-color: <?php echo $fin_pct >= 55 ? '#fff' : '#111827'; ?>;">
                                                         <div class="progress-bar bg-success progress-bar-w" style="--w: <?php echo $fin_pct; ?>%">
-                                                            <?php echo $fin_pct; ?>%
                                                         </div>
+                                                        <span class="progress-centered-label"><?php echo $fin_pct; ?>%</span>
                                                     </div>
                                                 </td>
                                                 <td><?php echo htmlspecialchars($proj['current_stage']); ?></td>

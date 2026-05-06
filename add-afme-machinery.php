@@ -36,12 +36,28 @@ if (empty($machine_name) || empty($farm_operation) || empty($beneficiary_name)) 
     exit;
 }
 
+// Compatible with both schemas: afme.specifications (current) or afme.description (legacy).
+$afmeSpecColumn = 'specifications';
+$colCheck = $conn->query("SELECT COLUMN_NAME FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'afme' AND COLUMN_NAME IN ('specifications','description')");
+if ($colCheck) {
+    $found = [];
+    while ($r = $colCheck->fetch_assoc()) {
+        $found[] = (string) ($r['COLUMN_NAME'] ?? '');
+    }
+    if (in_array('specifications', $found, true)) {
+        $afmeSpecColumn = 'specifications';
+    } elseif (in_array('description', $found, true)) {
+        $afmeSpecColumn = 'description';
+    }
+}
+
 // Insert machinery into consolidated afme table
 $stmt = $conn->prepare("
     INSERT INTO afme (
         project_id, machine_name, farm_operation, beneficiary_name,
         beneficiary_contact, recipient_type, farm_location, beneficiary_households,
-        description, amount_proposed, amount_allocated, funding_year,
+        {$afmeSpecColumn}, amount_proposed, amount_allocated, funding_year,
         indicative_funding_year, fund_source, current_status
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ");

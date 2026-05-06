@@ -22,6 +22,21 @@
 })(jQuery);
 
 document.addEventListener("DOMContentLoaded", function () {
+  const googleBtn = document.getElementById("googleLoginBtn");
+  if (googleBtn) {
+    googleBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      const roleSelect = document.querySelector('select[name="login_role"]');
+      const loginRole = roleSelect ? roleSelect.value : "employee";
+      const base = googleBtn.getAttribute("data-start-url") || "handlers/google-oauth-start.php";
+      const url =
+        base +
+        "?intent=login&login_role=" +
+        encodeURIComponent(loginRole);
+      window.location.href = url;
+    });
+  }
+
   const loginForm = document.getElementById("loginForm");
   if (!loginForm) return;
 

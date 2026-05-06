@@ -6,8 +6,8 @@
  *
  * --- INSERT YOUR KEYS BELOW (same pair for both login and signup) ---
  */
-define('RECAPTCHA_SITE_KEY', '6LfgVNUsAAAAAH2BeHXli5nbQ-I-CCIJi1zmy9AH');   // Public — safe in HTML
-define('RECAPTCHA_SECRET_KEY', '6LfgVNUsAAAAADIsgTcV0vwyX--k8AarD8cnjQZQ'); // Private — never expose to browser
+define('RECAPTCHA_SITE_KEY', '6LeOfsUsAAAAAAW_BIws2l8pJ-bnw-fqqepYZKaS');   // Public — safe in HTML
+define('RECAPTCHA_SECRET_KEY', '6LeOfsUsAAAAAHuvXWoC3d2oMIY4hSYpfNkdRLlN'); // Private — never expose to browser
 
 /**
  * Verify checkbox token with Google (call only from PHP handlers).

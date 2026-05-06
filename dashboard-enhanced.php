@@ -42,7 +42,7 @@ $recent_projects = $repo->recent($module, 10);
 $pending_count    = 0;
 $pending_projects = [];
 $pending_title = 'Pending Approvals';
-if ($user_role === 'admin' || $user_role === 'coordinator') {
+if ($user_role === 'admin') {
     $pending_projects = $repo->pendingApprovals($module, 5);
 } else {
     $pending_projects = $repo->pendingByUser((int) $user_id, $module, 5);
@@ -165,7 +165,7 @@ if (!empty($pending_projects)) {
                             </div>
                         </div>
                         <div class="card-footer text-center">
-                            <a href="#" class="text-decoration-none" onclick="showAllNotifications()">
+                            <a href="notifications.php" class="text-decoration-none">
                                 <i class="fas fa-eye"></i> View All Notifications
                             </a>
                         </div>
@@ -186,7 +186,7 @@ if (!empty($pending_projects)) {
                             </div>
                         </div>
                         <div class="card-footer text-center">
-                            <a href="#" class="text-decoration-none" onclick="showAllAlerts()">
+                            <a href="alerts.php" class="text-decoration-none">
                                 <i class="fas fa-eye"></i> View All Alerts
                             </a>
                         </div>
@@ -524,14 +524,6 @@ if (!empty($pending_projects)) {
                 'critical': 'danger'
             };
             return colors[severity] || 'secondary';
-        }
-
-        function showAllNotifications() {
-            AppModal.alert('Notifications page coming soon!', { title: 'Notifications' });
-        }
-
-        function showAllAlerts() {
-            AppModal.alert('Alerts management page coming soon!', { title: 'Alerts' });
         }
 
         // Load data when page loads

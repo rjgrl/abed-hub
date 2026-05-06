@@ -57,6 +57,20 @@ $top_performers  = $repo->topPerformers('all', 10);
 $at_risk         = $repo->atRiskProjects(10);
 $avg_progress    = $repo->avgProgress('all');
 $completed       = $repo->completedCount();
+$statusRow = $conn->query("
+    SELECT
+        COUNT(*) AS total_projects_raw,
+        SUM(CASE WHEN approval_status = 'Approved' THEN 1 ELSE 0 END) AS approved_projects,
+        SUM(CASE WHEN approval_status = 'Pending' THEN 1 ELSE 0 END) AS pending_reviews,
+        SUM(CASE WHEN approval_status = 'Rejected' THEN 1 ELSE 0 END) AS rejected_projects
+    FROM projects
+")->fetch_assoc() ?: [];
+$total_projects_raw = (int) ($statusRow['total_projects_raw'] ?? 0);
+$pending_reviews = (int) ($statusRow['pending_reviews'] ?? 0);
+$rejected_projects = (int) ($statusRow['rejected_projects'] ?? 0);
+$approval_rate = $total_projects_raw > 0
+    ? round(((int) ($statusRow['approved_projects'] ?? 0) / $total_projects_raw) * 100, 1)
+    : 0.0;
 
 // Derived insights (used for summary vs performance narrative — distinct copy per report type)
 $stage_dist_total = array_sum($stage_dist_map);
@@ -150,21 +164,37 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
 
             <?php if ($report_type === 'summary'): ?>
 
-            <!-- Summary: KPI only + one chart + bullets -->
+            <!-- Summary: KPI-first layout -->
             <div class="row g-3 mb-4">
                 <div class="col-md-3">
                     <div class="card border-0 shadow-sm">
                         <div class="card-body text-center py-3">
                             <h3 class="text-primary mb-0"><?php echo $all_projects; ?></h3>
-                            <small class="text-muted">Approved projects</small>
+                            <small class="text-muted">Total Projects</small>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="card border-0 shadow-sm">
                         <div class="card-body text-center py-3">
-                            <h3 class="text-success mb-0">₱<?php echo number_format($total_allocated, 0); ?></h3>
-                            <small class="text-muted">Total allocated</small>
+                            <h3 class="text-success mb-0"><?php echo number_format($approval_rate, 1); ?>%</h3>
+                            <small class="text-muted">Approval Rate</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center py-3">
+                            <h3 class="text-warning mb-0"><?php echo $pending_reviews; ?></h3>
+                            <small class="text-muted">Pending Reviews</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center py-3">
+                            <h3 class="text-danger mb-0"><?php echo $rejected_projects; ?></h3>
+                            <small class="text-muted">Rejected Projects</small>
                         </div>
                     </div>
                 </div>
@@ -172,15 +202,31 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                     <div class="card border-0 shadow-sm">
                         <div class="card-body text-center py-3">
                             <h3 class="text-info mb-0"><?php echo $avg_progress['avg_physical']; ?>%</h3>
-                            <small class="text-muted">Avg physical progress</small>
+                            <small class="text-muted">Avg Physical Progress</small>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="card border-0 shadow-sm">
                         <div class="card-body text-center py-3">
-                            <h3 class="text-warning mb-0"><?php echo $completed; ?></h3>
-                            <small class="text-muted">Completed / turned over</small>
+                            <h3 class="text-secondary mb-0"><?php echo $completed; ?></h3>
+                            <small class="text-muted">Completed / Turned Over</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center py-3">
+                            <h3 class="text-success mb-0">₱<?php echo number_format($total_allocated, 0); ?></h3>
+                            <small class="text-muted">Allocated Budget</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center py-3">
+                            <h3 class="text-primary mb-0">₱<?php echo number_format($total_proposed, 0); ?></h3>
+                            <small class="text-muted">Proposed Budget</small>
                         </div>
                     </div>
                 </div>
@@ -192,35 +238,28 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                         <div class="card-header">
                             <h6 class="mb-0">Portfolio mix (by program type)</h6>
                         </div>
-                        <div class="card-body analytics-chart-card-body">
-                            <canvas id="typeChart"></canvas>
+                        <div class="card-body">
+                            <div class="analytics-monthly-chart-wrap">
+                                <canvas id="typeChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-6">
                     <div class="card border-0 shadow-sm h-100">
                         <div class="card-header">
-                            <h6 class="mb-0">Executive highlights</h6>
+                            <h6 class="mb-0">Portfolio mix (by program type)</h6>
                         </div>
                         <div class="card-body">
-                            <ul class="mb-0 ps-3">
-                                <li class="mb-2">The approved catalog contains <strong><?php echo $all_projects; ?></strong> projects with <strong>₱<?php echo number_format($total_allocated, 0); ?></strong> in recorded allocations<?php echo $utilization_pct !== null ? ' (' . $utilization_pct . '% of aggregate proposed amounts).' : '.'; ?></li>
-                                <li class="mb-2">Mean physical completion sits at <strong><?php echo $avg_progress['avg_physical']; ?>%</strong>; <strong><?php echo $completed; ?></strong> projects are closed out as completed or turned over.</li>
-                                <?php if ($dominant_stage !== '' && $dominant_count > 0): ?>
-                                    <li class="mb-2">The largest stage concentration is <strong><?php echo htmlspecialchars($dominant_stage); ?></strong> (<strong><?php echo $dominant_count; ?></strong> projects<?php echo $stage_dist_total > 0 ? ', ' . round(100 * $dominant_count / $stage_dist_total) . '% of staged records' : ''; ?>).</li>
-                                <?php endif; ?>
-                                <li class="mb-0">Program split: FSPF <strong><?php echo $fspf_count; ?></strong>, IDP <strong><?php echo $idp_count; ?></strong>, AFME <strong><?php echo $afme_count; ?></strong>.</li>
-                            </ul>
+                            <div class="analytics-monthly-chart-wrap">
+                                <canvas id="typeChartSummary"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <?php elseif ($report_type === 'detailed'): ?>
-
-            <div class="alert alert-light border mb-4" role="note">
-                <strong>Reading this report.</strong> Figures below combine the full approved project catalog for counts, progress, and finance. Charts labeled with <?php echo (int) $year; ?> use projects whose <em>creation date</em> falls in that year; stage and KPI cards reflect the current catalog regardless of year. Use this view when you need definitions, supporting series side by side, and tabular backup for stakeholders or audits.
-            </div>
 
             <div class="row g-3 mb-4">
                 <div class="col-md-3">
@@ -268,7 +307,9 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                             <h6 class="mb-0">Distribution by type</h6>
                         </div>
                         <div class="card-body">
-                            <canvas id="typeChart" height="100"></canvas>
+                            <div class="analytics-monthly-chart-wrap">
+                                <canvas id="typeChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -278,7 +319,9 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                             <h6 class="mb-0">Distribution by stage (current)</h6>
                         </div>
                         <div class="card-body">
-                            <canvas id="stageChart" height="100"></canvas>
+                            <div class="analytics-monthly-chart-wrap">
+                                <canvas id="stageChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -288,7 +331,6 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                             <h6 class="mb-0">Monthly activity <?php echo (int) $year; ?> <span class="badge bg-light text-dark border ms-1"><?php echo htmlspecialchars($curve_label); ?></span></h6>
                         </div>
                         <div class="card-body">
-                            <p class="small text-muted mb-2">Blue: projects created per month. Orange: average physical % among projects created that month. Cohort matches the program tab above (FSPF / IDP / AFME / All Projects).</p>
                             <div class="position-relative analytics-monthly-chart-wrap">
                                 <canvas id="monthlyChart"></canvas>
                             </div>
@@ -457,12 +499,6 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
 
             <?php else: /* performance */ ?>
 
-            <div class="row g-3 mb-4">
-                <div class="col">
-                    <p class="text-muted mb-0">This layout foregrounds <strong>measurable execution</strong>: portfolio-level averages, physical versus financial curves by month, and projects ranked by delivery metrics or variance. Narrative bullets interpret gaps — they do not repeat the definitional text used in the Detailed report.</p>
-                </div>
-            </div>
-
             <div class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-3 mb-4">
                 <div class="col">
                     <div class="card border-0 shadow-sm h-100">
@@ -534,7 +570,9 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                             <h6 class="mb-0">Share by program (weight)</h6>
                         </div>
                         <div class="card-body">
-                            <canvas id="typeChart" height="100"></canvas>
+                            <div class="analytics-monthly-chart-wrap">
+                                <canvas id="typeChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -544,7 +582,9 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                             <h6 class="mb-0">Pipeline load by stage</h6>
                         </div>
                         <div class="card-body">
-                            <canvas id="stageChart" height="100"></canvas>
+                            <div class="analytics-monthly-chart-wrap">
+                                <canvas id="stageChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -554,7 +594,6 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
                             <h6 class="mb-0"><?php echo (int) $year; ?> monthly execution curve <span class="badge bg-light text-dark border ms-1"><?php echo htmlspecialchars($curve_label); ?></span></h6>
                         </div>
                         <div class="card-body">
-                            <p class="small text-muted mb-2">Physical vs financial % for projects <em>created</em> each month in this cohort — compares execution shape across the year. Use <strong>Monthly charts — program cohort</strong> (FSPF, IDP, AFME, All Projects) in the filters card to match <a href="projects-advanced.php">Projects</a>.</p>
                             <div class="position-relative analytics-monthly-chart-wrap">
                                 <canvas id="monthlyChart"></canvas>
                             </div>
@@ -677,19 +716,30 @@ renderAppLayout($page_title, '<script src="https://cdnjs.cloudflare.com/ajax/lib
         }
 
         <?php if ($report_type === 'summary'): ?>
+        const typeChartData = {
+            labels: ['FSPF', 'IDP', 'AFME'],
+            datasets: [{
+                data: [<?php echo $fspf_count; ?>, <?php echo $idp_count; ?>, <?php echo $afme_count; ?>],
+                backgroundColor: ['#5b8def', '#c694f9', '#5fd4a8']
+            }]
+        };
         new Chart(document.getElementById('typeChart'), {
             type: 'doughnut',
-            data: {
-                labels: ['FSPF', 'IDP', 'AFME'],
-                datasets: [{
-                    data: [<?php echo $fspf_count; ?>, <?php echo $idp_count; ?>, <?php echo $afme_count; ?>],
-                    backgroundColor: ['#5b8def', '#c694f9', '#5fd4a8']
-                }]
-            },
+            data: typeChartData,
             options: {
                 responsive: true,
-                maintainAspectRatio: true,
+                maintainAspectRatio: false,
                 plugins: { legend: { position: 'bottom' } }
+            }
+        });
+        new Chart(document.getElementById('typeChartSummary'), {
+            type: 'bar',
+            data: typeChartData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
             }
         });
         <?php elseif ($report_type === 'detailed'): ?>

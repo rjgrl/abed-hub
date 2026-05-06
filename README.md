@@ -17,3 +17,11 @@ To:
 - Dashboard (charts/graphs)
 - Automated reports
 - Data export (PDF/Excel)
+
+# Fresh DB Setup
+
+For a new/fresh database import, use:
+
+- `database/db.sql`
+
+This file is the full baseline schema and already includes the structural outcomes of current migration files, so you do not need to run migration scripts separately for first-time setup.

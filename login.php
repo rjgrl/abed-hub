@@ -2,6 +2,36 @@
 session_name('ABED_IDM_HUB');
 session_start();
 require_once __DIR__ . '/config/recaptcha.php';
+require_once __DIR__ . '/config/google-oauth.php';
+
+$oauthErrorMessages = [
+    'config' => 'Google Sign-In is not configured yet. Ask your administrator to add OAuth credentials.',
+    'denied' => 'Google sign-in was cancelled.',
+    'invalid' => 'Sign-in session expired or was invalid. Please try again.',
+    'token' => 'Could not complete Google sign-in. Please try again.',
+    'email_unverified' => 'Your Google account email must be verified to sign in.',
+    'inactive' => 'Your account is pending Super Admin approval or has been deactivated.',
+    'admin_gate' => 'Only Super Admin accounts can use Admin Login.',
+    'use_admin_login' => 'Please use Admin Login for Super Admin accounts.',
+    'no_account' => 'No account found for this Google sign-in. Use Create Account first.',
+    'account_conflict' => 'This Google account cannot be linked — that email is already linked to a different Google account.',
+];
+
+$oauthNoticeMessages = [
+    'signup_pending' => 'Google account registered. Please wait for Super Admin approval before signing in.',
+];
+
+$oauth_err_key = preg_replace('/[^a-z0-9_]/', '', (string) ($_GET['oauth_error'] ?? ''));
+$oauth_notice_key = preg_replace('/[^a-z0-9_]/', '', (string) ($_GET['oauth_notice'] ?? ''));
+$oauth_alert_message = $oauth_err_key !== ''
+    ? ($oauthErrorMessages[$oauth_err_key] ?? 'Sign-in failed. Please try again.')
+    : null;
+$oauth_notice_message = $oauth_notice_key !== ''
+    ? ($oauthNoticeMessages[$oauth_notice_key] ?? '')
+    : null;
+
+$google_oauth_ready = google_oauth_is_configured();
+
 if (isset($_SESSION['user_id'])) {
     header('Location: dashboard.php');
     exit;
@@ -36,6 +66,12 @@ if (isset($_SESSION['user_id'])) {
               </div>
               <div class="card-body auth-card-body">
                 <div id="alertContainer"></div>
+                <?php if ($oauth_alert_message): ?>
+                <div class="alert alert-danger" role="alert"><?php echo htmlspecialchars($oauth_alert_message, ENT_QUOTES, 'UTF-8'); ?></div>
+                <?php endif; ?>
+                <?php if ($oauth_notice_message): ?>
+                <div class="alert alert-success" role="status"><?php echo htmlspecialchars($oauth_notice_message, ENT_QUOTES, 'UTF-8'); ?></div>
+                <?php endif; ?>
 
                 <form id="loginForm">
                   <div class="mb-3">
@@ -102,6 +138,18 @@ if (isset($_SESSION['user_id'])) {
                   </button>
                 </form>
 
+                <div class="divider-text mt-3">
+                  <span>or</span>
+                </div>
+                <?php if ($google_oauth_ready): ?>
+                <a href="#" class="btn btn-google w-100" id="googleLoginBtn" data-start-url="handlers/google-oauth-start.php">
+                  <i class="fab fa-google me-2" aria-hidden="true"></i>Continue with Google
+                </a>
+                <p class="text-muted small text-center mt-2 mb-0">Uses the <strong>Login As</strong> option above (Employee vs Admin).</p>
+                <?php else: ?>
+                <p class="text-muted small text-center mb-0">Google Sign-In is available after the administrator adds OAuth client credentials in <code>config/google-oauth.php</code>.</p>
+                <?php endif; ?>
+
                 <div class="divider-text mt-4">
                   <span>New User?</span>
                 </div>
@@ -142,7 +190,7 @@ if (isset($_SESSION['user_id'])) {
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/main.js"></script>
-    <script src="assets/js/login.js?v=20260503"></script>
+    <script src="assets/js/login.js?v=20260505"></script>
   </body>
 </html>
 

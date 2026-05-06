@@ -8,7 +8,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 requireLogin();
-requireRoles(['admin', 'coordinator']);
+requireRoles(['admin']);
 
 $page_title = 'Audit Log - ABED IDM Hub';
 

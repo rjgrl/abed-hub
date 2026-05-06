@@ -2,6 +2,15 @@
 -- Core domain consolidated into:
 --   1) projects
 --   2) afme
+--
+-- Fresh-install parity note:
+-- This file already includes the schema outcomes from current migrations:
+--   - 2026_05_03_user_roles_admin_employee.sql
+--   - 2026_05_03_drop_users_address_contact_number.sql
+--   - 2026_05_05_users_google_oauth.sql
+--   - 2026_05_06_projects_rejection_comment.sql
+--   - 2026_05_06_users_rejection_reason.sql
+-- so a new database can be created from this file alone.
 
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -20,16 +29,20 @@ CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) UNIQUE NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
+    google_sub VARCHAR(255) NULL DEFAULT NULL,
     first_name VARCHAR(255) NOT NULL DEFAULT '',
     last_name VARCHAR(255) NOT NULL DEFAULT '',
     employee_id VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    role ENUM('admin', 'coordinator', 'operator', 'viewer') DEFAULT 'operator',
+    role ENUM('admin', 'employee') NOT NULL DEFAULT 'employee',
     office_unit VARCHAR(255),
     is_active BOOLEAN DEFAULT TRUE,
+    rejection_reason TEXT NULL,
+    rejected_at DATETIME NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_users_email (email),
+    UNIQUE INDEX idx_users_google_sub (google_sub),
     INDEX idx_users_username (username),
     INDEX idx_users_role (role),
     INDEX idx_users_active_created_at (is_active, created_at)
@@ -77,6 +90,7 @@ CREATE TABLE projects (
     current_stage VARCHAR(80) DEFAULT 'Proposal',
     status VARCHAR(80) DEFAULT 'For Validation',
     approval_status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Approved',
+    rejection_comment TEXT NULL,
     date_validation_start DATE,
     date_validation_end DATE,
     validation_report_path VARCHAR(500),

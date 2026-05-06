@@ -136,13 +136,13 @@ function user_guide_features(): array
         [
             'title' => 'Administration',
             'icon' => 'fa-users-cog',
-            'summary' => 'Available to admin and coordinator roles.',
+            'summary' => 'Available to Super Admin only.',
             'bullets' => [
                 'User management, system settings, and audit log.',
             ],
             'href' => 'admin-dashboard.php',
             'link_label' => 'Admin Tools',
-            'require_roles' => ['admin', 'coordinator'],
+            'require_roles' => ['admin'],
         ],
     ];
 }
@@ -185,38 +185,39 @@ function user_guide_faqs(): array
         ],
         [
             'q' => 'Who can access admin tools?',
-            'a' => 'User Management, System Settings, and Audit Log are limited to users with admin or coordinator roles (see sidebar when logged in).',
+            'a' => 'User Management, System Settings, and Audit Log are limited to Super Admin (see sidebar when logged in).',
         ],
     ];
 }
 
 /**
  * Live statistics from the database (approved, non-archived projects).
+ *
+ * @return array{total: int, by_type: array<string, int>, by_stage: array<string, int>}
  */
 function user_guide_fetch_stats(mysqli $conn): array
 {
-    $stats = [
-        'total' => 0,
-        'by_type' => [],
-        'by_stage' => [],
-    ];
-
     $where = "approval_status = 'Approved' AND (status IS NULL OR status <> 'Archived')";
 
+    $total = 0;
     $r = $conn->query("SELECT COUNT(*) AS c FROM projects WHERE $where");
     if ($r) {
-        $stats['total'] = (int) ($r->fetch_assoc()['c'] ?? 0);
+        $total = (int) ($r->fetch_assoc()['c'] ?? 0);
     }
 
+    /** @var array<string, int> $by_type */
+    $by_type = [];
     $r = $conn->query(
         "SELECT UPPER(project_type) AS t, COUNT(*) AS c FROM projects WHERE $where GROUP BY UPPER(project_type) ORDER BY t"
     );
     if ($r) {
         while ($row = $r->fetch_assoc()) {
-            $stats['by_type'][(string) $row['t']] = (int) $row['c'];
+            $by_type[(string) $row['t']] = (int) $row['c'];
         }
     }
 
+    /** @var array<string, int> $by_stage */
+    $by_stage = [];
     $r = $conn->query(
         "SELECT current_stage, COUNT(*) AS c FROM projects WHERE $where GROUP BY current_stage ORDER BY current_stage"
     );
@@ -224,10 +225,14 @@ function user_guide_fetch_stats(mysqli $conn): array
         while ($row = $r->fetch_assoc()) {
             $stage = (string) ($row['current_stage'] ?? '');
             if ($stage !== '') {
-                $stats['by_stage'][$stage] = (int) $row['c'];
+                $by_stage[$stage] = (int) $row['c'];
             }
         }
     }
 
-    return $stats;
+    return [
+        'total' => $total,
+        'by_type' => $by_type,
+        'by_stage' => $by_stage,
+    ];
 }

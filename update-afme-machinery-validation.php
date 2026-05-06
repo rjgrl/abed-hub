@@ -19,6 +19,14 @@ $service_area = sanitize($_POST['service_area'] ?? '');
 $latitude = floatval($_POST['latitude'] ?? 0);
 $longitude = floatval($_POST['longitude'] ?? 0);
 
+// Optional legacy column support: some deployments have implementation_type, others do not.
+$hasImplementationType = false;
+$colCheck = $conn->query("SELECT COUNT(*) AS c FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'afme' AND COLUMN_NAME = 'implementation_type'");
+if ($colCheck && ($row = $colCheck->fetch_assoc())) {
+    $hasImplementationType = ((int) ($row['c'] ?? 0)) > 0;
+}
+
 // Verify machinery
 $stmt = $conn->prepare("SELECT id FROM afme WHERE id = ?");
 $stmt->bind_param("i", $machinery_id);
@@ -74,26 +82,48 @@ if (isset($_FILES['geotagged_photos'])) {
 $geotagged_photos_json = json_encode($geotagged_photos);
 
 // Update validation fields in consolidated afme table
-$stmt = $conn->prepare("
-    UPDATE afme SET
-        date_validation_start = ?,
-        date_validation_end = ?,
-        implementation_type = ?,
-        service_area = ?,
-        validation_report_path = COALESCE(?, validation_report_path),
-        geotagged_photo_paths = ?,
-        latitude = ?,
-        longitude = ?,
-        validation_status = 'Completed',
-        current_status = 'Pre-Implementation'
-    WHERE id = ?
-");
-$stmt->bind_param(
-    "ssssssddi",
-    $date_validation_start, $date_validation_end,
-    $implementation_type, $service_area, $validation_report_path,
-    $geotagged_photos_json, $latitude, $longitude, $machinery_id
-);
+if ($hasImplementationType) {
+    $stmt = $conn->prepare("
+        UPDATE afme SET
+            date_validation_start = ?,
+            date_validation_end = ?,
+            implementation_type = ?,
+            service_area = ?,
+            validation_report_path = COALESCE(?, validation_report_path),
+            geotagged_photo_paths = ?,
+            latitude = ?,
+            longitude = ?,
+            validation_status = 'Completed',
+            current_status = 'Pre-Implementation'
+        WHERE id = ?
+    ");
+    $stmt->bind_param(
+        "ssssssddi",
+        $date_validation_start, $date_validation_end,
+        $implementation_type, $service_area, $validation_report_path,
+        $geotagged_photos_json, $latitude, $longitude, $machinery_id
+    );
+} else {
+    $stmt = $conn->prepare("
+        UPDATE afme SET
+            date_validation_start = ?,
+            date_validation_end = ?,
+            service_area = ?,
+            validation_report_path = COALESCE(?, validation_report_path),
+            geotagged_photo_paths = ?,
+            latitude = ?,
+            longitude = ?,
+            validation_status = 'Completed',
+            current_status = 'Pre-Implementation'
+        WHERE id = ?
+    ");
+    $stmt->bind_param(
+        "sssssddi",
+        $date_validation_start, $date_validation_end,
+        $service_area, $validation_report_path,
+        $geotagged_photos_json, $latitude, $longitude, $machinery_id
+    );
+}
 
 if ($stmt->execute()) {
     logAudit('UPDATE_AFME_MACHINERY_VALIDATION', 'AFME', $machinery_id, null, $_POST);

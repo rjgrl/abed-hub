@@ -81,7 +81,7 @@ if ($code === '') {
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="public-home">
+<body class="public-home public-catalog-detail">
     <header class="public-header">
       <div class="container">
         <nav class="navbar navbar-expand-lg py-3 align-items-lg-center public-navbar" aria-label="Public navigation">
@@ -101,11 +101,11 @@ if ($code === '') {
 
     <main class="py-4">
         <div class="container">
-            <div class="mb-4">
+            <div class="public-catalog-detail-hero mb-4">
                 <span class="badge bg-warning text-dark">AFME</span>
                 <span class="badge bg-secondary"><?php echo htmlspecialchars((string) ($m['current_status'] ?? '')); ?></span>
-                <h1 class="h3 mt-2 mb-1"><?php echo htmlspecialchars((string) ($m['machine_name'] ?? '')); ?></h1>
-                <p class="text-muted mb-0">
+                <h1 class="h3 mt-2 mb-1 public-catalog-detail-title"><?php echo htmlspecialchars((string) ($m['machine_name'] ?? '')); ?></h1>
+                <p class="public-catalog-detail-subtitle mb-0">
                     <strong><?php echo htmlspecialchars($code); ?></strong>
                     <?php if (!empty($m['parent_project_title'])): ?>
                     · <?php echo htmlspecialchars((string) $m['parent_project_title']); ?>

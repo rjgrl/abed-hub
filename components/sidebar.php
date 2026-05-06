@@ -18,6 +18,12 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
     </li>
 
     <li class="nav-item mb-2">
+      <a href="notifications.php" class="nav-link <?php echo (in_array($current_page, ['notifications.php', 'alerts.php'])) ? 'active' : ''; ?>">
+        <i class="fas fa-bell me-2"></i>Notifications & Alerts
+      </a>
+    </li>
+
+    <li class="nav-item mb-2">
       <a href="projects-advanced.php" class="nav-link <?php echo (in_array($current_page, ['projects-advanced.php', 'projects.php', 'project-detail-enhanced.php'])) ? 'active' : ''; ?>">
         <i class="fas fa-folder-open me-2"></i>Projects
       </a>
@@ -42,7 +48,7 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
     </li>
 
     <!-- Admin Only Section -->
-    <?php if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'coordinator'])): ?>
+    <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
     <hr class="app-sidebar-hr my-3">
     <li class="nav-item mb-2">
       <span class="nav-link nav-section-label small fw-bold px-2 py-1">

@@ -7,7 +7,186 @@ require_once __DIR__ . '/../config/email.php';
 require_once __DIR__ . '/../functions/helpers.php';
 
 if (session_status() === PHP_SESSION_NONE) {
+    session_name('ABED_IDM_HUB');
     session_start();
+}
+
+/**
+ * Merge notification rows by created_at descending and cap length.
+ *
+ * @param array<int, array<string,mixed>> $rows
+ * @return array<int, array<string,mixed>>
+ */
+function notifications_merge_by_date(array $rows, int $limit): array
+{
+    usort($rows, static function ($a, $b): int {
+        $ta = strtotime((string) ($a['created_at'] ?? ''));
+        $tb = strtotime((string) ($b['created_at'] ?? ''));
+        return $tb <=> $ta;
+    });
+
+    return array_slice($rows, 0, max(0, $limit));
+}
+
+/**
+ * Dashboard notices for Super Admin: accounts awaiting activation + projects awaiting approval.
+ * Stored separately from the notifications table (nothing inserts rows there on signup/project submit today).
+ *
+ * @return array<int, array<string,mixed>>
+ */
+function notifications_admin_synthetic(mysqli $conn, int $viewerUserId): array
+{
+    $out = [];
+
+    $qu = $conn->query(
+        'SELECT id, username, email, first_name, last_name, created_at
+         FROM users
+         WHERE is_active = 0
+         ORDER BY created_at DESC
+         LIMIT 50'
+    );
+    if ($qu) {
+        while ($row = $qu->fetch_assoc()) {
+            $name = user_display_name((string) ($row['first_name'] ?? ''), (string) ($row['last_name'] ?? ''));
+            if ($name === '') {
+                $name = (string) ($row['username'] ?? 'User');
+            }
+            $email = trim((string) ($row['email'] ?? ''));
+            $msg = $name . ($email !== '' ? ' (' . $email . ')' : '') . ' registered and needs activation.';
+            $out[] = [
+                'id' => -(100_000_000 + (int) $row['id']),
+                'user_id' => $viewerUserId,
+                'project_id' => null,
+                'alert_type' => 'pending_user',
+                'title' => 'Account pending activation',
+                'message' => $msg,
+                'is_read' => 0,
+                'created_at' => $row['created_at'],
+                'synthetic' => true,
+                'synthetic_kind' => 'pending_user',
+                'ref_id' => (int) $row['id'],
+            ];
+        }
+    }
+
+    $qp = $conn->query(
+        "SELECT id, project_code, title, project_type, created_at
+         FROM projects
+         WHERE approval_status = 'Pending'
+           AND (status IS NULL OR status <> 'Archived')
+         ORDER BY created_at DESC
+         LIMIT 50"
+    );
+    if ($qp) {
+        while ($row = $qp->fetch_assoc()) {
+            $code = strip_tags((string) ($row['project_code'] ?? ''));
+            $title = strip_tags((string) ($row['title'] ?? ''));
+            $ptype = strtoupper(strip_tags((string) ($row['project_type'] ?? '')));
+            $msg = "{$ptype} {$code} — {$title} was added and awaits approval.";
+            $out[] = [
+                'id' => -(200_000_000 + (int) $row['id']),
+                'user_id' => $viewerUserId,
+                'project_id' => (int) $row['id'],
+                'project_type' => (string) ($row['project_type'] ?? 'fspf'),
+                'alert_type' => 'pending_project',
+                'title' => 'Project pending approval',
+                'message' => $msg,
+                'is_read' => 0,
+                'created_at' => $row['created_at'],
+                'synthetic' => true,
+                'synthetic_kind' => 'pending_project',
+                'ref_id' => (int) $row['id'],
+            ];
+        }
+    }
+
+    return $out;
+}
+
+function admin_pending_activation_count(mysqli $conn): int
+{
+    $r = $conn->query('SELECT COUNT(*) AS c FROM users WHERE is_active = 0');
+    if (!$r) {
+        return 0;
+    }
+    $row = $r->fetch_assoc();
+
+    return (int) ($row['c'] ?? 0);
+}
+
+function admin_pending_project_approval_count(mysqli $conn): int
+{
+    $r = $conn->query(
+        "SELECT COUNT(*) AS c FROM projects
+         WHERE approval_status = 'Pending'
+           AND (status IS NULL OR status <> 'Archived')"
+    );
+    if (!$r) {
+        return 0;
+    }
+    $row = $r->fetch_assoc();
+
+    return (int) ($row['c'] ?? 0);
+}
+
+/**
+ * Employee: own project submissions still pending Super Admin approval.
+ *
+ * @return array<int, array<string,mixed>>
+ */
+function notifications_employee_submission_synthetic(mysqli $conn, int $viewerUserId): array
+{
+    $out = [];
+    $st = $conn->prepare(
+        "SELECT id, project_code, title, project_type, created_at
+         FROM projects
+         WHERE user_id = ?
+           AND approval_status = 'Pending'
+           AND (status IS NULL OR status <> 'Archived')
+         ORDER BY created_at DESC
+         LIMIT 30"
+    );
+    $st->bind_param('i', $viewerUserId);
+    $st->execute();
+    $res = $st->get_result();
+    while ($row = $res->fetch_assoc()) {
+        $code = strip_tags((string) ($row['project_code'] ?? ''));
+        $title = strip_tags((string) ($row['title'] ?? ''));
+        $ptype = strtoupper(strip_tags((string) ($row['project_type'] ?? '')));
+        $out[] = [
+            'id' => -(300_000_000 + (int) $row['id']),
+            'user_id' => $viewerUserId,
+            'project_id' => (int) $row['id'],
+            'project_type' => (string) ($row['project_type'] ?? 'fspf'),
+            'alert_type' => 'my_pending_project',
+            'title' => 'Project awaiting approval',
+            'message' => "Your {$ptype} project {$code} — {$title} is pending Super Admin review.",
+            'is_read' => 0,
+            'created_at' => $row['created_at'],
+            'synthetic' => true,
+            'synthetic_kind' => 'my_pending_project',
+            'ref_id' => (int) $row['id'],
+        ];
+    }
+    $st->close();
+
+    return $out;
+}
+
+function employee_own_pending_project_count(mysqli $conn, int $viewerUserId): int
+{
+    $st = $conn->prepare(
+        "SELECT COUNT(*) AS c FROM projects
+         WHERE user_id = ?
+           AND approval_status = 'Pending'
+           AND (status IS NULL OR status <> 'Archived')"
+    );
+    $st->bind_param('i', $viewerUserId);
+    $st->execute();
+    $row = $st->get_result()->fetch_assoc();
+    $st->close();
+
+    return (int) ($row['c'] ?? 0);
 }
 
 header('Content-Type: application/json');
@@ -18,7 +197,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-$action = $_GET['action'] ?? '';
+$action = (string) ($_GET['action'] ?? $_POST['action'] ?? '');
 $response = [];
 
 try {
@@ -26,52 +205,77 @@ try {
 
     switch ($action) {
         case 'get':
-            // Get user notifications
-            $unread_only = isset($_GET['unread']) ? true : false;
-            $limit = (int)($_GET['limit'] ?? 20);
+            // Stored notifications + (Super Admin) live queue: pending activations & pending project approvals
+            $unread_only = isset($_GET['unread']);
+            $limit = max(1, min(100, (int) ($_GET['limit'] ?? 20)));
+            $fetchCap = 100;
 
-            $query = "SELECT * FROM notifications WHERE user_id = ?";
+            $query = 'SELECT n.*, p.project_type AS project_type FROM notifications n
+                LEFT JOIN projects p ON p.id = n.project_id
+                WHERE n.user_id = ?';
             if ($unread_only) {
-                $query .= " AND is_read = 0";
+                $query .= ' AND n.is_read = 0';
             }
-            $query .= " ORDER BY created_at DESC LIMIT ?";
+            $query .= ' ORDER BY n.created_at DESC LIMIT ?';
 
             $stmt = $conn->prepare($query);
-            $stmt->bind_param('ii', $user_id, $limit);
+            $stmt->bind_param('ii', $user_id, $fetchCap);
             $stmt->execute();
 
             $notifications = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
+            if (isSuperAdmin()) {
+                $merged = array_merge($notifications, notifications_admin_synthetic($conn, $user_id));
+                $notifications = notifications_merge_by_date($merged, $limit);
+            } else {
+                $merged = array_merge($notifications, notifications_employee_submission_synthetic($conn, $user_id));
+                $notifications = notifications_merge_by_date($merged, $limit);
+            }
+
             $response = [
                 'success' => true,
                 'data' => $notifications,
-                'count' => count($notifications)
+                'count' => count($notifications),
             ];
             break;
 
         case 'count':
-            // Get unread count
-            $stmt = $conn->prepare("SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = 0");
+            // Unread rows in DB + (Super Admin) items that still need action in Admin Dashboard
+            $stmt = $conn->prepare('SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = 0');
             $stmt->bind_param('i', $user_id);
             $stmt->execute();
 
-            $count = $stmt->get_result()->fetch_assoc()['count'];
+            $count = (int) ($stmt->get_result()->fetch_assoc()['count'] ?? 0);
+
+            if (isSuperAdmin()) {
+                $count += admin_pending_activation_count($conn);
+                $count += admin_pending_project_approval_count($conn);
+            } else {
+                $count += employee_own_pending_project_count($conn, $user_id);
+            }
 
             $response = [
                 'success' => true,
-                'unread_count' => $count
+                'unread_count' => $count,
             ];
             break;
 
         case 'mark_read':
             $notification_id = $_POST['notification_id'] ?? null;
 
-            if (!$notification_id) {
+            if ($notification_id === null || $notification_id === '') {
                 throw new Exception('Notification ID required');
             }
 
-            $stmt = $conn->prepare("UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?");
-            $stmt->bind_param('ii', $notification_id, $user_id);
+            // Synthetic dashboard notices use negative ids; they disappear when the underlying row is approved.
+            if (is_numeric((string) $notification_id) && (int) $notification_id < 0) {
+                $response = ['success' => true, 'message' => 'OK'];
+                break;
+            }
+
+            $nid = (int) $notification_id;
+            $stmt = $conn->prepare('UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?');
+            $stmt->bind_param('ii', $nid, $user_id);
 
             if ($stmt->execute()) {
                 $response = ['success' => true, 'message' => 'Marked as read'];
@@ -178,23 +382,26 @@ try {
             $project_id = $_GET['project_id'] ?? null;
             $alert_type = $_GET['type'] ?? null;
 
-            $query = "SELECT * FROM project_alerts WHERE is_active = 1";
+            $query = "SELECT a.*, p.project_code, p.project_type, p.title AS project_title
+                FROM project_alerts a
+                LEFT JOIN projects p ON p.id = a.project_id
+                WHERE a.is_active = 1";
             $params = [];
             $types = '';
 
             if ($project_id) {
-                $query .= " AND project_id = ?";
+                $query .= " AND a.project_id = ?";
                 $params[] = $project_id;
                 $types .= 'i';
             }
 
             if ($alert_type) {
-                $query .= " AND alert_type = ?";
+                $query .= " AND a.alert_type = ?";
                 $params[] = $alert_type;
                 $types .= 's';
             }
 
-            $query .= " ORDER BY created_at DESC";
+            $query .= " ORDER BY a.created_at DESC";
 
             $stmt = $conn->prepare($query);
             if ($params) {

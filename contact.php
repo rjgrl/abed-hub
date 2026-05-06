@@ -50,27 +50,26 @@ session_start();
     </header>
 
     <main class="contact-main" id="contact">
-      <section class="py-5 public-section-surface">
+      <section class="py-5 contact-page-section">
         <div class="container">
-          <div class="row justify-content-center">
-            <div class="col-lg-8">
-              <h1 class="contact-page-title mb-3">Contact</h1>
-              <p class="text-muted mb-4">
-                For inquiries about the ABED Integrated Data Management Hub, reach us using the details below. This page uses a temporary email address you can replace when your official contact is ready.
-              </p>
-              <div class="card border-0 shadow-sm">
-                <div class="card-body p-4">
-                  <h2 class="h5 mb-3">Get in touch</h2>
-                  <dl class="row mb-0 small">
-                    <dt class="col-sm-3 text-muted">Location</dt>
-                    <dd class="col-sm-9">Malaybalay City, Bukidnon</dd>
-                    <dt class="col-sm-3 text-muted">Email</dt>
-                    <dd class="col-sm-9">
-                      <a href="mailto:placeholder.abed.idm@example.com">placeholder.abed.idm@example.com</a>
-                      <span class="d-block text-muted mt-1">Temporary placeholder — update this address in <code class="small">contact.php</code> when ready.</span>
-                    </dd>
-                  </dl>
-                </div>
+          <div class="contact-page-card-wrap mx-auto">
+            <div class="card border-0 contact-page-card">
+              <div class="card-body p-4 p-md-5">
+                <h1 class="contact-page-title mb-3">Contact</h1>
+                <p class="text-muted mb-4 mb-md-5">
+                  For inquiries about the ABED Integrated Data Management Hub, reach us using the details below. This page uses a temporary email address you can replace when your official contact is ready.
+                </p>
+                <h2 class="h5 mb-3">Get in touch</h2>
+                <dl class="row mb-0 small contact-page-dl">
+                  <dt class="col-sm-4 col-md-3 text-muted">Location</dt>
+                  <dd class="col-sm-8 col-md-9">Malaybalay City, Bukidnon</dd>
+                  <dt class="col-sm-4 col-md-3 text-muted">Phone</dt>
+                  <dd class="col-sm-8 col-md-9">1-234-567-890</dd>
+                  <dt class="col-sm-4 col-md-3 text-muted">Email</dt>
+                  <dd class="col-sm-8 col-md-9">
+                    <a href="mailto:example.abed.idm@example.com">example.abed.idm@example.com</a>
+                  </dd>
+                </dl>
               </div>
             </div>
           </div>
@@ -97,7 +96,7 @@ session_start();
             <h6 class="fw-bold mb-3">Contact</h6>
             <p class="small text-muted">
               Malaybalay City, Bukidnon<br>
-              Email: <a href="mailto:placeholder.abed.idm@example.com" class="text-muted">placeholder.abed.idm@example.com</a>
+              Email: <a href="mailto:example.abed.idm@example.com" class="text-muted">example.abed.idm@example.com</a>
             </p>
           </div>
         </div>
