@@ -41,7 +41,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Query user from database
-    $stmt = $conn->prepare("SELECT id, username, email, first_name, last_name, password, role, is_active FROM users WHERE username = ?");
+    $hasUserRejectionReasonColumn = false;
+    $colCheck = $conn->query("SHOW COLUMNS FROM users LIKE 'rejection_reason'");
+    if ($colCheck && $colCheck->num_rows > 0) {
+        $hasUserRejectionReasonColumn = true;
+    }
+
+    $selectFields = "id, username, email, first_name, last_name, password, role, is_active, profile_picture";
+    if ($hasUserRejectionReasonColumn) {
+        $selectFields .= ", rejection_reason";
+    }
+
+    $stmt = $conn->prepare("SELECT {$selectFields} FROM users WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -55,6 +66,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Pending approval (is_active = 0) or deactivated account
     if (!(int) $user['is_active']) {
+        $reason = $hasUserRejectionReasonColumn ? trim((string) ($user['rejection_reason'] ?? '')) : '';
+        if ($reason !== '') {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Your account request was rejected by Super Admin. Reason: ' . $reason,
+            ]);
+            exit;
+        }
         echo json_encode([
             'status' => 'error',
             'message' => 'Your account is pending Super Admin approval or has been deactivated. You cannot log in yet.',

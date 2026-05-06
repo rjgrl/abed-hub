@@ -6,33 +6,6 @@ require_once '../config/recaptcha.php';
 
 header('Content-Type: application/json');
 
-/**
- * Next EMP-{YEAR}-{NNN} based on existing rows for that year (auto-increment sequence).
- */
-function generate_next_employee_id(mysqli $conn): string
-{
-    $year = date('Y');
-    $prefix = 'EMP-' . $year . '-';
-    $like = $prefix . '%';
-
-    $stmt = $conn->prepare('SELECT employee_id FROM users WHERE employee_id LIKE ?');
-    $stmt->bind_param('s', $like);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    $max = 0;
-    $pattern = '/^' . preg_quote($prefix, '/') . '(\d+)$/';
-    while ($row = $result->fetch_assoc()) {
-        if (preg_match($pattern, (string) $row['employee_id'], $m)) {
-            $max = max($max, (int) $m[1]);
-        }
-    }
-    $stmt->close();
-
-    $next = $max + 1;
-    return $prefix . str_pad((string) $next, 3, '0', STR_PAD_LEFT);
-}
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $first_name = trim($_POST['firstName'] ?? '');
     $last_name = trim($_POST['lastName'] ?? '');
@@ -96,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $stmt = $conn->prepare('
         INSERT INTO users (username, email, first_name, last_name, employee_id, password, office_unit, role, is_active)
-        VALUES (?, ?, ?, ?, ?, ?, ?, \'operator\', 0)
+        VALUES (?, ?, ?, ?, ?, ?, ?, \'employee\', 0)
     ');
 
     $max_attempts = 8;
@@ -122,7 +95,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($inserted) {
         echo json_encode(['status' => 'success', 'message' => 'Account created. Please wait for Super Admin approval before logging in.']);
     } else {
-        echo json_encode(['status' => 'error', 'message' => 'Error creating account']);
+        error_log('signup INSERT failed: errno=' . $conn->errno . ' error=' . $conn->error);
+        $msg = 'Error creating account. Please try again later.';
+        if (in_array((int) $conn->errno, [1265, 1366], true)) {
+            $msg = 'The account database could not accept this registration. Please contact the administrator.';
+        }
+        echo json_encode(['status' => 'error', 'message' => $msg]);
     }
 
     $stmt->close();

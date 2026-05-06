@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if ($_POST['action'] === 'update_user_role') {
         $target_id = intval($_POST['user_id'] ?? 0);
         $new_role  = $_POST['role'] ?? '';
-        $allowed   = ['admin', 'coordinator', 'operator', 'viewer'];
+        $allowed   = ['admin', 'employee'];
 
         if (!$target_id || !in_array($new_role, $allowed, true)) {
             $error_msg = 'Invalid user or role.';
@@ -118,7 +118,7 @@ renderAppLayout($page_title);
                                     <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
                                     <select name="role" class="form-select form-select-sm form-select-width-role"
                                             <?php echo $u['id'] === (int) $_SESSION['user_id'] ? 'disabled' : 'onchange="this.form.submit()"'; ?>>
-                                        <?php foreach (['admin','coordinator','operator','viewer'] as $r): ?>
+                                        <?php foreach (['admin', 'employee'] as $r): ?>
                                             <option value="<?php echo $r; ?>" <?php echo $u['role'] === $r ? 'selected' : ''; ?>><?php echo ucfirst($r); ?></option>
                                         <?php endforeach; ?>
                                     </select>

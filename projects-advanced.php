@@ -302,15 +302,15 @@ renderAppLayout($page_title, $page_extra_head);
                                         <td>
                                             <div class="progress progress-table-compact">
                                                 <div class="progress-bar progress-bar-physical progress-bar-w" style="--w: <?php echo $project['physical_progress']; ?>%;">
-                                                    <small><?php echo round($project['physical_progress'], 0); ?>%</small>
                                                 </div>
+                                                <small class="progress-table-label"><?php echo round($project['physical_progress'], 0); ?>%</small>
                                             </div>
                                         </td>
                                         <td>
                                             <div class="progress progress-table-compact">
                                                 <div class="progress-bar bg-success progress-bar-w" style="--w: <?php echo $project['financial_progress']; ?>%;">
-                                                    <small><?php echo round($project['financial_progress'], 0); ?>%</small>
                                                 </div>
+                                                <small class="progress-table-label"><?php echo round($project['financial_progress'], 0); ?>%</small>
                                             </div>
                                         </td>
                                         <td>

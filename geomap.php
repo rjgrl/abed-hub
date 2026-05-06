@@ -31,7 +31,7 @@ renderAppLayout($page_title, $extra_head);
             <div class="row mb-4 align-items-start">
                 <div class="col">
                     <h1 class="h3 mb-0"><?php echo htmlspecialchars($page_title ?? 'Geo Map'); ?></h1>
-                    <p class="text-muted mb-0">Philippines only — markers use coordinates saved when registering FSPF, IDP, or AFME projects</p>
+                    <p class="text-muted mb-0">Philippines only — markers use coordinates saved when registering Farm Structure and Processing Facilities, Irrigation Development Projects, or Agricultural and Fisheries Machineries and Equipment projects</p>
                 </div>
                 <div class="col-auto pt-1">
                     <span class="badge rounded-pill text-bg-light border"><?php echo count($projects); ?> projects mapped</span>
@@ -48,9 +48,9 @@ renderAppLayout($page_title, $extra_head);
                                 <label class="form-label">Filter by Type</label>
                                 <select class="form-control" id="typeFilter">
                                     <option value="all">All Types</option>
-                                    <option value="FSPF">FSPF Projects</option>
-                                    <option value="IDP">IDP Projects</option>
-                                    <option value="AFME">AFME Machinery</option>
+                                    <option value="FSPF">Farm Structure and Processing Facilities Projects</option>
+                                    <option value="IDP">Irrigation Development Projects</option>
+                                    <option value="AFME">Agricultural and Fisheries Machineries and Equipment Projects</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -69,15 +69,15 @@ renderAppLayout($page_title, $extra_head);
                                 <div class="d-flex flex-wrap gap-3">
                                     <div class="d-flex align-items-center">
                                         <div class="project-marker fspf-marker me-2"></div>
-                                        <small>FSPF Projects</small>
+                                        <small>Farm Structure and Processing Facilities Projects</small>
                                     </div>
                                     <div class="d-flex align-items-center">
                                         <div class="project-marker idp-marker me-2"></div>
-                                        <small>IDP Projects</small>
+                                        <small>Irrigation Development Projects</small>
                                     </div>
                                     <div class="d-flex align-items-center">
                                         <div class="project-marker afme-marker me-2"></div>
-                                        <small>AFME Machinery</small>
+                                        <small>Agricultural and Fisheries Machineries and Equipment Projects</small>
                                     </div>
                                 </div>
                             </div>
@@ -124,7 +124,14 @@ renderAppLayout($page_title, $extra_head);
                                                     default => 'secondary'
                                                 };
                                             ?>">
-                                                <?php echo $project['type']; ?>
+                                                <?php
+                                                echo match($project['type']) {
+                                                    'FSPF' => 'Farm Structure and Processing Facilities',
+                                                    'IDP' => 'Irrigation Development Projects',
+                                                    'AFME' => 'Agricultural and Fisheries Machineries and Equipment',
+                                                    default => htmlspecialchars((string) $project['type']),
+                                                };
+                                                ?>
                                             </span>
                                         </td>
                                         <td><?php echo htmlspecialchars($project['project_code']); ?></td>
@@ -192,6 +199,11 @@ renderAppLayout($page_title, $extra_head);
 
             // Project data from PHP
             const projects = <?php echo json_encode($projects); ?>;
+            const projectTypeLabels = {
+                FSPF: 'Farm Structure and Processing Facilities',
+                IDP: 'Irrigation Development Projects',
+                AFME: 'Agricultural and Fisheries Machineries and Equipment'
+            };
 
             // Create markers
             const markers = [];
@@ -214,7 +226,7 @@ renderAppLayout($page_title, $extra_head);
                         <div class="text-center">
                             <h6>${project.project_title}</h6>
                             <p class="mb-1"><strong>Code:</strong> ${project.project_code}</p>
-                            <p class="mb-1"><strong>Type:</strong> ${project.type}</p>
+                            <p class="mb-1"><strong>Type:</strong> ${projectTypeLabels[project.type] || project.type}</p>
                             <p class="mb-1"><strong>Status:</strong> ${project.current_stage}</p>
                             <p class="mb-1"><strong>Budget:</strong> ₱${Number(project.allocated_amount || 0).toLocaleString()}</p>
                             <p class="mb-1"><strong>Location:</strong> ${project.municipality}, ${project.province}</p>

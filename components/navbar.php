@@ -12,6 +12,7 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
             <small class="text-muted fw-semibold">
                 <?php echo match($current_page) {
                     'dashboard-enhanced.php', 'dashboard.php' => 'Dashboard',
+                    'notifications.php', 'alerts.php' => 'Notifications & Alerts',
                     'reports.php' => 'Reports',
                     'analytics-reports.php', 'analytics.php' => 'Analytics',
                     'projects-advanced.php', 'project-details.php' => 'Projects',

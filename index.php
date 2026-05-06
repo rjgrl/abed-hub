@@ -4,51 +4,81 @@ session_start();
 require_once 'config/database.php';
 
 // Get overview statistics
-$fspf_count = $conn->query("SELECT COUNT(*) as total FROM projects WHERE project_type = 'fspf' AND approval_status = 'Approved'")->fetch_assoc()['total'];
-$idp_count = $conn->query("SELECT COUNT(*) as total FROM projects WHERE project_type = 'idp' AND approval_status = 'Approved'")->fetch_assoc()['total'];
-$afme_count = $conn->query("SELECT COUNT(*) as total FROM afme")->fetch_assoc()['total'];
+$fspf_count = (int) db_query_scalar(
+    $conn,
+    "SELECT COUNT(*) AS total FROM projects WHERE project_type = 'fspf' AND approval_status = 'Approved'",
+    0
+);
+$idp_count = (int) db_query_scalar(
+    $conn,
+    "SELECT COUNT(*) AS total FROM projects WHERE project_type = 'idp' AND approval_status = 'Approved'",
+    0
+);
+$afme_count = (int) db_query_scalar($conn, 'SELECT COUNT(*) AS total FROM afme', 0);
 
 // Get funded amounts
-$fspf_funded = $conn->query("SELECT SUM(allocated_amount) as total FROM projects WHERE project_type = 'fspf' AND approval_status = 'Approved'")->fetch_assoc()['total'] ?? 0;
-$idp_funded = $conn->query("SELECT SUM(allocated_amount) as total FROM projects WHERE project_type = 'idp' AND approval_status = 'Approved'")->fetch_assoc()['total'] ?? 0;
-$afme_funded = $conn->query("SELECT SUM(amount_allocated) as total FROM afme")->fetch_assoc()['total'] ?? 0;
+$fspf_funded = db_query_scalar(
+    $conn,
+    "SELECT SUM(allocated_amount) AS total FROM projects WHERE project_type = 'fspf' AND approval_status = 'Approved'",
+    0
+);
+$fspf_funded = $fspf_funded !== null ? (float) $fspf_funded : 0.0;
+$idp_funded = db_query_scalar(
+    $conn,
+    "SELECT SUM(allocated_amount) AS total FROM projects WHERE project_type = 'idp' AND approval_status = 'Approved'",
+    0
+);
+$idp_funded = $idp_funded !== null ? (float) $idp_funded : 0.0;
+$afme_funded = db_query_scalar($conn, 'SELECT SUM(amount_allocated) AS total FROM afme', 0);
+$afme_funded = $afme_funded !== null ? (float) $afme_funded : 0.0;
 
 // Get recent projects (FSPF)
-$fspf_recent = $conn->query("
+$fspf_recent = db_query_all_assoc(
+    $conn,
+    "
     SELECT id, project_code, title AS project_title, allocated_amount, current_stage, physical_progress
     FROM projects
     WHERE project_type = 'fspf' AND approval_status = 'Approved'
     ORDER BY created_at DESC
     LIMIT 5
-")->fetch_all(MYSQLI_ASSOC);
+"
+);
 
 // Get recent projects (IDP)
-$idp_recent = $conn->query("
+$idp_recent = db_query_all_assoc(
+    $conn,
+    "
     SELECT id, project_code, title AS project_title, allocated_amount, current_stage, physical_progress
     FROM projects
     WHERE project_type = 'idp' AND approval_status = 'Approved'
     ORDER BY created_at DESC
     LIMIT 5
-")->fetch_all(MYSQLI_ASSOC);
+"
+);
 
 // Get recent machinery (AFME)
-$afme_recent = $conn->query("
+$afme_recent = db_query_all_assoc(
+    $conn,
+    "
     SELECT id, machine_name, beneficiary_name, amount_allocated AS allocated_amount, current_status
     FROM afme
     ORDER BY created_at DESC
     LIMIT 5
-")->fetch_all(MYSQLI_ASSOC);
+"
+);
 
 // Unified catalog for the default “All projects” tab (approved projects + AFME linked to approved parents)
 $all_catalog = [];
-$proj_all = $conn->query("
+$proj_all_rows = db_query_all_assoc(
+    $conn,
+    "
     SELECT id, project_code, title AS project_title, project_type, allocated_amount, current_stage, physical_progress, created_at
     FROM projects
     WHERE approval_status = 'Approved'
     ORDER BY created_at DESC
-");
-if ($proj_all) {
-    foreach ($proj_all->fetch_all(MYSQLI_ASSOC) as $row) {
+"
+);
+foreach ($proj_all_rows as $row) {
         $all_catalog[] = [
             'kind' => 'project',
             'id' => (int) $row['id'],
@@ -60,17 +90,18 @@ if ($proj_all) {
             'budget' => $row['allocated_amount'],
             'sort_ts' => strtotime((string) $row['created_at']) ?: 0,
         ];
-    }
 }
-$afme_all = $conn->query("
+$afme_all_rows = db_query_all_assoc(
+    $conn,
+    "
     SELECT a.id, a.machine_name, a.beneficiary_name, a.amount_allocated, a.current_status, a.created_at, p.project_code
     FROM afme a
     LEFT JOIN projects p ON p.id = a.project_id
     WHERE (p.id IS NULL OR p.approval_status = 'Approved')
     ORDER BY a.created_at DESC
-");
-if ($afme_all) {
-    foreach ($afme_all->fetch_all(MYSQLI_ASSOC) as $row) {
+"
+);
+foreach ($afme_all_rows as $row) {
         $ref = trim((string) ($row['project_code'] ?? ''));
         if ($ref === '') {
             $ref = 'AFME #' . (int) $row['id'];
@@ -85,7 +116,6 @@ if ($afme_all) {
             'budget' => $row['amount_allocated'],
             'sort_ts' => strtotime((string) $row['created_at']) ?: 0,
         ];
-    }
 }
 usort($all_catalog, static function (array $a, array $b): int {
     return ($b['sort_ts'] <=> $a['sort_ts']);
@@ -93,14 +123,16 @@ usort($all_catalog, static function (array $a, array $b): int {
 
 // Collect only admin-approved uploads for public display.
 $approved_uploads = [];
-$approvedProjectDocs = $conn->query("
+$approvedProjectDocs = db_query_all_assoc(
+    $conn,
+    "
     SELECT id, project_code, title AS project_title, project_type, documents
     FROM projects
     WHERE approval_status = 'Approved'
       AND documents IS NOT NULL AND documents <> '' AND documents <> '[]'
-");
-if ($approvedProjectDocs) {
-    foreach ($approvedProjectDocs->fetch_all(MYSQLI_ASSOC) as $row) {
+"
+);
+foreach ($approvedProjectDocs as $row) {
         $docs = json_decode((string) ($row['documents'] ?? '[]'), true);
         if (!is_array($docs)) {
             continue;
@@ -118,16 +150,17 @@ if ($approvedProjectDocs) {
                 'upload_date' => (string) ($doc['upload_date'] ?? ''),
             ];
         }
-    }
 }
-$approvedAfmeDocs = $conn->query("
+$approvedAfmeDocs = db_query_all_assoc(
+    $conn,
+    "
     SELECT a.id, a.machine_name, a.documents, p.project_code
     FROM afme a
     INNER JOIN projects p ON p.id = a.project_id AND p.approval_status = 'Approved'
     WHERE a.documents IS NOT NULL AND a.documents <> '' AND a.documents <> '[]'
-");
-if ($approvedAfmeDocs) {
-    foreach ($approvedAfmeDocs->fetch_all(MYSQLI_ASSOC) as $row) {
+"
+);
+foreach ($approvedAfmeDocs as $row) {
         $docs = json_decode((string) ($row['documents'] ?? '[]'), true);
         if (!is_array($docs)) {
             continue;
@@ -145,7 +178,6 @@ if ($approvedAfmeDocs) {
                 'upload_date' => (string) ($doc['upload_date'] ?? ''),
             ];
         }
-    }
 }
 usort($approved_uploads, static function (array $a, array $b): int {
     return strcmp((string) ($b['upload_date'] ?? ''), (string) ($a['upload_date'] ?? ''));
@@ -162,12 +194,15 @@ $uploads_afme = array_slice(array_values(array_filter($approved_uploads, static 
 })), 0, 12);
 
 // Get stage breakdown
-$stage_breakdown = $conn->query("
-    SELECT UPPER(project_type) AS project_type, current_stage, COUNT(*) as count
+$stage_breakdown = db_query_all_assoc(
+    $conn,
+    "
+    SELECT UPPER(project_type) AS project_type, current_stage, COUNT(*) AS count
     FROM projects
     WHERE approval_status = 'Approved'
     GROUP BY project_type, current_stage
-")->fetch_all(MYSQLI_ASSOC);
+"
+);
 
 $conn->close();
 ?>
@@ -290,9 +325,9 @@ $conn->close();
     </section>
 
     <!-- Statistics Section -->
-    <section class="py-5">
+    <section class="py-5 public-home-overview-section" id="system-overview" aria-labelledby="system-overview-title">
       <div class="container">
-        <h2 class="text-center mb-5">System Overview</h2>
+        <h2 class="text-center mb-5 public-home-overview-title" id="system-overview-title">System Overview</h2>
         
         <div class="row g-4">
           <!-- FSPF Stats -->
@@ -769,7 +804,7 @@ $conn->close();
             <h6 class="fw-bold mb-3">Contact</h6>
             <p class="small text-muted">
               Malaybalay City, Bukidnon<br>
-              Email: <a href="mailto:abed.idm@gmail.com" class="text-muted">placeholder.abed.idm@example.com</a>
+              Email: <a href="mailto:example.idm@gmail.com" class="text-muted">example.abed.idm@example.com</a>
             </p>
           </div>
         </div>

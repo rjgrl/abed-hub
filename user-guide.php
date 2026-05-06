@@ -11,7 +11,7 @@ requireLogin();
 
 require_once __DIR__ . '/config/user_guide.php';
 $guide_stats = user_guide_fetch_stats($conn);
-$user_role = $_SESSION['role'] ?? 'viewer';
+$user_role = $_SESSION['role'] ?? 'employee';
 
 $page_title = 'Help & Guide';
 renderAppLayout($page_title);

@@ -2,7 +2,7 @@
 /**
  * Batch Operations API
  *
- * All actions require the admin or coordinator role.
+ * All actions require the admin role.
  *
  * Supported actions (via ?action=):
  *   update-stage      POST   Update current_stage for a list of projects.
@@ -15,7 +15,7 @@
 
 require_once __DIR__ . '/common.php';
 
-apiRequireRoles(['admin', 'coordinator']);
+apiRequireRoles(['admin']);
 
 $action = $_GET['action'] ?? null;
 $method = $_SERVER['REQUEST_METHOD'];

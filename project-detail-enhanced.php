@@ -32,6 +32,8 @@ if (!$project) {
 }
 
 $approval = (string) ($project['approval_status'] ?? 'Approved');
+$isArchivedProject = strcasecmp((string) ($project['status'] ?? ''), 'Archived') === 0;
+$isLockedProject = $approval === 'Rejected' || $isArchivedProject;
 if ($approval !== 'Approved') {
     $uid = (int) ($_SESSION['user_id'] ?? 0);
     $owner = (int) ($project['user_id'] ?? 0);
@@ -146,9 +148,20 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
 
     <main class="app-main">
         <div class="container-fluid py-4">
-            <?php if ($approval !== 'Approved'): ?>
+            <?php if ($approval === 'Pending'): ?>
                 <div class="alert alert-warning border-0 shadow-sm mb-3" role="alert">
                     <strong>Awaiting approval.</strong> This registration is not visible in the project catalog or maps until a Super Admin approves it.
+                </div>
+            <?php elseif ($approval === 'Rejected'): ?>
+                <div class="alert alert-danger border-0 shadow-sm mb-3" role="alert">
+                    <strong>Project rejected.</strong> This registration was rejected by a Super Admin and is not visible in the project catalog or maps.
+                    <?php if (trim((string) ($project['rejection_comment'] ?? '')) !== ''): ?>
+                        <div class="mt-2"><strong>Feedback:</strong> <?php echo htmlspecialchars((string) $project['rejection_comment']); ?></div>
+                    <?php endif; ?>
+                </div>
+            <?php elseif ($isArchivedProject): ?>
+                <div class="alert alert-secondary border-0 shadow-sm mb-3" role="alert">
+                    <strong>Project archived.</strong> This project is marked as deleted/archived and is view-only.
                 </div>
             <?php endif; ?>
             <!-- Project Header -->
@@ -185,18 +198,15 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
                 </div>
                 <div class="col-auto">
                     <div class="btn-group project-detail-header-actions" role="group" aria-label="Project actions">
-                        <button type="button" class="btn btn-outline-primary" id="editBtn">
+                        <button type="button" class="btn btn-outline-primary<?php echo $isLockedProject ? ' disabled opacity-50' : ''; ?>" id="editBtn" <?php echo $isLockedProject ? 'disabled aria-disabled="true" title="Editing is disabled for rejected/archived projects"' : ''; ?>>
                             <i class="fas fa-edit"></i> Edit
                         </button>
-                        <button type="button" class="btn btn-outline-primary" id="printBtn">
+                        <button type="button" class="btn btn-outline-primary<?php echo $isLockedProject ? ' disabled opacity-50' : ''; ?>" id="printBtn" <?php echo $isLockedProject ? 'disabled aria-disabled="true" title="Printing is disabled for rejected/archived projects"' : ''; ?>>
                             <i class="fas fa-print"></i> Print
                         </button>
-                        <a href="scurve-monitoring.php?type=<?php echo $project_type; ?>&id=<?php echo $project_id; ?>" class="btn btn-outline-primary">
+                        <a href="scurve-monitoring.php?type=<?php echo $project_type; ?>&id=<?php echo $project_id; ?>" class="btn btn-outline-primary<?php echo $isLockedProject ? ' disabled opacity-50' : ''; ?>" <?php echo $isLockedProject ? 'aria-disabled="true" tabindex="-1" onclick="return false;" title="S-Curve is disabled for rejected/archived projects"' : ''; ?>>
                             <i class="fas fa-chart-line"></i> S-Curve
                         </a>
-                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#shareModal">
-                            <i class="fas fa-share"></i> Share
-                        </button>
                     </div>
                 </div>
             </div>
@@ -283,19 +293,17 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
                                 </div>
                                 <div class="card-body">
                                     <div class="mb-4">
-                                        <label class="form-label">Physical Progress: <strong><?php echo $physicalProgressDisplay; ?>%</strong></label>
-                                        <div class="progress progress-lg">
-                                            <div class="progress-bar progress-bar-physical progress-bar-w" style="--w: <?php echo $physicalProgressWidth; ?>%;">
-                                                <?php echo $physicalProgressDisplay; ?>%
-                                            </div>
+                                        <label class="form-label">Physical Progress</label>
+                                        <div class="progress progress-lg progress-with-centered-label" style="--progress-label-color: <?php echo $physicalProgressWidth >= 55 ? '#fff' : '#111827'; ?>;">
+                                            <div class="progress-bar progress-bar-physical progress-bar-w" style="--w: <?php echo $physicalProgressWidth; ?>%;"></div>
+                                            <span class="progress-centered-label"><?php echo $physicalProgressDisplay; ?>%</span>
                                         </div>
                                     </div>
                                     <div class="mb-4">
-                                        <label class="form-label">Financial Progress: <strong><?php echo $financialProgressDisplay; ?>%</strong></label>
-                                        <div class="progress progress-lg">
-                                            <div class="progress-bar bg-success progress-bar-w" style="--w: <?php echo $financialProgressWidth; ?>%;">
-                                                <?php echo $financialProgressDisplay; ?>%
-                                            </div>
+                                        <label class="form-label">Financial Progress</label>
+                                        <div class="progress progress-lg progress-with-centered-label" style="--progress-label-color: <?php echo $financialProgressWidth >= 55 ? '#fff' : '#111827'; ?>;">
+                                            <div class="progress-bar bg-success progress-bar-w" style="--w: <?php echo $financialProgressWidth; ?>%;"></div>
+                                            <span class="progress-centered-label"><?php echo $financialProgressDisplay; ?>%</span>
                                         </div>
                                     </div>
                                 </div>
@@ -350,7 +358,7 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
                         <div class="card-header">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0">Financial Records</h6>
-                                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addFinancialModal">
+                                <button class="btn btn-sm btn-primary<?php echo $isLockedProject ? ' disabled opacity-50' : ''; ?>" <?php echo $isLockedProject ? 'disabled aria-disabled="true" title="Adding financial records is disabled for rejected/archived projects"' : 'data-bs-toggle="modal" data-bs-target="#addFinancialModal"'; ?>>
                                     <i class="fas fa-plus"></i> Add Record
                                 </button>
                             </div>
@@ -400,7 +408,7 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
                         <div class="card-header">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0">Project Documents</h6>
-                                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#uploadDocumentModal">
+                                <button class="btn btn-sm btn-primary<?php echo $isLockedProject ? ' disabled opacity-50' : ''; ?>" <?php echo $isLockedProject ? 'disabled aria-disabled="true" title="Uploading documents is disabled for rejected/archived projects"' : 'data-bs-toggle="modal" data-bs-target="#uploadDocumentModal"'; ?>>
                                     <i class="fas fa-upload"></i> Upload
                                 </button>
                             </div>
@@ -476,15 +484,19 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
                                                 <?php
                                                 $total_machinery_cost = 0;
                                                 foreach ($machinery as $mach):
-                                                    $cost = $mach['unit_quantity'] * $mach['unit_cost'];
+                                                    $qty = isset($mach['unit_quantity']) ? (float) $mach['unit_quantity'] : (isset($mach['quantity']) ? (float) $mach['quantity'] : 1.0);
+                                                    $unitCost = isset($mach['unit_cost']) ? (float) $mach['unit_cost'] : (isset($mach['amount_allocated']) ? (float) $mach['amount_allocated'] : 0.0);
+                                                    $cost = $qty * $unitCost;
                                                     $total_machinery_cost += $cost;
+                                                    $machType = (string) ($mach['machinery_type'] ?? ($mach['machine_name'] ?? 'N/A'));
+                                                    $machStatus = (string) ($mach['machinery_status'] ?? ($mach['current_status'] ?? 'N/A'));
                                                     ?>
                                                     <tr>
-                                                        <td><?php echo htmlspecialchars($mach['machinery_type']); ?></td>
-                                                        <td><?php echo $mach['unit_quantity']; ?></td>
-                                                        <td>₱<?php echo number_format($mach['unit_cost'], 2); ?></td>
+                                                        <td><?php echo htmlspecialchars($machType, ENT_QUOTES, 'UTF-8'); ?></td>
+                                                        <td><?php echo rtrim(rtrim(number_format($qty, 2, '.', ''), '0'), '.'); ?></td>
+                                                        <td>₱<?php echo number_format($unitCost, 2); ?></td>
                                                         <td>₱<?php echo number_format($cost, 2); ?></td>
-                                                        <td><?php echo htmlspecialchars($mach['machinery_status']); ?></td>
+                                                        <td><?php echo htmlspecialchars($machStatus, ENT_QUOTES, 'UTF-8'); ?></td>
                                                     </tr>
                                                 <?php endforeach; ?>
                                                 <tr class="table-active">
@@ -611,6 +623,61 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
         </div>
     </div>
 
+    <!-- Add AFME Machinery Modal -->
+    <div class="modal fade" id="addMachineryModal" tabindex="-1" aria-labelledby="addMachineryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addMachineryModalLabel">Add equipment / machinery</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="afmeMachineryForm">
+                    <div class="modal-body">
+                        <input type="hidden" name="afme_project_id" value="<?php echo (int) $project_id; ?>">
+                        <div class="mb-3">
+                            <label class="form-label">Machine Name</label>
+                            <input type="text" class="form-control" name="machine_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Farm Operation</label>
+                            <input type="text" class="form-control" name="farm_operation" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Beneficiary Name</label>
+                            <input type="text" class="form-control" name="beneficiary_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Beneficiary Contact</label>
+                            <input type="text" class="form-control" name="beneficiary_contact">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Farm Location</label>
+                            <input type="text" class="form-control" name="farm_location">
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="form-label">Proposed Amount</label>
+                                <input type="number" class="form-control" name="proposed_amount" min="0" step="0.01" value="0">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Allocated Amount</label>
+                                <input type="number" class="form-control" name="allocated_amount" min="0" step="0.01" value="0">
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label class="form-label">Description / Specifications</label>
+                            <textarea class="form-control" name="description" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save machinery</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Project Modal -->
     <div class="modal fade" id="editModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
@@ -621,15 +688,19 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
                 </div>
                 <div class="modal-body">
                     <form id="editForm">
+                        <input type="hidden" name="physical_progress" id="editPhysicalProgressInput" value="<?php echo (float) $project['physical_progress']; ?>">
+                        <input type="hidden" name="financial_progress" id="editFinancialProgressInput" value="<?php echo (float) $project['financial_progress']; ?>">
                         <div class="mb-3">
-                            <label class="form-label">Physical Progress (%)</label>
-                            <input type="number" class="form-control" name="physical_progress" 
-                                   min="0" max="100" step="0.1" value="<?php echo $project['physical_progress']; ?>">
+                            <label class="form-label">Physical Progress Checklist</label>
+                            <p class="text-muted small mb-2">Check completed items. Physical progress updates automatically.</p>
+                            <div id="physicalChecklist" class="border rounded p-3"></div>
+                            <div class="small mt-2">Calculated Physical Progress: <strong id="physicalChecklistTotal">0%</strong></div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Financial Progress (%)</label>
-                            <input type="number" class="form-control" name="financial_progress" 
-                                   min="0" max="100" step="0.1" value="<?php echo $project['financial_progress']; ?>">
+                            <label class="form-label">Financial Progress Checklist</label>
+                            <p class="text-muted small mb-2">Check completed disbursement milestones. Financial progress updates automatically.</p>
+                            <div id="financialChecklist" class="border rounded p-3"></div>
+                            <div class="small mt-2">Calculated Financial Progress: <strong id="financialChecklistTotal">0%</strong></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Current Stage</label>
@@ -653,18 +724,88 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
     </div>
 
     <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
-=========
     <script src="assets/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/app-modal.js"></script>
->>>>>>>>> Temporary merge branch 2
     <script src="assets/js/form-validator.js"></script>
     <script>
         const projectType = '<?php echo htmlspecialchars($project_type); ?>';
         const projectId = <?php echo (int)$project_id; ?>;
+        const isProjectLockedForUpdates = <?php echo $isLockedProject ? 'true' : 'false'; ?>;
+        const initialPhysicalProgress = <?php echo (float) $project['physical_progress']; ?>;
+        const initialFinancialProgress = <?php echo (float) $project['financial_progress']; ?>;
+        const physicalChecklistItems = [
+            { key: 'site_validation', label: 'Site validation completed', weight: 10 },
+            { key: 'design_approved', label: 'Detailed design approved', weight: 10 },
+            { key: 'procurement_started', label: 'Procurement started', weight: 15 },
+            { key: 'mobilization_done', label: 'Mobilization completed', weight: 15 },
+            { key: 'mid_implementation', label: 'Mid implementation milestone reached', weight: 20 },
+            { key: 'qa_passed', label: 'Quality assurance checks passed', weight: 15 },
+            { key: 'final_inspection', label: 'Final inspection completed', weight: 10 },
+            { key: 'turnover_done', label: 'Turnover completed', weight: 5 }
+        ];
+        const financialChecklistItems = [
+            { key: 'budget_obligated', label: 'Budget obligation recorded', weight: 20 },
+            { key: 'first_disbursement', label: 'First disbursement released', weight: 20 },
+            { key: 'midterm_disbursement', label: 'Midterm disbursement released', weight: 20 },
+            { key: 'final_disbursement', label: 'Final disbursement released', weight: 20 },
+            { key: 'liquidation_cleared', label: 'Liquidation and audit cleared', weight: 20 }
+        ];
+
+        function checkedKeysFromProgress(items, progressValue) {
+            const target = Math.max(0, Math.min(100, Number(progressValue) || 0));
+            const keys = [];
+            let running = 0;
+            for (const item of items) {
+                if (running >= target) break;
+                keys.push(item.key);
+                running += item.weight;
+            }
+            return keys;
+        }
+
+        function renderChecklist(containerId, items, checkedKeys, totalElId, hiddenInputId) {
+            const container = document.getElementById(containerId);
+            const totalEl = document.getElementById(totalElId);
+            const hiddenInput = document.getElementById(hiddenInputId);
+            if (!container || !totalEl || !hiddenInput) return;
+            container.innerHTML = items.map((item, idx) => `
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="${containerId}_${idx}" data-weight="${item.weight}" value="${item.key}" ${checkedKeys.includes(item.key) ? 'checked' : ''}>
+                    <label class="form-check-label" for="${containerId}_${idx}">
+                        ${item.label} <span class="text-muted">(+${item.weight}%)</span>
+                    </label>
+                </div>
+            `).join('');
+
+            const recalc = () => {
+                const total = Array.from(container.querySelectorAll('input[type="checkbox"]:checked'))
+                    .reduce((sum, input) => sum + Number(input.getAttribute('data-weight') || 0), 0);
+                const safeTotal = Math.max(0, Math.min(100, total));
+                totalEl.textContent = `${safeTotal}%`;
+                hiddenInput.value = String(safeTotal);
+            };
+
+            container.addEventListener('change', recalc);
+            recalc();
+        }
 
         // Edit button
         document.getElementById('editBtn').addEventListener('click', function() {
             const modal = new bootstrap.Modal(document.getElementById('editModal'));
+            renderChecklist(
+                'physicalChecklist',
+                physicalChecklistItems,
+                checkedKeysFromProgress(physicalChecklistItems, initialPhysicalProgress),
+                'physicalChecklistTotal',
+                'editPhysicalProgressInput'
+            );
+            renderChecklist(
+                'financialChecklist',
+                financialChecklistItems,
+                checkedKeysFromProgress(financialChecklistItems, initialFinancialProgress),
+                'financialChecklistTotal',
+                'editFinancialProgressInput'
+            );
             modal.show();
         });
         document.getElementById('printBtn').addEventListener('click', function() {
@@ -696,6 +837,10 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
         if (uploadDocumentForm) {
             uploadDocumentForm.addEventListener('submit', async function (e) {
                 e.preventDefault();
+                if (isProjectLockedForUpdates) {
+                    await AppModal.alert('This project is rejected or archived. Document uploads are disabled.', { title: 'View-only project', variant: 'danger' });
+                    return;
+                }
                 const formData = new FormData(this);
                 const submitBtn = this.querySelector('button[type="submit"]');
                 const prev = submitBtn ? submitBtn.innerHTML : '';
@@ -732,6 +877,10 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
         if (addFinancialForm) {
             addFinancialForm.addEventListener('submit', async function (e) {
                 e.preventDefault();
+                if (isProjectLockedForUpdates) {
+                    await AppModal.alert('This project is rejected or archived. Financial uploads are disabled.', { title: 'View-only project', variant: 'danger' });
+                    return;
+                }
                 const formData = new FormData(this);
                 const submitBtn = this.querySelector('button[type="submit"]');
                 const prev = submitBtn ? submitBtn.innerHTML : '';
@@ -764,8 +913,48 @@ $financialProgressWidth = max(0, min(100, $financialProgressRaw));
             });
         }
 
+        const afmeMachineryForm = document.getElementById('afmeMachineryForm');
+        if (afmeMachineryForm) {
+            afmeMachineryForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const prev = submitBtn ? submitBtn.innerHTML : '';
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                }
+                try {
+                    const response = await fetch('add-afme-machinery.php', {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'same-origin',
+                    });
+                    const data = await response.json().catch(function () { return {}; });
+                    if (response.ok && data.status === 'success') {
+                        await AppModal.alert(data.message || 'Machinery added successfully', { title: 'Saved', variant: 'success' });
+                        location.reload();
+                    } else {
+                        await AppModal.alert(data.message || 'Failed to add machinery', { title: 'Save failed', variant: 'danger' });
+                    }
+                } catch (err) {
+                    console.error(err);
+                    await AppModal.alert('Failed to add machinery', { title: 'Error', variant: 'danger' });
+                } finally {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = prev;
+                    }
+                }
+            });
+        }
+
         // Save edit
         document.getElementById('saveEditBtn').addEventListener('click', async function() {
+            if (isProjectLockedForUpdates) {
+                await AppModal.alert('This project is rejected or archived. Editing is disabled.', { title: 'View-only project', variant: 'danger' });
+                return;
+            }
             const formData = new FormData(document.getElementById('editForm'));
             const payload = Object.fromEntries(formData.entries());
             try {

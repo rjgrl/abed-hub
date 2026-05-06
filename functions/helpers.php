@@ -87,6 +87,36 @@ function isValidEmail($email) {
 }
 
 /**
+ * First column of the first row (COUNT/SUM/etc.). On SQL failure logs and returns $default.
+ */
+function db_query_scalar(mysqli $conn, string $sql, $default = 0)
+{
+    $r = $conn->query($sql);
+    if (!$r) {
+        error_log('db_query_scalar: ' . $conn->error . ' | ' . $sql);
+        return $default;
+    }
+    $row = $r->fetch_assoc();
+    if (!$row) {
+        return $default;
+    }
+    return reset($row);
+}
+
+/**
+ * All rows as associative arrays. On SQL failure logs and returns [].
+ */
+function db_query_all_assoc(mysqli $conn, string $sql): array
+{
+    $r = $conn->query($sql);
+    if (!$r) {
+        error_log('db_query_all_assoc: ' . $conn->error . ' | ' . $sql);
+        return [];
+    }
+    return $r->fetch_all(MYSQLI_ASSOC);
+}
+
+/**
  * Display name from separate first and last name fields.
  */
 function user_display_name($first_name, $last_name) {
@@ -96,6 +126,73 @@ function user_display_name($first_name, $last_name) {
         return '';
     }
     return trim($first . ' ' . $last);
+}
+
+/**
+ * Next EMP-{YEAR}-{NNN} based on existing rows for that year (auto-increment sequence).
+ */
+function generate_next_employee_id(mysqli $conn): string
+{
+    $year = date('Y');
+    $prefix = 'EMP-' . $year . '-';
+    $like = $prefix . '%';
+
+    $stmt = $conn->prepare('SELECT employee_id FROM users WHERE employee_id LIKE ?');
+    $stmt->bind_param('s', $like);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $max = 0;
+    $pattern = '/^' . preg_quote($prefix, '/') . '(\d+)$/';
+    while ($row = $result->fetch_assoc()) {
+        if (preg_match($pattern, (string) $row['employee_id'], $m)) {
+            $max = max($max, (int) $m[1]);
+        }
+    }
+    $stmt->close();
+
+    $next = $max + 1;
+    return $prefix . str_pad((string) $next, 3, '0', STR_PAD_LEFT);
+}
+
+/**
+ * Add google_sub for Google Sign-In (OpenID Connect).
+ */
+function ensure_users_google_oauth_schema(mysqli $conn): void
+{
+    if (!defined('DB_NAME')) {
+        return;
+    }
+    $db = $conn->real_escape_string(DB_NAME);
+    $r = $conn->query("SELECT COUNT(*) AS c FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = '{$db}' AND TABLE_NAME = 'users' AND COLUMN_NAME = 'google_sub'");
+    if ($r && ($row = $r->fetch_assoc()) && (int) $row['c'] > 0) {
+        return;
+    }
+
+    $conn->query("ALTER TABLE users ADD COLUMN google_sub VARCHAR(255) NULL DEFAULT NULL AFTER email");
+    if ($conn->errno) {
+        error_log('ensure_users_google_oauth_schema add google_sub failed: ' . $conn->error);
+        return;
+    }
+    $conn->query('ALTER TABLE users ADD UNIQUE INDEX idx_users_google_sub (google_sub)');
+}
+
+/**
+ * Ensure profile_picture column exists (used by Google avatar and My Account uploads).
+ */
+function ensure_users_profile_picture_schema(mysqli $conn): void
+{
+    if (!defined('DB_NAME')) {
+        return;
+    }
+    $db = $conn->real_escape_string(DB_NAME);
+    $r = $conn->query("SELECT COUNT(*) AS c FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = '{$db}' AND TABLE_NAME = 'users' AND COLUMN_NAME = 'profile_picture'");
+    if ($r && ($row = $r->fetch_assoc()) && (int) $row['c'] > 0) {
+        return;
+    }
+    $conn->query('ALTER TABLE users ADD COLUMN profile_picture VARCHAR(500) NULL AFTER office_unit');
 }
 
 /**
@@ -150,6 +247,60 @@ function ensure_users_first_last_name_schema(mysqli $conn): void {
 
     $conn->query("ALTER TABLE users ADD COLUMN first_name VARCHAR(255) NOT NULL DEFAULT '' AFTER email");
     $conn->query("ALTER TABLE users ADD COLUMN last_name VARCHAR(255) NOT NULL DEFAULT '' AFTER first_name");
+}
+
+/**
+ * Ensure users.role is ENUM('admin','employee') so signups can use role = employee.
+ * Migrates legacy ENUM('admin','coordinator','operator','viewer') on first connect.
+ */
+function ensure_users_role_admin_employee_schema(mysqli $conn): void
+{
+    if (!defined('DB_NAME')) {
+        return;
+    }
+    $db = $conn->real_escape_string(DB_NAME);
+    $r = $conn->query("SELECT COLUMN_TYPE FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = '{$db}' AND TABLE_NAME = 'users' AND COLUMN_NAME = 'role' LIMIT 1");
+    if (!$r || !($row = $r->fetch_assoc())) {
+        return;
+    }
+    $colType = (string) ($row['COLUMN_TYPE'] ?? '');
+    if (stripos($colType, 'enum(') === false) {
+        return;
+    }
+
+    $hasEmployee = stripos($colType, "'employee'") !== false;
+    $hasLegacy = stripos($colType, "'operator'") !== false
+        || stripos($colType, "'viewer'") !== false
+        || stripos($colType, "'coordinator'") !== false;
+
+    if ($hasEmployee && !$hasLegacy) {
+        return;
+    }
+
+    if (!$hasEmployee && $hasLegacy) {
+        $conn->query("ALTER TABLE users MODIFY COLUMN role ENUM(
+            'admin','coordinator','operator','viewer','employee'
+        ) NOT NULL DEFAULT 'operator'");
+        if ($conn->errno) {
+            error_log('ensure_users_role_admin_employee_schema expand failed: ' . $conn->error);
+            return;
+        }
+        $conn->query("UPDATE users SET role = 'employee' WHERE role IN ('coordinator','operator','viewer')");
+        $conn->query("ALTER TABLE users MODIFY COLUMN role ENUM('admin','employee') NOT NULL DEFAULT 'employee'");
+        if ($conn->errno) {
+            error_log('ensure_users_role_admin_employee_schema shrink failed: ' . $conn->error);
+        }
+        return;
+    }
+
+    if ($hasEmployee && $hasLegacy) {
+        $conn->query("UPDATE users SET role = 'employee' WHERE role IN ('coordinator','operator','viewer')");
+        $conn->query("ALTER TABLE users MODIFY COLUMN role ENUM('admin','employee') NOT NULL DEFAULT 'employee'");
+        if ($conn->errno) {
+            error_log('ensure_users_role_admin_employee_schema finalize failed: ' . $conn->error);
+        }
+    }
 }
 
 /**
@@ -220,7 +371,7 @@ function getUserId() {
  * Get session user role
  */
 function getUserRole() {
-    return $_SESSION['role'] ?? 'viewer';
+    return $_SESSION['role'] ?? 'employee';
 }
 
 /**
@@ -296,7 +447,7 @@ define('PROJECT_TYPES', ['FSPF', 'IDP', 'AFME']);
 define('PROJECT_STAGES', ['Proposal', 'Pre-Implementation', 'Procurement', 'Implementation', 'Completed']);
 define('PROPOSAL_STATUS', ['For Validation', 'Proposal Validated', 'Not Feasible', 'Archived', 'Cancelled']);
 define('SCOPE_OF_WORK', ['Construction', 'Rehabilitation', 'Upgrading', 'Additional Work']);
-define('USER_ROLES', ['admin', 'operator', 'viewer']);
+define('USER_ROLES', ['admin', 'employee']);
 
 /**
  * CSS classes for project lifecycle stage badges (see .stage-badge in assets/css/style.css).

@@ -196,6 +196,31 @@ function adjustAppMainMargins() {
 window.addEventListener("load", adjustAppMainMargins);
 window.addEventListener("resize", adjustAppMainMargins);
 
+document.addEventListener("click", async (event) => {
+  const logoutLink = event.target.closest('a[href="logout.php"]');
+  if (!logoutLink) return;
+  event.preventDefault();
+
+  if (typeof AppModal !== "undefined" && typeof AppModal.confirm === "function") {
+    const ok = await AppModal.confirm(
+      "Are you sure you want to log out?",
+      {
+        title: "Confirm logout",
+        variant: "warning",
+        confirmLabel: "Log out",
+      },
+    );
+    if (ok) {
+      window.location.href = logoutLink.href;
+    }
+    return;
+  }
+
+  if (window.confirm("Are you sure you want to log out?")) {
+    window.location.href = logoutLink.href;
+  }
+});
+
 // Export for use in other files
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {

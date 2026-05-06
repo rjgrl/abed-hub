@@ -14,9 +14,7 @@ $success_message = '';
 function ensureProfileColumns(mysqli $conn): void
 {
     $required_columns = [
-        'address' => "ALTER TABLE users ADD COLUMN address VARCHAR(255) NULL AFTER office_unit",
-        'contact_number' => "ALTER TABLE users ADD COLUMN contact_number VARCHAR(50) NULL AFTER address",
-        'profile_picture' => "ALTER TABLE users ADD COLUMN profile_picture VARCHAR(500) NULL AFTER contact_number",
+        'profile_picture' => "ALTER TABLE users ADD COLUMN profile_picture VARCHAR(500) NULL AFTER office_unit",
     ];
 
     foreach ($required_columns as $column => $sql) {
@@ -45,8 +43,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $first_name = trim($_POST['first_name'] ?? '');
     $last_name = trim($_POST['last_name'] ?? '');
     $email = trim($_POST['email'] ?? '');
-    $address = trim($_POST['address'] ?? '');
-    $contact_number = trim($_POST['contact_number'] ?? '');
 
     if ($first_name === '' || $last_name === '') {
         $errors[] = 'First name and last name are required.';
@@ -54,10 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors[] = 'A valid email address is required.';
-    }
-
-    if ($contact_number !== '' && !preg_match('/^[0-9+\-\s()]{7,20}$/', $contact_number)) {
-        $errors[] = 'Contact number format is invalid.';
     }
 
     $profile_picture_path = null;
@@ -111,17 +103,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($profile_picture_path !== null) {
                 $update_stmt = $conn->prepare("
                     UPDATE users
-                    SET first_name = ?, last_name = ?, email = ?, address = ?, contact_number = ?, profile_picture = ?
+                    SET first_name = ?, last_name = ?, email = ?, profile_picture = ?
                     WHERE id = ?
                 ");
-                $update_stmt->bind_param("ssssssi", $first_name, $last_name, $email, $address, $contact_number, $profile_picture_path, $user_id);
+                $update_stmt->bind_param("ssssi", $first_name, $last_name, $email, $profile_picture_path, $user_id);
             } else {
                 $update_stmt = $conn->prepare("
                     UPDATE users
-                    SET first_name = ?, last_name = ?, email = ?, address = ?, contact_number = ?
+                    SET first_name = ?, last_name = ?, email = ?
                     WHERE id = ?
                 ");
-                $update_stmt->bind_param("sssssi", $first_name, $last_name, $email, $address, $contact_number, $user_id);
+                $update_stmt->bind_param("sssi", $first_name, $last_name, $email, $user_id);
             }
 
             if ($update_stmt->execute()) {
@@ -220,24 +212,9 @@ renderAppLayout($page_title);
                             </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="email" class="form-label fw-semibold">Email</label>
-                                    <input type="email" class="form-control" id="email" name="email" required value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="contact_number" class="form-label fw-semibold">Contact Number</label>
-                                    <input type="text" class="form-control" id="contact_number" name="contact_number" value="<?php echo htmlspecialchars($user['contact_number'] ?? ''); ?>" placeholder="+63...">
-                                </div>
-                            </div>
-                        </div>
-
                         <div class="mb-3">
-                            <label for="address" class="form-label fw-semibold">Address</label>
-                            <textarea class="form-control" id="address" name="address" rows="3" placeholder="Enter your complete address"><?php echo htmlspecialchars($user['address'] ?? ''); ?></textarea>
+                            <label for="email" class="form-label fw-semibold">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>">
                         </div>
 
                         <div class="row">
@@ -274,8 +251,5 @@ renderAppLayout($page_title);
         </div>
     </div>
 </div>
-</main>
-
-<script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
 <?php renderAppLayoutFooter(); ?>
 

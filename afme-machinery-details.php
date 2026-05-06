@@ -74,7 +74,7 @@ $turnover = [
 ];
 
 $user_id = $_SESSION['user_id'];
-$user_role = $_SESSION['role'] ?? 'viewer';
+$user_role = $_SESSION['role'] ?? 'employee';
 ?>
 <?php
 require_once __DIR__ . '/components/layout.php';
@@ -305,6 +305,100 @@ renderAppLayout($page_title);
                                 <?php endif; ?>
                                 <?php else: ?>
                                 <p class="text-muted">No specifications recorded yet.</p>
+                                <?php endif; ?>
+
+                                <?php if (isSuperAdmin()): ?>
+                                <hr class="my-4">
+                                <h6 class="text-primary">Edit AFME Technical & Operations Fields</h6>
+                                <form id="updateAfmeProfileForm">
+                                    <input type="hidden" name="machinery_id" value="<?php echo (int) $id; ?>">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Machine Name</label>
+                                            <input type="text" class="form-control" name="machine_name" value="<?php echo htmlspecialchars((string) ($machinery['machine_name'] ?? '')); ?>" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Machine ID</label>
+                                            <input type="text" class="form-control" name="machine_id" value="<?php echo htmlspecialchars((string) ($machinery['machine_id'] ?? '')); ?>">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Machinery Type</label>
+                                            <input type="text" class="form-control" name="machinery_type" value="<?php echo htmlspecialchars((string) ($machinery['machinery_type'] ?? '')); ?>">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Mode of Procurement</label>
+                                            <select class="form-select" name="mode_of_procurement">
+                                                <option value="">-- Select --</option>
+                                                <?php $mop = (string) ($machinery['mode_of_procurement'] ?? ''); ?>
+                                                <option value="Public Bidding" <?php echo $mop === 'Public Bidding' ? 'selected' : ''; ?>>Public Bidding</option>
+                                                <option value="Small Value Procurement" <?php echo $mop === 'Small Value Procurement' ? 'selected' : ''; ?>>Small Value Procurement</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Brand</label>
+                                            <input type="text" class="form-control" name="brand" value="<?php echo htmlspecialchars((string) ($machinery['brand'] ?? '')); ?>">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Engine Type</label>
+                                            <input type="text" class="form-control" name="engine_type" value="<?php echo htmlspecialchars((string) ($machinery['engine_type'] ?? '')); ?>">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Serial Number</label>
+                                            <input type="text" class="form-control" name="serial_number" value="<?php echo htmlspecialchars((string) ($machinery['serial_number'] ?? '')); ?>">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Chassis Serial Number</label>
+                                            <input type="text" class="form-control" name="chassis_serial_number" value="<?php echo htmlspecialchars((string) ($machinery['chassis_serial_number'] ?? '')); ?>">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Service Area</label>
+                                            <input type="text" class="form-control" name="service_area" value="<?php echo htmlspecialchars((string) ($machinery['service_area'] ?? '')); ?>">
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label class="form-label">Specifications</label>
+                                            <textarea class="form-control" name="specifications" rows="3"><?php echo htmlspecialchars((string) ($machinery['specifications'] ?? '')); ?></textarea>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Operation Status</label>
+                                            <?php $opStatus = (string) ($machinery['operation_status'] ?? ''); ?>
+                                            <select class="form-select" name="operation_status">
+                                                <option value="">-- Select --</option>
+                                                <option value="Operational" <?php echo $opStatus === 'Operational' ? 'selected' : ''; ?>>Operational</option>
+                                                <option value="Non-operational" <?php echo $opStatus === 'Non-operational' ? 'selected' : ''; ?>>Non-operational</option>
+                                                <option value="Intermittently Operational" <?php echo $opStatus === 'Intermittently Operational' ? 'selected' : ''; ?>>Intermittently Operational</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Date Received</label>
+                                            <input type="date" class="form-control" name="date_receipt" value="<?php echo htmlspecialchars((string) ($machinery['date_receipt'] ?? '')); ?>">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Last Maintenance Date</label>
+                                            <input type="date" class="form-control" name="last_maintenance_date" value="<?php echo htmlspecialchars((string) ($machinery['last_maintenance_date'] ?? '')); ?>">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Serviceability Status</label>
+                                            <input type="text" class="form-control" name="serviceability_status" value="<?php echo htmlspecialchars((string) ($machinery['serviceability_status'] ?? '')); ?>">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Audit Date</label>
+                                            <input type="date" class="form-control" name="audit_date" value="<?php echo htmlspecialchars((string) ($machinery['audit_date'] ?? '')); ?>">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Operational Remarks</label>
+                                            <textarea class="form-control" name="operational_remarks" rows="2"><?php echo htmlspecialchars((string) ($machinery['operational_remarks'] ?? '')); ?></textarea>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Maintenance Remarks</label>
+                                            <textarea class="form-control" name="maintenance_remarks" rows="2"><?php echo htmlspecialchars((string) ($machinery['maintenance_remarks'] ?? '')); ?></textarea>
+                                        </div>
+                                        <div class="col-12 text-end">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-save me-1"></i>Save AFME Fields
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
                                 <?php endif; ?>
                             </div>
 
@@ -609,11 +703,6 @@ renderAppLayout($page_title);
             </div>
         </div>
     </div>
-    <script src="assets/bootstrap/js/bootstrap.bundle.js"></script>
-<<<<<<< HEAD
-    <script src="assets/js/app-modal.js"></script>
-=======
->>>>>>> 3f1c0e8f0aa70dc176f1abf35007e71912fff389
     <script src="assets/js/afme-machinery-details.js"></script>
     <?php renderAppLayoutFooter(); ?>
 

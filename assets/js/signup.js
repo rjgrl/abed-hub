@@ -18,6 +18,24 @@ document.addEventListener("DOMContentLoaded", function () {
   if (signupForm) {
     signupForm.addEventListener("submit", handleSignupSubmit);
   }
+
+  const googleSignupBtn = document.getElementById("googleSignupBtn");
+  const googleSignupOffice = document.getElementById("googleSignupOfficeUnit");
+  const googleSignupForm = document.getElementById("googleSignupForm");
+  const officeSelect = document.querySelector('select[name="officeUnit"]');
+
+  if (googleSignupBtn && googleSignupForm && googleSignupOffice && officeSelect) {
+    googleSignupBtn.addEventListener("click", function () {
+      const unit = officeSelect.value;
+      if (!unit) {
+        showAlert("Please select your Office Unit before signing up with Google.", "warning");
+        officeSelect.focus();
+        return;
+      }
+      googleSignupOffice.value = unit;
+      googleSignupForm.submit();
+    });
+  }
 });
 
 /**

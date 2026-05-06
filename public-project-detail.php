@@ -103,7 +103,7 @@ $stageShort = (string) ($project['current_stage'] ?? '');
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
-<body class="public-home">
+<body class="public-home public-catalog-detail">
     <header class="public-header">
       <div class="container">
         <nav class="navbar navbar-expand-lg py-3 align-items-lg-center public-navbar" aria-label="Public navigation">
@@ -128,7 +128,8 @@ $stageShort = (string) ($project['current_stage'] ?? '');
 
     <main class="py-4">
         <div class="container">
-            <div class="row align-items-center mb-4">
+            <div class="public-catalog-detail-hero">
+            <div class="row align-items-center mb-3">
                 <div class="col">
                     <div class="d-flex align-items-center gap-3 flex-wrap">
                         <div>
@@ -138,14 +139,14 @@ $stageShort = (string) ($project['current_stage'] ?? '');
                             </span>
                         </div>
                         <div>
-                            <h1 class="h3 mb-1"><?php echo htmlspecialchars((string) $project['project_code']); ?></h1>
-                            <p class="text-muted mb-0"><?php echo htmlspecialchars((string) $project['project_title']); ?></p>
+                            <h1 class="h3 mb-1 public-catalog-detail-title"><?php echo htmlspecialchars((string) $project['project_code']); ?></h1>
+                            <p class="public-catalog-detail-subtitle mb-0"><?php echo htmlspecialchars((string) $project['project_title']); ?></p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <ul class="nav nav-tabs mb-4" role="tablist">
+            <ul class="nav nav-tabs public-catalog-nav-tabs mb-4" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="pub-overview-tab" data-bs-toggle="tab" data-bs-target="#pub-overview" type="button" role="tab">
                         <i class="fas fa-info-circle"></i> Overview
@@ -169,6 +170,7 @@ $stageShort = (string) ($project['current_stage'] ?? '');
                 </li>
                 <?php endif; ?>
             </ul>
+            </div>
 
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="pub-overview" role="tabpanel">
@@ -191,14 +193,16 @@ $stageShort = (string) ($project['current_stage'] ?? '');
                                 <div class="card-body">
                                     <div class="mb-3">
                                         <label class="form-label">Physical: <strong><?php echo $physicalProgressDisplay; ?>%</strong></label>
-                                        <div class="progress progress-lg">
+                                        <div class="progress progress-lg progress-with-centered-label" style="--progress-label-color: <?php echo $physicalProgressWidth >= 55 ? '#fff' : '#111827'; ?>;">
                                             <div class="progress-bar progress-bar-physical progress-bar-w" style="--w: <?php echo $physicalProgressWidth; ?>%;"></div>
+                                            <span class="progress-centered-label"><?php echo $physicalProgressDisplay; ?>%</span>
                                         </div>
                                     </div>
                                     <div class="mb-0">
                                         <label class="form-label">Financial: <strong><?php echo $financialProgressDisplay; ?>%</strong></label>
-                                        <div class="progress progress-lg">
+                                        <div class="progress progress-lg progress-with-centered-label" style="--progress-label-color: <?php echo $financialProgressWidth >= 55 ? '#fff' : '#111827'; ?>;">
                                             <div class="progress-bar bg-success progress-bar-w" style="--w: <?php echo $financialProgressWidth; ?>%;"></div>
+                                            <span class="progress-centered-label"><?php echo $financialProgressDisplay; ?>%</span>
                                         </div>
                                     </div>
                                 </div>

@@ -20,14 +20,32 @@ if (!in_array($uploadSourceFilter, $allowedUploadSource, true)) {
     $uploadSourceFilter = 'all';
 }
 
+$hasProjectRejectionCommentColumn = false;
+$rejectionColCheck = $conn->query("SHOW COLUMNS FROM projects LIKE 'rejection_comment'");
+if ($rejectionColCheck && $rejectionColCheck->num_rows > 0) {
+    $hasProjectRejectionCommentColumn = true;
+}
+
+$hasUserRejectionReasonColumn = false;
+$userRejectionColCheck = $conn->query("SHOW COLUMNS FROM users LIKE 'rejection_reason'");
+if ($userRejectionColCheck && $userRejectionColCheck->num_rows > 0) {
+    $hasUserRejectionReasonColumn = true;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'review_pending_project') {
     $recordId = (int) ($_POST['record_id'] ?? 0);
     $decision = (string) ($_POST['decision'] ?? '');
+    $rejectionComment = trim((string) ($_POST['rejection_comment'] ?? ''));
+    $rejectionConfirm = trim((string) ($_POST['rejection_confirm'] ?? ''));
     $allowedDecisions = ['Approved', 'Rejected'];
     if ($recordId <= 0 || !in_array($decision, $allowedDecisions, true)) {
         $error_msg = 'Invalid project review request.';
+    } elseif ($decision === 'Rejected' && $rejectionComment === '') {
+        $error_msg = 'Rejection comment is required.';
+    } elseif ($decision === 'Rejected' && strtoupper($rejectionConfirm) !== 'CONFIRM') {
+        $error_msg = 'To reject a project, type CONFIRM in the confirmation field.';
     } else {
-        $chk = $conn->prepare('SELECT id, approval_status FROM projects WHERE id = ? LIMIT 1');
+        $chk = $conn->prepare('SELECT id, approval_status, user_id, title, project_code FROM projects WHERE id = ? LIMIT 1');
         $chk->bind_param('i', $recordId);
         $chk->execute();
         $prow = $chk->get_result()->fetch_assoc();
@@ -35,15 +53,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'revie
         if (!$prow || (string) ($prow['approval_status'] ?? '') !== 'Pending') {
             $error_msg = 'Project not found or not pending approval.';
         } else {
-            $up = $conn->prepare('UPDATE projects SET approval_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND approval_status = ?');
             $pending = 'Pending';
-            $up->bind_param('sis', $decision, $recordId, $pending);
+            if ($hasProjectRejectionCommentColumn) {
+                $up = $conn->prepare('
+                    UPDATE projects
+                    SET approval_status = ?,
+                        rejection_comment = ?,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ? AND approval_status = ?
+                ');
+                $commentForSave = $decision === 'Rejected' ? $rejectionComment : null;
+                $up->bind_param('ssis', $decision, $commentForSave, $recordId, $pending);
+            } else {
+                $up = $conn->prepare('
+                    UPDATE projects
+                    SET approval_status = ?,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ? AND approval_status = ?
+                ');
+                $up->bind_param('sis', $decision, $recordId, $pending);
+            }
             if ($up->execute() && $up->affected_rows > 0) {
                 $success_msg = $decision === 'Approved'
                     ? 'Project approved and is now visible in the catalog.'
                     : 'Project registration rejected.';
+
+                $ownerId = (int) ($prow['user_id'] ?? 0);
+                if ($ownerId > 0) {
+                    $projectCode = trim((string) ($prow['project_code'] ?? ''));
+                    $projectTitle = trim((string) ($prow['title'] ?? 'Untitled Project'));
+                    $projectLabel = ($projectCode !== '' ? $projectCode . ' - ' : '') . $projectTitle;
+                    $notifTitle = $decision === 'Approved' ? 'Project Approved' : 'Project Rejected';
+                    $notifType = $decision === 'Approved' ? 'project_approved' : 'project_rejected';
+                    $notifMessage = $decision === 'Approved'
+                        ? "Your project {$projectLabel} has been approved."
+                        : "Your project {$projectLabel} was rejected. Feedback: {$rejectionComment}";
+
+                    $notifStmt = $conn->prepare(
+                        'INSERT INTO notifications (user_id, project_id, alert_type, title, message, is_read, created_at)
+                         VALUES (?, ?, ?, ?, ?, 0, NOW())'
+                    );
+                    if ($notifStmt) {
+                        $notifStmt->bind_param('iisss', $ownerId, $recordId, $notifType, $notifTitle, $notifMessage);
+                        $notifStmt->execute();
+                        $notifStmt->close();
+                    }
+                }
+
                 logAudit('ADMIN_REVIEW_PROJECT_REGISTRATION', null, $recordId, null, [
                     'decision' => $decision,
+                    'rejection_comment' => $decision === 'Rejected' ? $rejectionComment : null,
                 ]);
             } else {
                 $error_msg = 'Failed to update project approval status.';
@@ -117,13 +176,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'revie
     }
 }
 
-$pendingUsers = $conn->query("
+$pendingUsersSql = "
     SELECT id, first_name, last_name, email, office_unit, created_at
     FROM users
     WHERE is_active = 0
+";
+if ($hasUserRejectionReasonColumn) {
+    $pendingUsersSql .= " AND (rejection_reason IS NULL OR rejection_reason = '')";
+}
+$pendingUsersSql .= "
     ORDER BY created_at ASC
     LIMIT 50
-")->fetch_all(MYSQLI_ASSOC);
+";
+$pendingUsersResult = $conn->query($pendingUsersSql);
+$pendingUsers = $pendingUsersResult ? $pendingUsersResult->fetch_all(MYSQLI_ASSOC) : [];
 
 $recentUploads = [];
 $allUploads = [];
@@ -141,13 +207,17 @@ if ($colCheck && $colCheck->num_rows > 0) {
     $hasProjectDocumentsColumn = true;
 }
 
-$projectRegs = $conn->query("
-    SELECT id, project_type, project_code, title, created_at, updated_at, user_id, approval_status
+$projectRegsSelect = "SELECT id, project_type, project_code, title, created_at, updated_at, user_id, approval_status";
+if ($hasProjectRejectionCommentColumn) {
+    $projectRegsSelect .= ", rejection_comment";
+}
+$projectRegsSelect .= "
     FROM projects
     WHERE approval_status IN ('Pending', 'Approved', 'Rejected')
     ORDER BY created_at DESC
     LIMIT 50
-");
+";
+$projectRegs = $conn->query($projectRegsSelect);
 if ($projectRegs) {
     foreach ($projectRegs->fetch_all(MYSQLI_ASSOC) as $row) {
         $uploaderId = (int) ($row['user_id'] ?? 0);
@@ -163,6 +233,7 @@ if ($projectRegs) {
             'uploaded_by_name' => $userNames[$uploaderId] ?? 'Unknown',
             'review_status' => (string) ($row['approval_status'] ?? 'Pending'),
             'project_code' => (string) ($row['project_code'] ?? ''),
+            'rejection_comment' => (string) ($row['rejection_comment'] ?? ''),
         ];
     }
 }
@@ -344,6 +415,14 @@ renderAppLayout($page_title);
                                                 <form method="POST" action="handlers/admin-user-approval.php" class="d-inline mb-0">
                                                     <input type="hidden" name="user_id" value="<?php echo (int) $user['id']; ?>">
                                                     <input type="hidden" name="decision" value="reject">
+                                                    <input
+                                                        type="text"
+                                                        name="rejection_reason"
+                                                        class="form-control form-control-sm d-inline-block me-2"
+                                                        style="width: 220px;"
+                                                        placeholder="Reason for account rejection"
+                                                        required
+                                                    >
                                                     <button class="btn btn-sm btn-outline-danger" type="submit">Reject</button>
                                                 </form>
                                             </div>
@@ -424,6 +503,22 @@ renderAppLayout($page_title);
                                                             <input type="hidden" name="action" value="review_pending_project">
                                                             <input type="hidden" name="record_id" value="<?php echo (int) $upload['record_id']; ?>">
                                                             <input type="hidden" name="decision" value="Rejected">
+                                                            <input
+                                                                type="text"
+                                                                name="rejection_comment"
+                                                                class="form-control form-control-sm d-inline-block me-2"
+                                                                style="width: 220px;"
+                                                                placeholder="Reason for rejection"
+                                                                required
+                                                            >
+                                                            <input
+                                                                type="text"
+                                                                name="rejection_confirm"
+                                                                class="form-control form-control-sm d-inline-block me-2"
+                                                                style="width: 170px;"
+                                                                placeholder='Type "CONFIRM"'
+                                                                required
+                                                            >
                                                             <button type="submit" class="btn btn-sm btn-outline-danger" title="Reject project registration">Reject</button>
                                                         </form>
                                                     <?php else: ?>
@@ -449,6 +544,11 @@ renderAppLayout($page_title);
                                                 <span class="badge <?php echo $reviewStatus === 'Approved' ? 'bg-success' : 'bg-danger'; ?>">
                                                     <?php echo htmlspecialchars($reviewStatus); ?>
                                                 </span>
+                                                <?php if ($isRegistration && $reviewStatus === 'Rejected' && trim((string) ($upload['rejection_comment'] ?? '')) !== ''): ?>
+                                                    <div class="small text-danger mt-1">
+                                                        Feedback: <?php echo htmlspecialchars((string) $upload['rejection_comment']); ?>
+                                                    </div>
+                                                <?php endif; ?>
                                             <?php endif; ?>
                                         </td>
                                     </tr>
@@ -464,4 +564,34 @@ renderAppLayout($page_title);
         </div>
     </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('form[data-reject-project-form], form input[name="decision"][value="Rejected"]').forEach(function (node) {
+        const form = node.tagName === 'FORM' ? node : node.closest('form');
+        if (!form || form.dataset.rejectGuardBound === '1') {
+            return;
+        }
+        form.dataset.rejectGuardBound = '1';
+        form.addEventListener('submit', async function (event) {
+            const decisionInput = form.querySelector('input[name="decision"]');
+            if (!decisionInput || decisionInput.value !== 'Rejected') {
+                return;
+            }
+            const ok = await AppModal.confirm(
+                'Reject this project registration? This action will notify the uploader.',
+                { title: 'Confirm project rejection', variant: 'danger', confirmLabel: 'Continue' }
+            );
+            if (!ok) {
+                event.preventDefault();
+                return;
+            }
+            const token = (form.querySelector('input[name="rejection_confirm"]')?.value || '').trim();
+            if (token.toUpperCase() !== 'CONFIRM') {
+                event.preventDefault();
+                await AppModal.alert('Please type CONFIRM to proceed with rejection.', { title: 'Confirmation required', variant: 'danger' });
+            }
+        });
+    });
+});
+</script>
 <?php renderAppLayoutFooter(); ?>
