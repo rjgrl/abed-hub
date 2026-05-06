@@ -6,6 +6,10 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../config/database.php';
 
+http_response_code(403);
+header('Content-Type: text/plain; charset=UTF-8');
+die('Public document viewing is disabled. Documents are private property.');
+
 $action = $_GET['action'] ?? 'preview';
 $projectId = (int) ($_GET['project_id'] ?? 0);
 $projectType = strtolower(trim((string) ($_GET['project_type'] ?? '')));

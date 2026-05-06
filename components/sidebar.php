@@ -80,7 +80,7 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
 
   <ul class="nav nav-pills flex-column">
     <li class="nav-item mb-2">
-      <a href="logout.php" class="nav-link app-sidebar-logout">
+      <a href="logout.php" class="nav-link app-sidebar-logout js-logout-link" data-logout-link="1">
         <i class="fas fa-sign-out-alt me-2"></i>Logout
       </a>
     </li>

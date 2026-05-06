@@ -2591,6 +2591,9 @@ body.public-home .public-feature-card h3 {
 .progress.progress-with-centered-label .progress-bar {
   position: absolute;
   inset: 0 auto 0 0;
+  width: var(--w, 0%);
+  color: transparent;
+  font-size: 0;
 }
 
 .progress.progress-with-centered-label .progress-centered-label {

@@ -6,6 +6,10 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../config/database.php';
 
+http_response_code(403);
+header('Content-Type: text/plain; charset=UTF-8');
+die('Public document viewing is disabled. Documents are private property.');
+
 $action = $_GET['action'] ?? 'preview';
 $machineryId = (int) ($_GET['machinery_id'] ?? 0);
 $docId = (int) ($_GET['id'] ?? 0);

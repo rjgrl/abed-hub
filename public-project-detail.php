@@ -157,11 +157,6 @@ $stageShort = (string) ($project['current_stage'] ?? '');
                         <i class="fas fa-money-bill"></i> Financial
                     </button>
                 </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="pub-documents-tab" data-bs-toggle="tab" data-bs-target="#pub-documents" type="button" role="tab">
-                        <i class="fas fa-file-circle-check"></i> Verified documents
-                    </button>
-                </li>
                 <?php if ($project_type === 'afme'): ?>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="pub-machinery-tab" data-bs-toggle="tab" data-bs-target="#pub-machinery" type="button" role="tab">
@@ -268,38 +263,6 @@ $stageShort = (string) ($project['current_stage'] ?? '');
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="pub-documents" role="tabpanel">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white"><h6 class="mb-0">Verified documents</h6></div>
-                        <div class="card-body">
-                            <p class="text-muted small">Only administrator-approved uploads are listed here.</p>
-                            <?php if (empty($documents)): ?>
-                            <div class="alert alert-light border mb-0">No verified documents for this project yet.</div>
-                            <?php else: ?>
-                            <div class="table-responsive">
-                                <table class="table table-sm">
-                                    <thead class="table-light">
-                                        <tr><th>Name</th><th>Type</th><th>Date</th><th></th></tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($documents as $doc): ?>
-                                        <tr>
-                                            <td><?php echo htmlspecialchars($doc['original_filename']); ?></td>
-                                            <td><?php echo htmlspecialchars($doc['document_type']); ?></td>
-                                            <td><?php echo $doc['upload_date'] !== '' ? date('M d, Y', strtotime($doc['upload_date'])) : '—'; ?></td>
-                                            <td class="text-end">
-                                                <a class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener" href="api/public-documents.php?action=preview&amp;project_id=<?php echo (int) $project_id; ?>&amp;project_type=<?php echo htmlspecialchars($project_type, ENT_QUOTES, 'UTF-8'); ?>&amp;id=<?php echo (int) $doc['id']; ?>">View</a>
-                                            </td>
-                                        </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
