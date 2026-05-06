@@ -58,7 +58,12 @@ $hasProfilePicture = $profilePicture !== '';
                 <a href="#" class="d-flex align-items-center text-decoration-none" id="userTopbarDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                     <div class="rounded-circle fw-bold text-white d-flex align-items-center justify-content-center app-user-avatar overflow-hidden<?php echo $hasProfilePicture ? '' : ' app-user-avatar--placeholder'; ?>">
                         <?php if ($hasProfilePicture): ?>
-                            <img src="<?php echo htmlspecialchars($profilePicture); ?>" alt="" class="w-100 h-100">
+                            <img
+                                src="<?php echo htmlspecialchars($profilePicture); ?>"
+                                alt=""
+                                class="w-100 h-100"
+                                onerror="this.onerror=null; this.parentElement.classList.add('app-user-avatar--placeholder'); this.replaceWith(document.createTextNode('<?php echo strtoupper(substr($userName, 0, 2)); ?>'));"
+                            >
                         <?php else: ?>
                             <?php echo strtoupper(substr($userName, 0, 2)); ?>
                         <?php endif; ?>

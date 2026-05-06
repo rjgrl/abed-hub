@@ -126,7 +126,7 @@ if ($user !== null) {
         $uidLocal = (int) $user['id'];
         if ($picture !== '') {
             $upd = $conn->prepare(
-                'UPDATE users SET google_sub = ?, profile_picture = COALESCE(profile_picture, ?) WHERE id = ? AND google_sub IS NULL'
+                'UPDATE users SET google_sub = ?, profile_picture = ? WHERE id = ? AND google_sub IS NULL'
             );
             $upd->bind_param('ssi', $sub, $picture, $uidLocal);
         } else {
@@ -147,6 +147,18 @@ if ($user !== null) {
         $stmt->execute();
         $user = $stmt->get_result()->fetch_assoc();
         $stmt->close();
+    }
+
+    // Always refresh avatar from Google on Google sign-in when available.
+    if ($picture !== '' && isset($user['id'])) {
+        $uidPicture = (int) $user['id'];
+        $updPic = $conn->prepare('UPDATE users SET profile_picture = ? WHERE id = ?');
+        if ($updPic) {
+            $updPic->bind_param('si', $picture, $uidPicture);
+            $updPic->execute();
+            $updPic->close();
+            $user['profile_picture'] = $picture;
+        }
     }
 }
 
