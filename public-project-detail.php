@@ -187,14 +187,14 @@ $stageShort = (string) ($project['current_stage'] ?? '');
                                 <div class="card-header bg-white"><h6 class="mb-0">Progress</h6></div>
                                 <div class="card-body">
                                     <div class="mb-3">
-                                        <label class="form-label">Physical: <strong><?php echo $physicalProgressDisplay; ?>%</strong></label>
+                                        <label class="form-label">Physical</label>
                                         <div class="progress progress-lg progress-with-centered-label" style="--progress-label-color: <?php echo $physicalProgressWidth >= 55 ? '#fff' : '#111827'; ?>;">
                                             <div class="progress-bar progress-bar-physical progress-bar-w" style="--w: <?php echo $physicalProgressWidth; ?>%;"></div>
                                             <span class="progress-centered-label"><?php echo $physicalProgressDisplay; ?>%</span>
                                         </div>
                                     </div>
                                     <div class="mb-0">
-                                        <label class="form-label">Financial: <strong><?php echo $financialProgressDisplay; ?>%</strong></label>
+                                        <label class="form-label">Financial</label>
                                         <div class="progress progress-lg progress-with-centered-label" style="--progress-label-color: <?php echo $financialProgressWidth >= 55 ? '#fff' : '#111827'; ?>;">
                                             <div class="progress-bar bg-success progress-bar-w" style="--w: <?php echo $financialProgressWidth; ?>%;"></div>
                                             <span class="progress-centered-label"><?php echo $financialProgressDisplay; ?>%</span>
