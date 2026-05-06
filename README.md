@@ -184,6 +184,7 @@ Open your domain/subfolder URL and confirm:
 - New account registrations are pending by default.
 - Super Admin approves/rejects accounts from Admin Dashboard.
 - Approved users can log in as employee/admin based on role.
+- PS: Since first accounts don't have admins to accept for them, please proceed to phpMyAdmin and select your user > change is_active to 1 > select role (admin or employee)
 
 ---
 
